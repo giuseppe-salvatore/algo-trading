@@ -1,21 +1,19 @@
-# README #
+# Algorithmic Trading Bot #
 
 This README would normally document whatever steps are necessary to get your application up and running.
 
-### What is this repository for? ###
+### Reason for this project ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* Understand a bit more about the world of financial trading
+* Enter the world of AI/Machine Learning
+* Trying to make some money more than shitty ISAs
 
-### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+### Dependencies ###
+
+* Alpaca Trading and Alpaca Stock Data API are used https://alpaca.markets/
+* The stock API uses REST but soon it's going to transition to websocket
+
 
 ### Contribution guidelines ###
 
