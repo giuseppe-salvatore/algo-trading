@@ -92,8 +92,8 @@ def main_print_loop():
 
             market_value = close_price * p.get_number_of_share_for(stock)
             original_cost = p.get_cost_for(stock)
-            print(stock + " marked value " + "{:.2f}".format(market_value))
-            print(stock + " original cost " + "{:.2f}".format(original_cost))
+            #print(stock + " marked value " + "{:.2f}".format(market_value))
+            #print(stock + " original cost " + "{:.2f}".format(original_cost))
             perc = (market_value - original_cost) 
 
             if stock not in perc_diff:
@@ -104,12 +104,16 @@ def main_print_loop():
         dataframe = pd.DataFrame(None,pd.DatetimeIndex(times),None)
         for stock in p.get_assets_invested():
             dataframe[stock] = np.array(perc_diff[stock])
-            dataframe[stock].plot(label=stock,figsize=(12,8),title='Return')
+            dataframe[stock].plot(label=stock,figsize=(15,10),title='Return')
 
         plt.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+        plt.grid()
         plt.draw()
+        #mng = plt.get_current_fig_manager()
+        #mng.frame.Maximize(True)
         plt.pause(0.005)
-        time.sleep(20)
+        
+        time.sleep(get_polling_rate_sec(now))
         plt.clf()
 
     
@@ -119,8 +123,36 @@ def main_print_loop():
         print(i)
 
 
+def get_polling_rate_sec(now):
 
+    market_open = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=14, minute=30)
+    half_hour_before_market_open = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=14, minute=00)
+    hour_after_market_open = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=15, minute=30)
+    hour_before_market_closes = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=20, minute=00)
+    market_closed = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=21, minute=00)
 
+    print("\nTime of the update is " + str(now))
+
+    if now < half_hour_before_market_open:
+        print("< half_hour_before_market_open")
+        return 5 * 60
+    elif half_hour_before_market_open < now < market_open:
+        print("half_hour_before_market_open < now < market_open")
+        return 2 * 60
+    elif market_open < now < hour_after_market_open:
+        print("market_open < now < hour_after_market_open")
+        return 15
+    elif hour_after_market_open  < now < hour_before_market_closes:
+        print("hour_after_market_open  < now < hour_before_market_closes")
+        return 60
+    elif hour_before_market_closes < now < market_closed:
+        print("hour_before_market_closes < now < market_closed")
+        return 15
+    elif market_closed < now:
+        print("market_closed < now")
+        return 5 * 60
+    else:
+        return 60
 
 
 if __name__ == "__main__":

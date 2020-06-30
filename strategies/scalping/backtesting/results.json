@@ -1,0 +1,22 @@
+{
+    "strategy": "Simple Scalping",
+    "description": "Some descrition",
+    "parameters": [
+        {
+            "name": "name",
+            "value": "value"
+        }
+    ],
+    "symbols": [
+        "HPQ"
+    ],
+    "initial capital": 25000.0,
+    "final capital": 24967.79,
+    "percentage gain": "-0.13%",
+    "total gain": -32.21,
+    "amount gained": 0.0,
+    "amount lost": 32.22,
+    "total trades": 3,
+    "good trades": 0,
+    "bad trades": 3
+}

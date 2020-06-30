@@ -46,6 +46,12 @@ class TradeApiProxy():
     def get_minute_barset(self, ticker: str):
         return self.api.get_barset(ticker, 'minute', limit=1000)
 
+    def get_5_minutes_barset(self, ticker):
+        return self.api.get_barset(ticker, '5Min', limit=1000)
+
+    def get_limit_5_minutes_barset(self, ticker, limit):
+        return self.api.get_barset(ticker, '5Min', limit=limit)
+
     def get_limit_minute_barset(self, ticker: str, limit):
         return self.api.get_barset(ticker, 'minute', limit=limit)
 
