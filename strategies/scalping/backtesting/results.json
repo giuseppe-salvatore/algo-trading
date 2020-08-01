@@ -1,22 +1,200 @@
-{
-    "strategy": "Simple Scalping",
-    "description": "Some descrition",
-    "parameters": [
-        {
-            "name": "name",
-            "value": "value"
-        }
-    ],
-    "symbols": [
-        "HPQ"
-    ],
-    "initial capital": 25000.0,
-    "final capital": 24967.79,
-    "percentage gain": "-0.13%",
-    "total gain": -32.21,
-    "amount gained": 0.0,
-    "amount lost": 32.22,
-    "total trades": 3,
-    "good trades": 0,
-    "bad trades": 3
-}
+Run 0 params:(10, 5, 2) result = 145.74
+Run 1 params:(10, 5, 3) result = 44.64
+Run 2 params:(10, 5, 4) result = 58.67
+Run 3 params:(10, 5, 5) result = 64.8
+Run 4 params:(10, 5, 6) result = 56.9
+Run 5 params:(10, 5, 7) result = 9.63
+Run 6 params:(10, 5, 8) result = 87.39
+Run 7 params:(10, 5, 9) result = 65.96
+Run 8 params:(10, 6, 2) result = 125.09
+Run 9 params:(10, 6, 3) result = 38.44
+Run 10 params:(10, 6, 4) result = 22.62
+Run 11 params:(10, 6, 5) result = 92.58
+Run 12 params:(10, 6, 6) result = 109.46
+Run 13 params:(10, 6, 7) result = 92.13
+Run 14 params:(10, 6, 8) result = 134.51
+Run 15 params:(10, 6, 9) result = 83.26
+Run 16 params:(10, 7, 2) result = 42.17
+Run 17 params:(10, 7, 3) result = 78.99
+Run 18 params:(10, 7, 4) result = 59.07
+Run 19 params:(10, 7, 5) result = 41.63
+Run 20 params:(10, 7, 6) result = 97.98
+Run 21 params:(10, 7, 7) result = 108.25
+Run 22 params:(10, 7, 8) result = 124.82
+Run 23 params:(10, 7, 9) result = 66.81
+Run 24 params:(10, 8, 2) result = 180.69
+Run 25 params:(10, 8, 3) result = 74.76
+Run 26 params:(10, 8, 4) result = 74.35
+Run 27 params:(10, 8, 5) result = 34.0
+Run 28 params:(10, 8, 6) result = 39.27
+Run 29 params:(10, 8, 7) result = 88.07
+Run 30 params:(10, 8, 8) result = 190.04
+Run 31 params:(10, 8, 9) result = 125.92
+Run 32 params:(10, 9, 2) result = 144.26
+Run 33 params:(10, 9, 3) result = 149.59
+Run 34 params:(10, 9, 4) result = 3.88
+Run 35 params:(10, 9, 5) result = 6.03
+Run 36 params:(10, 9, 6) result = -17.21
+Run 37 params:(10, 9, 7) result = 36.09
+Run 38 params:(10, 9, 8) result = 133.18
+Run 39 params:(10, 9, 9) result = 92.81
+Run 40 params:(11, 5, 2) result = 3.14
+Run 41 params:(11, 5, 3) result = -9.54
+Run 42 params:(11, 5, 4) result = 22.15
+Run 43 params:(11, 5, 5) result = 47.55
+Run 44 params:(11, 5, 6) result = 87.89
+Run 45 params:(11, 5, 7) result = 16.2
+Run 46 params:(11, 5, 8) result = 92.4
+Run 47 params:(11, 5, 9) result = 48.57
+Run 48 params:(11, 6, 2) result = 102.87
+Run 49 params:(11, 6, 3) result = -19.03
+Run 50 params:(11, 6, 4) result = -32.48
+Run 51 params:(11, 6, 5) result = 45.63
+Run 52 params:(11, 6, 6) result = 103.48
+Run 53 params:(11, 6, 7) result = 69.19
+Run 54 params:(11, 6, 8) result = 143.27
+Run 55 params:(11, 6, 9) result = 99.8
+Run 56 params:(11, 7, 2) result = 81.98
+Run 57 params:(11, 7, 3) result = 23.05
+Run 58 params:(11, 7, 4) result = 47.89
+Run 59 params:(11, 7, 5) result = 54.71
+Run 60 params:(11, 7, 6) result = 134.38
+Run 61 params:(11, 7, 7) result = 106.84
+Run 62 params:(11, 7, 8) result = 140.77
+Run 63 params:(11, 7, 9) result = 93.28
+Run 64 params:(11, 8, 2) result = 107.41
+Run 65 params:(11, 8, 3) result = 11.08
+Run 66 params:(11, 8, 4) result = 11.22
+Run 67 params:(11, 8, 5) result = 20.2
+Run 68 params:(11, 8, 6) result = 62.12
+Run 69 params:(11, 8, 7) result = 98.02
+Run 70 params:(11, 8, 8) result = 180.67
+Run 71 params:(11, 8, 9) result = 101.32
+Run 72 params:(11, 9, 2) result = 88.27
+Run 73 params:(11, 9, 3) result = 70.38
+Run 74 params:(11, 9, 4) result = -4.94
+Run 75 params:(11, 9, 5) result = 11.21
+Run 76 params:(11, 9, 6) result = 34.22
+Run 77 params:(11, 9, 7) result = 58.95
+Run 78 params:(11, 9, 8) result = 140.32
+Run 79 params:(11, 9, 9) result = 85.23
+Run 80 params:(12, 5, 2) result = -59.54
+Run 81 params:(12, 5, 3) result = -116.53
+Run 82 params:(12, 5, 4) result = -55.51
+Run 83 params:(12, 5, 5) result = 10.1
+Run 84 params:(12, 5, 6) result = 42.47
+Run 85 params:(12, 5, 7) result = -30.48
+Run 86 params:(12, 5, 8) result = 9.33
+Run 87 params:(12, 5, 9) result = 53.41
+Run 88 params:(12, 6, 2) result = 62.93
+Run 89 params:(12, 6, 3) result = -19.98
+Run 90 params:(12, 6, 4) result = -44.35
+Run 91 params:(12, 6, 5) result = 81.67
+Run 92 params:(12, 6, 6) result = 57.22
+Run 93 params:(12, 6, 7) result = 57.41
+Run 94 params:(12, 6, 8) result = 95.3
+Run 95 params:(12, 6, 9) result = 123.01
+Run 96 params:(12, 7, 2) result = 14.86
+Run 97 params:(12, 7, 3) result = 28.08
+Run 98 params:(12, 7, 4) result = -9.31
+Run 99 params:(12, 7, 5) result = 34.45
+Run 100 params:(12, 7, 6) result = 80.13
+Run 101 params:(12, 7, 7) result = 59.38
+Run 102 params:(12, 7, 8) result = 90.33
+Run 103 params:(12, 7, 9) result = 121.3
+Run 104 params:(12, 8, 2) result = 37.61
+Run 105 params:(12, 8, 3) result = 6.76
+Run 106 params:(12, 8, 4) result = -20.92
+Run 107 params:(12, 8, 5) result = 62.83
+Run 108 params:(12, 8, 6) result = 51.59
+Run 109 params:(12, 8, 7) result = 62.98
+Run 110 params:(12, 8, 8) result = 138.02
+Run 111 params:(12, 8, 9) result = 131.5
+Run 112 params:(12, 9, 2) result = 51.03
+Run 113 params:(12, 9, 3) result = 67.87
+Run 114 params:(12, 9, 4) result = -48.74
+Run 115 params:(12, 9, 5) result = 27.88
+Run 116 params:(12, 9, 6) result = 24.57
+Run 117 params:(12, 9, 7) result = 52.52
+Run 118 params:(12, 9, 8) result = 106.65
+Run 119 params:(12, 9, 9) result = 125.66
+Run 120 params:(13, 5, 2) result = -15.89
+Run 121 params:(13, 5, 3) result = -37.95
+Run 122 params:(13, 5, 4) result = 40.3
+Run 123 params:(13, 5, 5) result = 13.02
+Run 124 params:(13, 5, 6) result = 15.88
+Run 125 params:(13, 5, 7) result = -28.26
+Run 126 params:(13, 5, 8) result = -0.68
+Run 127 params:(13, 5, 9) result = 23.75
+Run 128 params:(13, 6, 2) result = -15.66
+Run 129 params:(13, 6, 3) result = -28.69
+Run 130 params:(13, 6, 4) result = -86.02
+Run 131 params:(13, 6, 5) result = 10.29
+Run 132 params:(13, 6, 6) result = 29.19
+Run 133 params:(13, 6, 7) result = 27.05
+Run 134 params:(13, 6, 8) result = 54.8
+Run 135 params:(13, 6, 9) result = 83.77
+Run 136 params:(13, 7, 2) result = -87.44
+Run 137 params:(13, 7, 3) result = -105.58
+Run 138 params:(13, 7, 4) result = -21.36
+Run 139 params:(13, 7, 5) result = 6.34
+Run 140 params:(13, 7, 6) result = 53.39
+Run 141 params:(13, 7, 7) result = 42.79
+Run 142 params:(13, 7, 8) result = 74.84
+Run 143 params:(13, 7, 9) result = 61.59
+Run 144 params:(13, 8, 2) result = -42.2
+Run 145 params:(13, 8, 3) result = -39.63
+Run 146 params:(13, 8, 4) result = -3.92
+Run 147 params:(13, 8, 5) result = 27.56
+Run 148 params:(13, 8, 6) result = 29.01
+Run 149 params:(13, 8, 7) result = 48.83
+Run 150 params:(13, 8, 8) result = 119.72
+Run 151 params:(13, 8, 9) result = 127.2
+Run 152 params:(13, 9, 2) result = -49.33
+Run 153 params:(13, 9, 3) result = -15.18
+Run 154 params:(13, 9, 4) result = -66.25
+Run 155 params:(13, 9, 5) result = -4.73
+Run 156 params:(13, 9, 6) result = -3.7
+Run 157 params:(13, 9, 7) result = 27.97
+Run 158 params:(13, 9, 8) result = 93.3
+Run 159 params:(13, 9, 9) result = 110.67
+Run 160 params:(14, 5, 2) result = -37.98
+Run 161 params:(14, 5, 3) result = -27.17
+Run 162 params:(14, 5, 4) result = 24.67
+Run 163 params:(14, 5, 5) result = 17.7
+Run 164 params:(14, 5, 6) result = 23.21
+Run 165 params:(14, 5, 7) result = -33.56
+Run 166 params:(14, 5, 8) result = 24.63
+Run 167 params:(14, 5, 9) result = 53.35
+Run 168 params:(14, 6, 2) result = 16.83
+Run 169 params:(14, 6, 3) result = -9.76
+Run 170 params:(14, 6, 4) result = -37.04
+Run 171 params:(14, 6, 5) result = -5.82
+Run 172 params:(14, 6, 6) result = 35.63
+Run 173 params:(14, 6, 7) result = 52.36
+Run 174 params:(14, 6, 8) result = 61.91
+Run 175 params:(14, 6, 9) result = 102.36
+Run 176 params:(14, 7, 2) result = -50.92
+Run 177 params:(14, 7, 3) result = -24.17
+Run 178 params:(14, 7, 4) result = 10.22
+Run 179 params:(14, 7, 5) result = -7.56
+Run 180 params:(14, 7, 6) result = 86.31
+Run 181 params:(14, 7, 7) result = 70.43
+Run 182 params:(14, 7, 8) result = 88.55
+Run 183 params:(14, 7, 9) result = 107.8
+Run 184 params:(14, 8, 2) result = 42.36
+Run 185 params:(14, 8, 3) result = 0.09
+Run 186 params:(14, 8, 4) result = 30.72
+Run 187 params:(14, 8, 5) result = 0.58
+Run 188 params:(14, 8, 6) result = 29.27
+Run 189 params:(14, 8, 7) result = 60.63
+Run 190 params:(14, 8, 8) result = 123.75
+Run 191 params:(14, 8, 9) result = 150.26
+Run 192 params:(14, 9, 2) result = -22.88
+Run 193 params:(14, 9, 3) result = 43.78
+Run 194 params:(14, 9, 4) result = 4.81
+Run 195 params:(14, 9, 5) result = -4.7
+Run 196 params:(14, 9, 6) result = -1.82
+Run 197 params:(14, 9, 7) result = 39.57
+Run 198 params:(14, 9, 8) result = 85.58
+Run 199 params:(14, 9, 9) result = 142.55

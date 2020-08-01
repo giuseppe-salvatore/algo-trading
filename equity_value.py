@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import alpaca_trade_api as tradeapi
 
+from api_proxy import TradeApiProxy
+
 
 
 def open_connection():

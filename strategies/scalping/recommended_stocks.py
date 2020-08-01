@@ -20,7 +20,7 @@ stocks = [
     'C',
     'JPM',
     'HPQ',
-    'ABEV',
+    #'ABEV',
     'MS',
     'BABA',
     'ORCL',
@@ -28,11 +28,11 @@ stocks = [
     'DIS',
     'MPC',
     'V',
-    'TSLA',
+    #'TSLA',
     'PYPL',
     'NFLX',
-    'AMZN',
+    #'AMZN',
     'DLR',
     'UPS',
-    'GOOGL'
+    #'GOOGL'
 ]

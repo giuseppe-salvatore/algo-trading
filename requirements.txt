@@ -1,4 +1,6 @@
+polygon-api-client
 websocket-client
 matplotlib
 finplot
 stockstats
+pandas_datareader

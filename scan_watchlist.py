@@ -145,35 +145,60 @@ def poll_watchlist(api):
     tickers = ['V', 'MA', 'JNJ', 'FB']
     
     quotes = {}
+    position_pl_perc = {}
+
+    positions = api.list_positions()
+    initial_stocks_in_positions = []
+    for pos in positions:
+        initial_stocks_in_positions.append(pos.symbol)
 
     print_header(tickers)
 
     while True:
 
         now = datetime.datetime.now()
-        ticker_values = []
-        if "time" not in quotes:
-            quotes['time'] = [now]
+        posi = []
+        if "time" not in position_pl_perc:
+            position_pl_perc['time'] = [now]
         else:
-            quotes['time'].append(now)
+            position_pl_perc['time'].append(now)
 
-        for ticker in tickers:
-            quote = api.get_last_quote(ticker)
-            ticker_values.append(quote.askprice)
-            if ticker in quotes:
-                quotes[ticker].append(float(quote.askprice))
-            else:
-                quotes[ticker] = [float(quote.askprice)]
+        positions = api.list_positions()
 
-        append_to_equity_file(now, ticker_values)
+        for symbol in initial_stocks_in_positions:
+            found = False
+            for pos in positions:
+                if pos.symbol == symbol:
+                    found = True
+                    if pos.symbol in position_pl_perc:
+                        position_pl_perc[pos.symbol].append(float(pos.unrealized_plpc)*100.0)
+                    else:
+                        position_pl_perc[pos.symbol] = [float(pos.unrealized_plpc)*100.0]
+                    break
+            if not found:
+                if symbol in position_pl_perc:
+                    position_pl_perc[symbol].append(np.nan)
+                else:
+                    position_pl_perc[symbol] = [np.nan]
         
-        date_index = pd.DatetimeIndex(quotes['time'])
+        # quote = api.get_last_quote(quote_string)
+        # print(quote)
+        # ticker_values.append(quote.askprice)
+        # if ticker in quotes:
+        #     quotes[ticker].append(float(quote.askprice))
+        # else:
+        #     quotes[ticker] = [float(quote.askprice)]
+
+        # append_to_equity_file(now, ticker_values)
+        
+        date_index = pd.DatetimeIndex(position_pl_perc['time'])
         dataframe = pd.DataFrame(None, date_index, None)
         time.sleep(FREQUENCY_SECS)
         plt.clf()
-        for ticker in tickers:
-            dataframe[ticker] = np.array(quotes[ticker])
-            dataframe[ticker].plot(label=ticker, figsize=(12, 8), title='Stocks')
+        for ticker in initial_stocks_in_positions:
+            dataframe[ticker] = np.array(position_pl_perc[ticker])
+            dataframe[ticker + "_ma"] = dataframe[ticker].rolling(5).mean()
+            dataframe[ticker + "_ma"].plot(label=ticker, figsize=(12, 8), title='Stocks')
         
         plt.legend()
         plt.draw()

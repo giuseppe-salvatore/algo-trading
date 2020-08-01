@@ -20,7 +20,6 @@ class Portfolio():
         self.investments = json.load(f)
         f.close()
 
-
     def get_capital_invested_in(self, symbol):
         capital_invested = 0.0
 
