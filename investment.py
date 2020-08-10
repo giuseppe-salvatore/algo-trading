@@ -11,10 +11,6 @@ def get_total_capital_invested():
     
     return total_capital_invested
 
-
-
-
-
 def get_shares_for(symbol):
     shares = 0.0
 

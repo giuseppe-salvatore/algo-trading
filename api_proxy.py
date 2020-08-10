@@ -58,3 +58,6 @@ class TradeApiProxy():
     def get_quote(self, ticker):
         return self.api.get_last_quote(ticker)
 
+    def get_positions(self):
+        return self.api.list_positions()
+

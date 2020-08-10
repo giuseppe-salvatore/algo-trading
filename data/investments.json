@@ -1,0 +1,92 @@
+{
+    "FB": {
+        "gain": 0.0,
+        "investments": [
+            {
+                "shares": 1.0,
+                "value": 238.0
+            },
+            {
+                "shares": 0.5,
+                "value": 235.78
+            }
+        ]
+    },
+    "JNJ": {
+        "gain": 0.0,
+        "investments": [
+            {
+                "shares": 2.0,
+                "value": 144.96
+            }
+        ]
+    },
+    "MFA": {
+        "gain": 0.0,
+        "investments": [
+            {
+                "shares": 100.0,
+                "value": 2.59
+            },
+            {
+                "shares": 50.0,
+                "value": 2.55
+            }
+        ]
+    },
+    "MA": {
+        "gain": 0.0,
+        "investments": [
+            {
+                "shares": 0.2,
+                "value": 305.60
+            },
+            {
+                "shares": 0.5,
+                "value": 302.28
+            },
+            {
+                "shares": 1.5,
+                "value": 300.39
+            },
+            {
+                "shares": 0.8,
+                "value": 308.26
+            }
+        ]
+    },
+    "NCLH": {
+        "gain": 0.0,
+        "investments": [
+            {
+                "shares": 10.0,
+                "value": 18.21
+            },
+            {
+                "shares": 20.0,
+                "value": 18.40
+            },
+            {
+                "shares": 10.0,
+                "value": 18.82
+            }
+        ]
+    },
+    "V": {
+        "gain": 0.0,
+        "investments": [
+            {
+                "shares": 2.0,
+                "value": 194.65
+            },
+            {
+                "shares": 1.0,
+                "value": 192.75
+            },
+            {
+                "shares": 1.0,
+                "value": 192.54
+            }
+        ]
+    }
+}

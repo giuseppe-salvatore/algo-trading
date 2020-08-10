@@ -4,3 +4,5 @@ matplotlib
 finplot
 stockstats
 pandas_datareader
+mplfinance
+PyPortfolioOpt
