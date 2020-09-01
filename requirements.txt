@@ -6,3 +6,5 @@ stockstats
 pandas_datareader
 mplfinance
 PyPortfolioOpt
+pylint
+autopep8

@@ -292,7 +292,7 @@ if __name__ == "__main__":
     print("========== Leftover ==========")
     print(leftover)
 
-    proxy = TradeApiProxy()
+    proxy = TradeApiProxy("paper")
     value = 0.0
     sorted_allocation = collections.OrderedDict(sorted(allocation.items()))
     positions = proxy.api.list_positions()
@@ -314,31 +314,46 @@ if __name__ == "__main__":
                 qty = float(pos.qty)
 
         if found:
-            print(stock + " already in position for " + str(qty) + " and we want " + str(alloc), end="")
+            print(stock + " already in position for " +
+                  str(qty) + " and we want " + str(alloc), end="")
             if side == 'long' and alloc < 0:
-                print("... we are in wrong position so selling " + str(abs(int(float(qty)))) + " and shorting " + str(abs(alloc)))
-                proxy.api.submit_order(stock, abs(int(float(qty))), 'sell', "market", "day")
+                print("... we are in wrong position so selling " +
+                      str(abs(int(float(qty)))) + " and shorting " + str(abs(alloc)))
+                proxy.api.submit_order(stock, abs(
+                    int(float(qty))), 'sell', "market", "day")
                 time.sleep(3)
-                proxy.api.submit_order(stock, abs(alloc), 'sell', "market", "day")
+                proxy.api.submit_order(stock, abs(
+                    alloc), 'sell', "market", "day")
             elif side == 'short' and alloc > 0:
-                print("... we are in wrong position so buying " + str(abs(int(float(qty)))) + " and longing " + str(abs(alloc)))
-                proxy.api.submit_order(stock, abs(int(float(qty))), 'buy', "market", "day")
+                print("... we are in wrong position so buying " +
+                      str(abs(int(float(qty)))) + " and longing " + str(abs(alloc)))
+                proxy.api.submit_order(stock, abs(
+                    int(float(qty))), 'buy', "market", "day")
                 time.sleep(3)
-                proxy.api.submit_order(stock, abs(alloc), 'buy', "market", "day")
-            elif side == 'long' and alloc > 0 and alloc != qty:                
+                proxy.api.submit_order(stock, abs(
+                    alloc), 'buy', "market", "day")
+            elif side == 'long' and alloc > 0 and alloc != qty:
                 if qty < alloc:
-                    print("... we are in right position but buying " + str(abs(int(float(alloc - qty)))))
-                    proxy.api.submit_order(stock, abs(int(float(alloc - qty))), 'buy', "market", "day")
+                    print("... we are in right position but buying " +
+                          str(abs(int(float(alloc - qty)))))
+                    proxy.api.submit_order(stock, abs(
+                        int(float(alloc - qty))), 'buy', "market", "day")
                 else:
-                    print("... we are in right position but selling " + str(abs(int(float(qty - alloc)))))
-                    proxy.api.submit_order(stock, abs(int(float(qty - alloc))), 'sell', "market", "day")
+                    print("... we are in right position but selling " +
+                          str(abs(int(float(qty - alloc)))))
+                    proxy.api.submit_order(stock, abs(
+                        int(float(qty - alloc))), 'sell', "market", "day")
             elif side == 'short' and alloc < 0 and alloc != qty:
                 if qty > alloc:
-                    print("... we are in right position but selling " + str(abs(int(float(qty - alloc)))))
-                    proxy.api.submit_order(stock, abs(int(float(qty - alloc))), 'sell', "market", "day")
+                    print("... we are in right position but selling " +
+                          str(abs(int(float(qty - alloc)))))
+                    proxy.api.submit_order(stock, abs(
+                        int(float(qty - alloc))), 'sell', "market", "day")
                 else:
-                    print("... we are in right position but buying " + str(abs(int(float(alloc - qty)))))
-                    proxy.api.submit_order(stock, abs(int(float(alloc - qty))), 'buy', "market", "day")
+                    print("... we are in right position but buying " +
+                          str(abs(int(float(alloc - qty)))))
+                    proxy.api.submit_order(stock, abs(
+                        int(float(alloc - qty))), 'buy', "market", "day")
             else:
                 print("... we are good!")
         else:
@@ -347,8 +362,8 @@ if __name__ == "__main__":
                 proxy.api.submit_order(stock, alloc, 'buy', "market", "day")
             else:
                 print(stock + " not in position selling " + str(abs(alloc)))
-                proxy.api.submit_order(stock, abs(alloc), 'sell', "market", "day")
-
+                proxy.api.submit_order(stock, abs(
+                    alloc), 'sell', "market", "day")
 
     print("Stock in watchlist used " +
           str(len(sorted_allocation)) + "/" + str(len(watchlist)))
