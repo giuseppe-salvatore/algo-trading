@@ -29,8 +29,8 @@ class TradeApiProxy():
         insead of config.ALPACA_PAPER_TRADING_REST_ENDPOINT
         '''
 
-        if not (self.account_type == 'paper' or 
-                self.account_type == 'paper2' or 
+        if not (self.account_type == 'paper' or
+                self.account_type == 'paper2' or
                 self.account_type == 'live'):
             raise ValueError(
                 "Account type should be either 'paper', 'paper2' or 'live': " + self.account_type + " provided instead")
@@ -49,7 +49,7 @@ class TradeApiProxy():
             alpaca_api_key = config.ALPACA_PAPER_API_KEY_2
             alpaca_secret = config.ALPACA_PAPER_SECRET_2
             alpaca_api_endpoint = config.ALPACA_PAPER_TRADING_REST_ENDPOINT
-        
+
         # Make sure you set your API key and secret in the config module
         self.api = alpaca_trade_api.REST(
             alpaca_api_key,
