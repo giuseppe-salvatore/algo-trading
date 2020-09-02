@@ -7,16 +7,18 @@ import json
 import time
 import datetime
 import api_proxy
-from api_proxy import TradeApiProxy
+
 import collections
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from pypfopt import risk_models
+from pypfopt import expected_returns
+from api_proxy import TradeApiProxy
 from pandas_datareader import data as web
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
-from pypfopt import risk_models
-from pypfopt import expected_returns
+
 plt.style.use('fivethirtyeight')
 
 

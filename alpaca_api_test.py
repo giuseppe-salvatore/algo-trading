@@ -1,12 +1,30 @@
 import time
 from api_proxy import TradeApiProxy
+from data.watchlist import universe
+
+
+def populate_watchlist(account):
+    for elem in universe:
+        account.add_symbol_to_watchlist(elem)
 
 
 if __name__ == "__main__":
 
     paper_api = TradeApiProxy('paper')
+    paper_api2 = TradeApiProxy('paper2')
+    live_api = TradeApiProxy('live')
 
+    # populate_watchlist(paper_api)
+    # populate_watchlist(paper_api2)
+    # populate_watchlist(live_api)
+
+    # live_api.sort_watchlist()
     # paper_api.sort_watchlist()
+    # paper_api2.sort_watchlist()
+
+    #print("Paper trading has " + str(len(paper_api.get_watchlist())))
+    #print("Paper2 trading has " + str(len(paper_api2.get_watchlist())))
+    #print("Live trading has " + str(len(live_api.get_watchlist())))
 
     # print("Listing all orders ----------------------")
     # all_orders = paper_api.list_all_orders()
@@ -65,7 +83,9 @@ if __name__ == "__main__":
     stock_peaks = dict()
     global open_orders
     open_oders = paper_api.list_open_orders(use_cache=False)
+    api = live_api
     while True:
+        print("Getting positions...")
         positions = paper_api.get_positions()
         for pos in positions:
             market_value = pos.market_value
@@ -80,14 +100,14 @@ if __name__ == "__main__":
                 if stock_peaks[pos.symbol] == market_value:
                     print("Updating order for " + pos.symbol)
                     try:
-                        paper_api.update_stop_loss_order_for(pos)
+                        api.update_stop_loss_order_for(pos)
                     except Exception as e:
                         print(e)
             else:
                 stock_peaks[pos.symbol] = market_value
                 print("Placing stop loss order for " + pos.symbol)
 
-                paper_api.cover_position_with_stop_loss(pos)
+                api.cover_position_with_stop_loss(pos)
 
         time.sleep(15)
     # print("Listing new orders ----------------------")

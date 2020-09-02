@@ -29,20 +29,27 @@ class TradeApiProxy():
         insead of config.ALPACA_PAPER_TRADING_REST_ENDPOINT
         '''
 
-        if not (self.account_type == 'paper' or self.account_type == 'live'):
+        if not (self.account_type == 'paper' or 
+                self.account_type == 'paper2' or 
+                self.account_type == 'live'):
             raise ValueError(
-                "Account type should be either 'paper' or 'live': " + account_type + " provided instead")
+                "Account type should be either 'paper', 'paper2' or 'live': " + self.account_type + " provided instead")
 
         if self.account_type == 'live':
             print("WARNING: You are using real money here!!!")
             alpaca_api_key = config.ALPACA_LIVE_API_KEY
             alpaca_secret = config.ALPACA_LIVE_SECRET
             alpaca_api_endpoint = config.ALPACA_LIVE_TRADING_REST_ENDPOINT
-        else:
+        elif self.account_type == 'paper':
             alpaca_api_key = config.ALPACA_PAPER_API_KEY
             alpaca_secret = config.ALPACA_PAPER_SECRET
             alpaca_api_endpoint = config.ALPACA_PAPER_TRADING_REST_ENDPOINT
-
+        else:
+            assert(self.account_type == 'paper2')
+            alpaca_api_key = config.ALPACA_PAPER_API_KEY_2
+            alpaca_secret = config.ALPACA_PAPER_SECRET_2
+            alpaca_api_endpoint = config.ALPACA_PAPER_TRADING_REST_ENDPOINT
+        
         # Make sure you set your API key and secret in the config module
         self.api = alpaca_trade_api.REST(
             alpaca_api_key,
@@ -85,10 +92,6 @@ class TradeApiProxy():
 
     def get_positions(self):
         return self.api.list_positions()
-
-    def get_watchlist(self):
-        watch_lists = self.api.get_watchlist()
-        return self.api.get_watchlist(watch_lists[0].id)
 
     def update_stop_loss_order_for(self, pos):
         if open_orders is not None:
@@ -241,9 +244,10 @@ class TradeApiProxy():
     def fetch_watchlist(self):
         watch_lists = self.api.get_watchlists()
         self._cached_watchlist = dict()
-        self._cached_watchlist[watch_lists[0].id] = self.api.get_watchlist(
-            watch_lists[0].id).assets
-        return self._cached_watchlist[watch_lists[0].id]
+        self._cached_watchlist_id = watch_lists[0].id
+        self._cached_watchlist[self._cached_watchlist_id] = self.api.get_watchlist(
+            self._cached_watchlist_id).assets
+        return self._cached_watchlist[self._cached_watchlist_id]
 
     def delete_watchlist(self):
         pass
@@ -255,16 +259,12 @@ class TradeApiProxy():
         if self._cached_watchlist is None:
             self.fetch_watchlist()
 
-        watchlist_symbols = list()
-        wl = None
-        for wl in self._cached_watchlist:
-            for elem in self._cached_watchlist[wl]:
-                watchlist_symbols.append(elem['symbol'])
+        try:
+            self.api.add_to_watchlist(self._cached_watchlist_id, symbol)
+        except Exception as e:
+            print("WARNING: Problem adding " + symbol + " " + str(e))
 
-        if symbol not in watchlist_symbols:
-            self.api.add_to_watchlist(wl, stock)
-
-    def sort_watchlist(self):
+    def get_watchlist(self):
         if self._cached_watchlist is None:
             self.fetch_watchlist()
 
@@ -272,14 +272,14 @@ class TradeApiProxy():
         wl = None
         for wl in self._cached_watchlist:
             for elem in self._cached_watchlist[wl]:
-                self.api.delete_from_watchlist(wl, elem['symbol'])
+                #self.api.delete_from_watchlist(wl, elem['symbol'])
                 watchlist_symbols.append(elem['symbol'])
-                print(elem['symbol'])
 
+        return watchlist_symbols
+
+    def sort_watchlist(self):
+        watchlist_symbols = self.get_watchlist()
         watchlist_symbols.sort()
 
         for stock in watchlist_symbols:
-            try:
-                self.api.add_to_watchlist(wl, stock)
-            except:
-                print("Skipping " + stock + " as it's duplicate or doesn't exist")
+            self.add_symbol_to_watchlist(stock)

@@ -1,3 +1,4 @@
+alpaca-trade-api
 polygon-api-client
 websocket-client
 matplotlib
