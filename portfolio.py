@@ -21,6 +21,9 @@ from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
 
 plt.style.use('fivethirtyeight')
 
+paper_account = api_proxy.TradeApiProxy("paper")
+paper_account2 = api_proxy.TradeApiProxy("paper2")
+
 
 class Portfolio():
 
@@ -79,7 +82,6 @@ class Portfolio():
 
 
 p = Portfolio()
-tap = api_proxy.TradeApiProxy()
 
 
 def main_print_loop():
@@ -93,7 +95,7 @@ def main_print_loop():
         times.append(now)
 
         for stock in p.get_assets_invested():
-            close_price = tap.get_limit_minute_barset(stock, limit=2)[
+            close_price = paper_account.get_limit_minute_barset(stock, limit=2)[
                 stock][-1].c
             if stock not in latest_quotes:
                 latest_quotes[stock] = [close_price]
@@ -128,7 +130,7 @@ def main_print_loop():
         plt.clf()
 
     stock = 'FB'
-    for i in tap.get_limit_minute_barset(stock, limit=10)[stock]:
+    for i in paper_account.get_limit_minute_barset(stock, limit=10)[stock]:
         print(i)
 
 
@@ -171,8 +173,8 @@ def get_polling_rate_sec(now):
 
 def get_stocks_in_watchlist():
 
-    watch_lists = tap.api.get_watchlists()
-    primary_watch_list = tap.api.get_watchlist(watch_lists[0].id)
+    watch_lists = paper_account.api.get_watchlists()
+    primary_watch_list = paper_account.api.get_watchlist(watch_lists[0].id)
     return primary_watch_list
 
 
@@ -294,7 +296,6 @@ if __name__ == "__main__":
     print("========== Leftover ==========")
     print(leftover)
 
-    proxy = TradeApiProxy("paper")
     value = 0.0
     sorted_allocation = collections.OrderedDict(sorted(allocation.items()))
     positions = proxy.api.list_positions()
@@ -321,51 +322,73 @@ if __name__ == "__main__":
             if side == 'long' and alloc < 0:
                 print("... we are in wrong position so selling " +
                       str(abs(int(float(qty)))) + " and shorting " + str(abs(alloc)))
-                proxy.api.submit_order(stock, abs(
+                paper_account.api.submit_order(stock, abs(
+                    int(float(qty))), 'sell', "market", "day")
+                paper_account2.api.submit_order(stock, abs(
                     int(float(qty))), 'sell', "market", "day")
                 time.sleep(3)
-                proxy.api.submit_order(stock, abs(
-                    alloc), 'sell', "market", "day")
+                paper_account.api.submit_order(
+                    stock, abs(alloc), 'sell', "market", "day")
+                paper_account2.api.submit_order(
+                    stock, abs(alloc), 'sell', "market", "day")
+
             elif side == 'short' and alloc > 0:
                 print("... we are in wrong position so buying " +
                       str(abs(int(float(qty)))) + " and longing " + str(abs(alloc)))
-                proxy.api.submit_order(stock, abs(
+                paper_account.api.submit_order(stock, abs(
+                    int(float(qty))), 'buy', "market", "day")
+                paper_account2.api.submit_order(stock, abs(
                     int(float(qty))), 'buy', "market", "day")
                 time.sleep(3)
-                proxy.api.submit_order(stock, abs(
-                    alloc), 'buy', "market", "day")
+                paper_account.api.submit_order(
+                    stock, abs(alloc), 'buy', "market", "day")
+                paper_account2.api.submit_order(
+                    stock, abs(alloc), 'buy', "market", "day")
             elif side == 'long' and alloc > 0 and alloc != qty:
                 if qty < alloc:
                     print("... we are in right position but buying " +
                           str(abs(int(float(alloc - qty)))))
-                    proxy.api.submit_order(stock, abs(
+                    paper_account.api.submit_order(stock, abs(
+                        int(float(alloc - qty))), 'buy', "market", "day")
+                    paper_account2.api.submit_order(stock, abs(
                         int(float(alloc - qty))), 'buy', "market", "day")
                 else:
                     print("... we are in right position but selling " +
                           str(abs(int(float(qty - alloc)))))
-                    proxy.api.submit_order(stock, abs(
+                    paper_account.api.submit_order(stock, abs(
+                        int(float(qty - alloc))), 'sell', "market", "day")
+                    paper_account2.api.submit_order(stock, abs(
                         int(float(qty - alloc))), 'sell', "market", "day")
             elif side == 'short' and alloc < 0 and alloc != qty:
                 if qty > alloc:
                     print("... we are in right position but selling " +
                           str(abs(int(float(qty - alloc)))))
-                    proxy.api.submit_order(stock, abs(
+                    paper_account.api.submit_order(stock, abs(
+                        int(float(qty - alloc))), 'sell', "market", "day")
+                    paper_account2.api.submit_order(stock, abs(
                         int(float(qty - alloc))), 'sell', "market", "day")
                 else:
                     print("... we are in right position but buying " +
                           str(abs(int(float(alloc - qty)))))
-                    proxy.api.submit_order(stock, abs(
+                    paper_account.api.submit_order(stock, abs(
+                        int(float(alloc - qty))), 'buy', "market", "day")
+                    paper_account2.api.submit_order(stock, abs(
                         int(float(alloc - qty))), 'buy', "market", "day")
             else:
                 print("... we are good!")
         else:
             if alloc > 0:
                 print(stock + " not in position buying " + str(alloc))
-                proxy.api.submit_order(stock, alloc, 'buy', "market", "day")
+                paper_account.api.submit_order(
+                    stock, alloc, 'buy', "market", "day")
+                paper_account2.api.submit_order(
+                    stock, alloc, 'buy', "market", "day")
             else:
                 print(stock + " not in position selling " + str(abs(alloc)))
-                proxy.api.submit_order(stock, abs(
-                    alloc), 'sell', "market", "day")
+                paper_account.api.submit_order(
+                    stock, abs(alloc), 'sell', "market", "day")
+                paper_account2.api.submit_order(
+                    stock, abs(alloc), 'sell', "market", "day")
 
     print("Stock in watchlist used " +
           str(len(sorted_allocation)) + "/" + str(len(watchlist)))

@@ -630,6 +630,21 @@ class RSIStrategy(StockMarketStrategy):
                 # 'strong_fifty_cross'
             ]
 
+        elif size == 'single':
+            # RSI Indicator Parameters
+            rsi_period = [6,7]
+            rsi_mean_period = [6]
+            mean_type = ['SMA']
+            source = ['close']
+
+            # RSI Strategy Parameters
+            limit_threshold = [30,32]
+            entry_signal = [
+                # 'enter_threshold'
+                'exit_threshold'
+                # 'strong_fifty_cross'
+            ]
+
         else:
             raise Exception("Unrecognised size")
 

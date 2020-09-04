@@ -108,12 +108,12 @@ class BacktestStrategy():
     def run(self, api, strategy_class, pool_size):
 
         global total_results
-        res_folder = ""
         now = dt.datetime.now()
         pool = mp.Pool(pool_size)
 
-        days = ["10","13","14","15","16","17","21","22","23","24","27","29","30","31"]
-        month = "07"
+        #days = ["10","13","14","15","16","17","21","22","23","24","27","29","30","31"]
+        days = ["08"]
+        month = "09"
         year = "2020"
 
         dates = []
@@ -127,7 +127,7 @@ class BacktestStrategy():
             dates.append(strategy.get_date_string())
             strategy.set_api(api)
             strategy.pull_stock_info()
-            param_comb = strategy.generate_param_combination('full')
+            param_comb = strategy.generate_param_combination('single')
             result_folder = strategy.result_folder + "/" + \
                 str(now)[:19] + "/" + strategy.get_date_string() + "/"
             os.makedirs(result_folder)

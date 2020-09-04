@@ -1,6 +1,6 @@
 alpaca-trade-api
 polygon-api-client
-websocket-client
+#websocket-client
 matplotlib
 finplot
 stockstats

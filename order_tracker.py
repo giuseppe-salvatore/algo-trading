@@ -1,3 +1,4 @@
+import json
 import config
 from api_proxy import TradeApiProxy
 from alpaca_trade_api import StreamConn
@@ -72,6 +73,70 @@ class Order():
         return self.to_csv()
 
 
+def parse_order_file(file_name):
+
+    f = open(file_name, "r")
+    raw_orders = json.load(f)
+    f.close()
+
+    orders = dict()
+    orders['all'] = []
+    orders['open'] = dict()
+    orders['canceled'] = dict()
+    orders['filled'] = dict()
+
+    orders_in = 0
+    orders_out = 0
+
+    for elem in raw_orders:
+        order_id = elem['order']['id']
+        orders_in += 1
+        if elem['event'] == 'new':
+            print("New order for " +
+                  elem['order']['symbol'] + " " + elem['order']['id'][:10])
+            orders['open'][order_id] = elem
+            orders['all'].append(elem)
+            orders_out += 1
+            continue
+        if elem['event'] == 'rejected':
+            print("Rejected order for " +
+                  elem['order']['symbol'] + " " + elem['order']['id'][:10])
+            orders['canceled'][order_id] = elem
+            orders['all'].append(elem)
+            orders_out += 1
+            continue
+        if elem['event'] == 'canceled':
+            print("Canceled order for " +
+                  elem['order']['symbol'] + " " + elem['order']['id'][:10])
+            if order_id in orders['open'].keys():
+                del orders['open'][order_id]
+                orders['canceled'][order_id] = elem
+                orders['all'].append(elem)
+                orders_out += 1
+            continue
+        if elem['event'] == 'fill':
+            print("Filled order for " +
+                  elem['order']['symbol'] + " " + elem['order']['id'][:10])
+            if order_id in orders['open'].keys():
+                del orders['open'][order_id]
+                orders['filled'][order_id] = elem
+                orders['all'].append(elem)
+                orders_out += 1
+            continue
+        if elem['event'] == 'replaced':
+            print("Replaced order for " + elem['order']['symbol'] + " (replaced by: " +
+                  elem['order']['replaced_by'][:10] + ") " + elem['order']['id'][:10])
+            orders['open'][elem['order']['replaced_by']] = elem
+            orders['all'].append(elem)
+            orders_out += 1
+            continue
+
+    print("Orders IN  : " + str(orders_in))
+    print("Orders OUT : " + str(orders_out))
+
+    return orders
+
+
 def connect_to_account(account_type: str, provider: str):
 
     conn = None
@@ -128,26 +193,46 @@ if __name__ == "__main__":
     #live_account = TradeApiProxy("live")
     #paper_account = TradeApiProxy("paper")
 
-    order_file = open('data/orders.dat', 'a')
-    open_orders = dict()
-    closed_orders = dict()
+    order_file = "data/orders.json"
+    orders = parse_order_file(order_file)
+
     conn = connect_to_account(provider="polygon", account_type="live")
 
     @conn.on(r'^trade_updates$')
     async def on_account_updates(conn, channel, evt):
-        print('trade update', evt)
-        order = Order(evt)
+        order = json.loads((str(evt)
+                            .replace("Entity(", "")
+                            .replace(")", "")
+                            .replace("None", "null")
+                            .replace("False", "false")
+                            .replace("True", "true")
+                            .replace("'", "\"")))
+        print('trade update :\n' + json.dumps(order, indent=4))
 
-        if order.status == 'new':
-            open_orders[order.id] = order
-        elif order.status == 'canceled' or order.status == 'fill':
-            if order.id in open_orders:
-                del open_orders[order.id]
-            closed_orders[order.id] = order
-        else:
-            print("Unknown order status: " + order.status)
+        # Storing order into an Order object
+        # order = Order(evt)
 
-        write_order(order_file, evt)
+        try:
+            orders['all'].append(order)
+            if order["status"] == 'new' or order["status"] == 'replaced' or order["status"] == 'accepted':
+                orders['open'][order["id"]] = order
+            elif order["status"] == 'canceled' or order["status"] == 'rejected':
+                if order["id"] not in orders['open']:
+                    raise ValueError(
+                        "Trade updates handler - Order not tracked: " + order["id"])
+                del orders['open'][order["id"]]
+                orders['canceled'][order["id"]] = order
+            elif order["status"] == 'fill':
+                if order["id"] in orders['open']:
+                    raise ValueError(
+                        "Trade updates handler - Order not tracked: " + order["id"])
+                del orders['open'][order["id"]]
+                orders['filled'][order["id"]] = order
+            else:
+                raise ValueError(
+                    "Trade updates handler - Uknown order status: " + order["status"])
+        except Exception as e:
+            print(e)
 
     @conn.on(r'^status$')
     async def on_status(conn, channel, data):
@@ -166,4 +251,7 @@ if __name__ == "__main__":
         #conn.run(['trade_updates', 'AM.AAPL,AM.TSLA'])
         conn.run(['trade_updates'])
     finally:
-        order_file.close()
+        f = open("data/orders_new.json", "w")
+        json.dump(orders['all'], f, indent=4)
+        #f.write(json.dumps(orders['all'], indent=4))
+        f.close()
