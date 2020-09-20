@@ -1,5 +1,8 @@
 import json
 import config
+import sqlite3
+import db_queries
+from sqlite3 import Error
 from api_proxy import TradeApiProxy
 from alpaca_trade_api import StreamConn
 
@@ -7,42 +10,48 @@ from alpaca_trade_api import StreamConn
 class Order():
     def __init__(self, order_json):
 
+        if 'event' in order_json:
+            order_json = order_json['order']
+
         # Order info
-        self.status = order_json.event
-        self.id = order_json.order['id']
-        self.type = order_json.order['type']
-        self.side = order_json.order['side']
-        self.order_type = order_json.order['order_type']
-        self.order_class = order_json.order['order_class']
-        self.time_in_force = order_json.order['time_in_force']
-        self.client_order_id = order_json.order['client_order_id']
+        self.status = order_json['status']
+        self.id = order_json['id']
+        self.type = order_json['type']
+        self.side = order_json['side']
+        self.order_type = order_json['order_type']
+        self.order_class = order_json['order_class']
+        self.time_in_force = order_json['time_in_force']
+        self.client_id = order_json['client_order_id']
 
         # Asset info
-        self.symbol = order_json.order['symbol']
-        self.asset_id = order_json.order['asset_id']
-        self.asset_class = order_json.order['asset_class']
+        self.symbol = order_json['symbol']
+        self.asset_id = order_json['asset_id']
+        self.asset_class = order_json['asset_class']
 
         # Timing
-        self.failed_at = order_json.order['failed_at']
-        self.filled_at = order_json.order['filled_at']
-        self.expired_at = order_json.order['expired_at']
-        self.canceled_at = order_json.order['canceled_at']
-        self.submitted_at = order_json.order['submitted_at']
-        self.extended_hours = order_json.order['extended_hours']
+        self.failed_at = order_json['failed_at']
+        self.filled_at = order_json['filled_at']
+        self.expired_at = order_json['expired_at']
+        self.canceled_at = order_json['canceled_at']
+        self.submitted_at = order_json['submitted_at']
+        self.extended_hours = order_json['extended_hours']
 
         # Price info
-        self.qty = order_json.order['qty']
-        self.filled_qty = order_json.order['filled_qty']
-        self.stop_price = order_json.order['stop_price']
-        self.limit_price = order_json.order['limit_price']
-        self.trail_price = order_json.order['trail_price']
-        self.trail_percent = order_json.order['trail_percent']
-        self.filled_avg_price = order_json.order['filled_avg_price']
+        self.qty = order_json['qty']
+        self.filled_qty = order_json['filled_qty']
+        self.stop_price = order_json['stop_price']
+        self.limit_price = order_json['limit_price']
+        self.trail_price = order_json['trail_price']
+        self.trail_percent = order_json['trail_percent']
+        self.filled_avg_price = order_json['filled_avg_price']
 
         # Other orders
-        self.replaces = order_json.order['replaces']
-        self.replaced_by = order_json.order['replaced_by']
-        self.replaced_at = order_json.order['replaced_at']
+        self.replaces = order_json['replaces']
+        self.replaced_by = order_json['replaced_by']
+        self.replaced_at = order_json['replaced_at']
+
+        # Complex orders
+        self.legs = order_json['legs']
 
     def csv_header(self):
         str_data = "symbol,"
@@ -137,6 +146,57 @@ def parse_order_file(file_name):
     return orders
 
 
+def upsert_order(conn, order):
+    """
+    Create a new bar into the stock_prices table
+    :param conn:
+    :param bar:
+    :return: project id
+    """
+    cur = conn.cursor()
+
+    try:
+        order_tuple = (order.id, order.client_id, order.symbol, order.asset_id, order.asset_class, order.status,
+                       order.side, order.order_class, order.time_in_force, order.failed_at, order.filled_at, order.expired_at, order.canceled_at,
+                       order.submitted_at, order.qty, order.filled_qty, order.stop_price, order.limit_price, order.trail_price,
+                       order.trail_percent, order.filled_avg_price, order.replaces, order.replaced_by, order.replaced_at)
+        cur.execute(db_queries.sql_upsert_into_order, order_tuple)
+        if order.order_class == 'bracket' and order.legs != None:
+            for leg in order.legs:
+                leg_order = Order(leg)
+                upsert_order(conn, leg_order)
+                cur.execute(db_queries.sql_insert_leg_order,
+                            (order.id, leg_order.id))
+
+    except sqlite3.IntegrityError as error:
+        pass
+    return cur.lastrowid
+
+
+def create_connection(db_file):
+    """ create a database connection to a SQLite database """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        print(sqlite3.version)
+    except Error as e:
+        print(e)
+    return conn
+
+
+def create_table(conn, create_table_sql):
+    """ create a table from the create_table_sql statement
+    :param conn: Connection object
+    :param create_table_sql: a CREATE TABLE statement
+    :return:
+    """
+    try:
+        c = conn.cursor()
+        c.execute(create_table_sql)
+    except Error as e:
+        print(e)
+
+
 def connect_to_account(account_type: str, provider: str):
 
     conn = None
@@ -196,6 +256,16 @@ if __name__ == "__main__":
     order_file = "data/orders.json"
     orders = parse_order_file(order_file)
 
+    dbconn = create_connection(r"data/stock_prices.db")
+    # create tables
+    if dbconn is not None:
+        # create projects table
+        create_table(dbconn, db_queries.sql_create_order_table)
+        create_table(dbconn, db_queries.sql_create_order_legs_table)
+    else:
+        print("Error! cannot create the database connection.")
+        exit(1)
+
     conn = connect_to_account(provider="polygon", account_type="live")
 
     @conn.on(r'^trade_updates$')
@@ -211,6 +281,9 @@ if __name__ == "__main__":
 
         # Storing order into an Order object
         # order = Order(evt)
+
+        upsert_order(dbconn, Order(order))
+        dbconn.commit()
 
         try:
             orders['all'].append(order)
@@ -247,11 +320,12 @@ if __name__ == "__main__":
         print('bars', bar)
 
     # blocks forever
-    try:
-        #conn.run(['trade_updates', 'AM.AAPL,AM.TSLA'])
-        conn.run(['trade_updates'])
-    finally:
-        f = open("data/orders_new.json", "w")
-        json.dump(orders['all'], f, indent=4)
-        #f.write(json.dumps(orders['all'], indent=4))
-        f.close()
+    while True:
+        try:
+            #conn.run(['trade_updates', 'AM.AAPL,AM.TSLA'])
+            conn.run(['trade_updates'])
+        finally:
+            f = open("data/orders_new.json", "w")
+            json.dump(orders['all'], f, indent=4)
+            #f.write(json.dumps(orders['all'], indent=4))
+            f.close()

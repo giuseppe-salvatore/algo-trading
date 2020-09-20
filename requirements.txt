@@ -5,6 +5,7 @@ matplotlib
 finplot
 stockstats
 pandas_datareader
+pandas_market_calendars
 mplfinance
 PyPortfolioOpt
 pylint
