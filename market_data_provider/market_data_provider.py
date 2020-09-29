@@ -40,11 +40,13 @@ class MarketDataProvider():
     def get(self, endpoint: str, params: dict = None):
         url = self.get_base_url() + endpoint
         url = self.append_params(url, params)
+        print("Sending GET request: " + url)
         resp = req.get(url)
         if resp.status_code != 200:
-            raise Exception("Error perfoming GET request to url: " +
-                            url + "\nException message: " + str(resp.content))
-        return json.loads(resp.content)
+            raise Exception("Error perfoming GET request to url: " + url + 
+                            "\nStatus code: " + str(resp.status_code) + 
+                            "\nContent : " + str(resp.text))
+        return resp
 
     def get_key_name(self):
         pass

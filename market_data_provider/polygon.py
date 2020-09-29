@@ -44,12 +44,6 @@ class PolygonDataProvider(MarketDataProvider):
     def get_day_candles(self, symbol: str, start_date:datetime.datetime, end_date:datetime.datetime):
         pass
 
-    def get_news(self):
-        pass
-
-    def get_supported_symbols(self):
-        pass
-
     def get_key_name(self):
         return "apiKey"
 
