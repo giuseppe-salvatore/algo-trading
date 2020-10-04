@@ -1,3 +1,8 @@
 *.pyc
 **/results-*.json
 **/data/minute_charts/*
+.vscode/
+**/*.dat
+**/*.csv
+**/*.sql
+**/*.db

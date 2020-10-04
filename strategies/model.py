@@ -163,6 +163,8 @@ class BacktestStrategy():
 class StockMarketStrategy():
 
     def __init__(self):
+        self.name: str = None
+        self.description: str = None
         self.day: str = None
         self.month: str = None
         self.year: str = None
@@ -172,6 +174,8 @@ class StockMarketStrategy():
         self.position = None
         self.trade_scaled = 0
         self.main_df = None
+
+        self.indicators = list()
 
     def set_api(self, api):
         self.api = api
