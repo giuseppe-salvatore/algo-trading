@@ -1,4 +1,6 @@
 alpaca-trade-api
+numpy
+pandas
 polygon-api-client
 #websocket-client
 matplotlib
