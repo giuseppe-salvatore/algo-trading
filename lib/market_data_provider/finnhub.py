@@ -1,9 +1,9 @@
 import json
 import time
-import config
 import datetime
 import requests
 import pandas as pd
+import conf.secret as config
 from lib.market_data_provider.market_data_provider import MarketDataProvider
 
 

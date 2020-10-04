@@ -6,7 +6,7 @@ import pandas as pd
 import finplot as fplt
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from api_proxy import TradeApiProxy
+from lib.trading.alpaca import AlpacaTrading
 
 
 
@@ -14,7 +14,7 @@ from api_proxy import TradeApiProxy
 NY = 'America/New_York'
 
 def main(symbol):
-    api = TradeApiProxy()
+    api = AlpacaTrading()
 
     #symbol = 'AAPL'
     barset = api.get_minute_barset(symbol)

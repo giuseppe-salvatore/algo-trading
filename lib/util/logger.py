@@ -9,7 +9,7 @@ except ImportError:
     pass
 
 def setup_logging():
-    root = logging.getLogger()
+    root = logging.getLogger("algo-trading")
     root.setLevel(logging.DEBUG)
     format      = '%(asctime)s - %(levelname)-8s - %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
@@ -26,4 +26,4 @@ def setup_logging():
     root.addHandler(ch)
 
 setup_logging()
-log = logging.getLogger(__name__)
+log = logging.getLogger("algo-trading")

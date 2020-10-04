@@ -1,10 +1,11 @@
 import json
-import config
 import sqlite3
-import db_queries
+import conf.secret as config
+import lib.db.queries as queries
+
 from sqlite3 import Error
-from api_proxy import TradeApiProxy
 from alpaca_trade_api import StreamConn
+from lib.trading.alpaca import AlpacaTrading
 
 
 class Order():
@@ -160,12 +161,12 @@ def upsert_order(conn, order):
                        order.side, order.order_class, order.time_in_force, order.failed_at, order.filled_at, order.expired_at, order.canceled_at,
                        order.submitted_at, order.qty, order.filled_qty, order.stop_price, order.limit_price, order.trail_price,
                        order.trail_percent, order.filled_avg_price, order.replaces, order.replaced_by, order.replaced_at)
-        cur.execute(db_queries.sql_upsert_into_order, order_tuple)
+        cur.execute(queries.sql_upsert_into_order, order_tuple)
         if order.order_class == 'bracket' and order.legs != None:
             for leg in order.legs:
                 leg_order = Order(leg)
                 upsert_order(conn, leg_order)
-                cur.execute(db_queries.sql_insert_leg_order,
+                cur.execute(queries.sql_insert_leg_order,
                             (order.id, leg_order.id))
 
     except sqlite3.IntegrityError as error:

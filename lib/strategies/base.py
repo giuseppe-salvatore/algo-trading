@@ -5,7 +5,7 @@ import operator
 import traceback
 import importlib
 import itertools
-import strategies
+import lib.strategies
 
 import numpy as np
 import pandas as pd
@@ -13,10 +13,7 @@ import datetime as dt
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 
-
-logging.basicConfig(level='WARNING')
-log = logging.getLogger(__name__)
-log.setLevel('INFO')
+from lib.util.logger import log
 
 
 backtesting_results = []
@@ -36,7 +33,7 @@ def collect_result(result):
         backtesting_results.append(elem)
 
     while float(results_reported) / float(total_results) * 100.0 >= perc[0]:
-        print(str(perc[0]) + "% of the simulations completed " +
+        log.info(str(perc[0]) + "% of the simulations completed " +
               str(results_reported))
         if len(perc) > 1:
             perc = perc[1:]

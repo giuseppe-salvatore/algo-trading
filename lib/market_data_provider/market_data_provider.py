@@ -1,8 +1,10 @@
 import json
+import time
 import pandas as pd
 import datetime as dt
 import requests as req
-import datetime as dt
+import conf.secret as config
+from lib.util.logger import log
 
 
 class MarketDataProvider():
@@ -61,13 +63,13 @@ class MarketDataProvider():
         pass
 
     def get_news(self):
-        print("WARNING: The get_news() API is not supported not free on " + self.provider_name)
+        log.error("The get_news() API is not supported or not free on " + self.provider_name)
 
     def get_supported_symbols(self):
-        print("WARNING: The get_supported_symbols() API is not supported not free on " + self.provider_name)
+        log.error("The get_supported_symbols() API is not supported or not free on " + self.provider_name)
 
     def get_symbol_details(self, symbol: str):
-        print("WARNING: The get_symbol_details() API is not supported not free on " + self.provider_name)
+        log.error("The get_symbol_details() API is not supported or not free on " + self.provider_name)
 
     def get_financials(self, symbol: str):
-        print("WARNING: The get_financials() API is not supported not free on " + self.provider_name)
+        log.error("The get_financials() API is not supported or not free on " + self.provider_name)

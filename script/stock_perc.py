@@ -6,27 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import alpaca_trade_api as tradeapi
 import strategies.scalping.recommended_stocks as recommended_stocks
-
-from api_proxy import TradeApiProxy
-
-
-def open_connection():
-    '''
-    By default this will open a connection to the pater trading endpoint
-    so no real money will be used for your transactions. To use a founded
-    account and real money use config.ALPACA_REAL_TRADING_REST_ENDPOINT
-    insead of config.ALPACA_PAPER_TRADING_REST_ENDPOINT
-    '''
-
-    # Make sure you set your API key and secret in the config module
-    api = tradeapi.REST(
-        config.ALPACA_API_KEY,
-        config.ALPACA_SECRET,
-        config.ALPACA_PAPER_TRADING_REST_ENDPOINT,
-        api_version='v2'
-    )
-
-    return api
+from lib.trading.alpaca import AlpacaTrading
 
 
 def check_account(api):
@@ -222,7 +202,7 @@ def build_dataframe(barset, symbols):
 
 def main():
 
-    api = TradeApiProxy()
+    api = AlpacaTrading()
     raw_df_data = pull_stock_info(api)
     inital_open = dict()
 

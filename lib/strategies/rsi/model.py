@@ -3,30 +3,29 @@ import sys
 import time
 import math
 import json
-import logging
 import traceback
 import datetime
 import operator
 import itertools
 import numpy as np
 import pandas as pd
-import multiprocessing as mp
 import finplot as fplt
+import multiprocessing as mp
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import strategies.scalping.recommended_stocks
 
 
-from api_proxy import TradeApiProxy
+from lib.util.logger import log
 from stockstats import StockDataFrame
-from strategies.model import StockMarketStrategy
+from lib.trading.alpaca import AlpacaTrading
+from lib.strategies.base import StockMarketStrategy
 
 # Indicators
-from indicators.rsi import RSIIndicator
+from lib.indicators.rsi import RSIIndicator
 
-logging.basicConfig(level='WARNING')
-log = logging.getLogger(__name__)
-log.setLevel('INFO')
+# logging.basicConfig(level='WARNING')
+# log = logging.getLogger(__name__)
+# log.setLevel('INFO')
 
 
 class RSIStrategyParams():

@@ -14,7 +14,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pypfopt import risk_models
 from pypfopt import expected_returns
-from api_proxy import TradeApiProxy
+from lib.trading.alpaca import AlpacaTrading
 from pandas_datareader import data as web
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices

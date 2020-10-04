@@ -1,32 +1,12 @@
 import time
-import config
 import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import alpaca_trade_api as tradeapi
 
-from api_proxy import TradeApiProxy
+from lib.trading.alpaca import AlpacaTrading
 
-
-
-def open_connection():
-    '''
-    By default this will open a connection to the pater trading endpoint
-    so no real money will be used for your transactions. To use a founded
-    account and real money use config.ALPACA_REAL_TRADING_REST_ENDPOINT
-    insead of config.ALPACA_PAPER_TRADING_REST_ENDPOINT
-    '''
-
-    # Make sure you set your API key and secret in the config module     
-    api = tradeapi.REST(
-        config.ALPACA_API_KEY,
-        config.ALPACA_SECRET,
-        config.ALPACA_PAPER_TRADING_REST_ENDPOINT,
-        api_version='v2'
-    )
-
-    return api
 
 
 def get_equity(api):

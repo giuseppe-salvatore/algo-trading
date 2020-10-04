@@ -1,6 +1,6 @@
-from api_proxy import TradeApiProxy
+from lib.trading.alpaca import AlpacaTrading
 
-proxy = TradeApiProxy()
+proxy = AlpacaTrading()
 
 
 def get_asset_data():

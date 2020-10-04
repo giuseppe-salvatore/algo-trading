@@ -1,7 +1,7 @@
-from api_proxy import TradeApiProxy
+from lib.trading.alpaca import AlpacaTrading
 
 positions = None
-proxy = TradeApiProxy()
+proxy = AlpacaTrading()
 
 
 def get_capital_invested(positions):

@@ -1,5 +1,5 @@
 import time
-from api_proxy import TradeApiProxy
+from lib.trading.alpaca import AlpacaTrading
 from data.watchlist import universe
 
 

@@ -1,6 +1,6 @@
 import sqlite3
 import datetime
-import db_queries
+import lib.db.queries
 import pandas as pd
 import pandas_market_calendars as mcal
 import strategies.scalping.recommended_stocks
