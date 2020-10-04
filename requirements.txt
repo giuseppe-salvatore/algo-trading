@@ -12,3 +12,4 @@ mplfinance
 PyPortfolioOpt
 pylint
 autopep8
+colorlog
