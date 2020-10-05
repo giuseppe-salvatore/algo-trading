@@ -5,26 +5,21 @@ https://alpaca.markets/docs/api-documentation/api-v2/streaming/
 import time
 import json
 import pytz
-import asyncio
 import requests
 import datetime
 import websocket
 import traceback
-import threading
 import numpy as np
 import pandas as pd
+import conf.secret as config
 import matplotlib.pyplot as plt
-import alpaca_trade_api as tradeapi
-
-import config
-import investment
-
+import script.investment as invst
 
 values = {}
 localFormat = "%Y-%m-%d %H:%M:%S"
 timezone = 'America/New_York'
 
-stocks_list = investment.get_portfolio_stocks()
+stocks_list = invst.get_portfolio_stocks()
 
 header_printed = False
 
@@ -49,24 +44,25 @@ def print_header():
 
 def print_gains(time_updated):
     try:
-        print("", end="\r",flush=True)
+        print("", end="\r", flush=True)
         print("|{:20s}".format(str(time_updated)[:19]), end="")
         for stock in stocks_list:
             if stock in values:
-                print("|({:5.1f}) {:6.1f}".format(values[stock][-1][1],investment.get_capital_gain_for(stock, values[stock][-1][1])), end="")
+                print("|({:5.1f}) {:6.1f}".format(
+                    values[stock][-1][1],
+                    invst.get_capital_gain_for(stock, values[stock][-1][1])), end="")
             else:
-                print("|({:5s}) {:6s}".format("----","----"), end="")
-        print("|{:7.2f}".format(investment.get_total_capital_gain()), end="")
-        print("|",end="",flush=True)
+                print("|({:5s}) {:6s}".format("----", "----"), end="")
+        print("|{:7.2f}".format(invst.get_total_capital_gain()), end="")
+        print("|", end="", flush=True)
     except:
         traceback.print_exc()
-
 
 
 def handle_quote(message):
     ticker = message["data"].get("T")
     price = message["data"].get("P")
-    tstamp = message["data"].get("t")
+    # tstamp = message["data"].get("t")
 
     if ticker not in values:
         values[ticker] = []
@@ -74,8 +70,8 @@ def handle_quote(message):
     if len(values[ticker]) > 0:
         # Get the latest price and record the new one only if differs
         # from the latest to save memory
-        #if values[ticker][-1][1] > price + 0.05 or values[ticker][-1][1] < price - 0.1:
-        #if values[ticker][-1][1] != price:
+        # if values[ticker][-1][1] > price + 0.05 or values[ticker][-1][1] < price - 0.1:
+        # if values[ticker][-1][1] != price:
         utcnow_naive = datetime.datetime.utcnow()
         utcnow = utcnow_naive.replace(tzinfo=pytz.utc)
         newYorkTime = utcnow.astimezone(pytz.timezone(timezone))
@@ -85,7 +81,7 @@ def handle_quote(message):
             print_gains(newYorkTime)
         else:
             values[ticker].append([newYorkTime, price])
-            print_gains(newYorkTime)        
+            print_gains(newYorkTime)
     else:
         utcnow_naive = datetime.datetime.utcnow()
         utcnow = utcnow_naive.replace(tzinfo=pytz.utc)
@@ -108,21 +104,23 @@ def on_open(ws):
 
     message = {
         "action": "authenticate",
-        "data":  {
+        "data": {
             "key_id": config.ALPACA_API_KEY,
             "secret_key": config.ALPACA_SECRET
         }
     }
 
-    # Failure might happen if you are already connected with the same account... you will get something like this
-    # {"stream":"listening","data":{"error":"your connection is rejected while another connection is open under the same account"}}
+    # Failure might happen if you are already connected with the same account...
+    # you will get something like this
+    # {"stream":"listening","data":{"error":"your connection is rejected while
+    # another connection is open under the same account"}}
     print("Sending auth message \n" + json.dumps(message))
     ws.send(json.dumps(message))
 
     streams = []
 
     for stock in stocks_list:
-        #streams.append("Q." + stock)
+        # streams.append("Q." + stock)
         streams.append("AM." + stock)
 
     message = {
@@ -138,7 +136,7 @@ def on_open(ws):
 def on_message(ws, message):
 
     my_dict = None
-    
+
     try:
         my_dict = json.loads(message)
 
@@ -165,7 +163,7 @@ def on_close(ws):
         bytes = 0
         for stock in values:
             f = open("quotes_" + stock, "a")
-            bytes += len(values[stock]) * (len(values[stock][0][0]) + 4)       
+            bytes += len(values[stock]) * (len(values[stock][0][0]) + 4)
             for price in values[stock]:
                 print(stock + " " + str(price[1]) + "  " + str(price[0])[:19])
                 f.write(str(price[0])[:19] + "," + str(price[1]) + "\n")
@@ -190,7 +188,7 @@ def on_close(ws):
         traceback.print_exc()
 
 
-def on_error(ws,error):
+def on_error(ws, error):
     print(error)
 
 def rest_init():
@@ -201,7 +199,6 @@ def rest_init():
                     'AMD': [], 'INTC': [], 'NVDA': []}
 
     dt_index = None
-    data = []
     timing = []
 
     def fetch_data(stock_name):
@@ -250,13 +247,13 @@ def rest_init():
             print("")
             f.write("\n")
             for key in stocks_price.keys():
-                #data[:,:-1] = np.array(stocks_price[key])
+                # data[:,:-1] = np.array(stocks_price[key])
                 # np.append(data,np.array(stocks_price[key]),axis=0)
                 dataframe[key] = np.array(stocks_price[key])
             plt.clf()
             # dataframe['BA'].plot(label='Boeing',figsize=(12,8),title='Prices')
             # dataframe['TSLA'].plot(label='Tesla',figsize=(12,8),title='Prices')
-            #dataframe['AAL'].plot(label='American Airline')
+            # dataframe['AAL'].plot(label='American Airline')
             dataframe['AMD'].plot(label='AMD', figsize=(12, 8), title='Prices')
             # dataframe['INTC'].plot(label='Intel')
             # dataframe['NVDA'].plot(label='NVidia')
@@ -276,13 +273,18 @@ def main():
     while True:
         try:
             ws = websocket.WebSocketApp(
-                config.ALPACA_WEBSOCKET_ENDPOINT, on_open=on_open, on_message=on_message, on_close=on_close, on_error=on_error)
+                config.ALPACA_WEBSOCKET_ENDPOINT,
+                on_open=on_open,
+                on_message=on_message,
+                on_close=on_close,
+                on_error=on_error)
             ws.run_forever()
             print("Received error")
             time.sleep(2)
             print("Trying to re-establish connection")
             time.sleep(10)
         except KeyboardInterrupt as e:
+            print(e)
             break
     print("End of main")
 

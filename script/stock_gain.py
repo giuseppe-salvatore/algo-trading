@@ -1,9 +1,9 @@
 import time
-import config
 import datetime
 import traceback
 import numpy as np
 import pandas as pd
+import conf.secret as config
 import matplotlib.pyplot as plt
 import alpaca_trade_api as tradeapi
 
@@ -17,7 +17,9 @@ GAP_ON_WIN = 1.5
 PER_TRADE_BUDGET = 900.0
 
 WIN_THRESHOLD = 1
-watchlist = ["TWTR", "SNE", "PYPL", "NVDA", "MA", "INTC",  "FB",  "EBAY", "BA", "AAPL", "BYND", "V", "AMD", "AXP", "CSCO", "EBAY", "EA", "EXPE", "IBM", "NVTA", "MSFT", "NFLX", "PTON", "RCL", "WORK" , "ZM", "KO", "PFE", "DIS", "BABA", "MCD", "SBUX", "JPM", "ADBE", "JNJ"]
+watchlist = ["TWTR", "SNE", "PYPL", "NVDA", "MA", "INTC", "FB", "EBAY", "BA", "AAPL", "BYND", "V",
+             "AMD", "AXP", "CSCO", "EBAY", "EA", "EXPE", "IBM", "NVTA", "MSFT", "NFLX", "PTON",
+             "RCL", "WORK", "ZM", "KO", "PFE", "DIS", "BABA", "MCD", "SBUX", "JPM", "ADBE", "JNJ"]
 
 # Problematic because the low value
 # "F","IMGN", "NBL","MPC",
@@ -42,14 +44,14 @@ def init_target(stock):
     targets[stock] = {
         "gain": INITIAL_TARGET_GAIN,
         "loss": INITIAL_TARGET_LOSS,
-        "gap_per_share" : 0.0,
-        "scaled" : False
+        "gap_per_share": 0.0,
+        "scaled": False
     }
 
 def adjust_stop_target(stock, value):
 
     print("Adjusting stop loss for " + stock + " to " + str(value))
-    targets[stock]["gap_per_share"] = value 
+    targets[stock]["gap_per_share"] = value
 
 def open_connection():
     '''
@@ -115,17 +117,12 @@ def list_positions(api):
         print("|{:>6s} ".format(pos.current_price), end="")
     print("")
 
-    # for pos in positions:
-    #    print(pos.symbol + " gain is " + "{:.2f}".format(float(pos.market_value) - float(pos.cost_basis)))
-
-
 def list_assets(api):
 
     assets = api.list_assets()
     for asset in assets:
         print(asset)
     print("There are " + str(len(assets)) + " available")
-
 
 def value_close_to_threshold(value):
 
@@ -185,12 +182,12 @@ def analyse_gain(gain):
     for stock in gain:
         if gain[stock] < targets[stock]["loss"]:
             if targets[stock]["loss"] <= INITIAL_TARGET_LOSS:
-                print(stock + " is losing " + str(gain[stock]))                
+                print(stock + " is losing " + str(gain[stock]))
             else:
                 print(stock + " exausted the positive trend " + str(targets[stock]["loss"]))
             loosers.append(stock)
         if gain[stock] > targets[stock]["gain"]:
-            print(stock + " is winning " +  str(gain[stock]))
+            print(stock + " is winning " + str(gain[stock]))
             winners.append(stock)
 
     return winners, loosers
@@ -200,15 +197,14 @@ def submit_order(api, stock, quantity, side):
 
     qty = abs(int(float(quantity)))
     if qty > 0:
-        print("Submitting order for " + str(quantity) + " shares of " + stock )
+        print("Submitting order for " + str(quantity) + " shares of " + stock)
         try:
             api.submit_order(stock, abs(int(float(qty))),
-                                side, "market", "day")
-            print("Following order | COMPLETED | " +
-                    str(qty) + " " + stock + " " + side + " | ")
-        except:
-            print("Following order |  FAILURE  | " +
-                  str(qty) + " " + stock + " " + side + " | ")
+                             side, "market", "day")
+            print("Following order | COMPLETED | " + str(qty) + " " + stock + " " + side + " | ")
+        except Exception as e:
+            print("Following order |  FAILURE  | " + str(qty) + " " + stock + " " + side + " | ")
+            print(e)
             traceback.print_exc()
     time.sleep(0.5)
 
@@ -223,7 +219,6 @@ def scale_targets(stock):
     else:
         targets[stock]["loss"] += 1.0
 
-    
     targets[stock]["scaled"] = True
 
     print(stock + " hit the target scaling to gain = " +
@@ -253,8 +248,9 @@ def trade_targets(api, winners, loosers, positions):
     if len(loosers) > 0:
         for stock in loosers:
             for pos in positions:
-                if stock == pos.symbol:                    
-                    if targets[stock]["scaled"] is False: # This will invert the direction of the trade
+                if stock == pos.symbol:
+                    # This will invert the direction of the trade
+                    if targets[stock]["scaled"] is False:
                         if pos.side == "long":
                             submit_order(api, pos.symbol, pos.qty, "sell")
                             submit_order(api, pos.symbol, pos.qty, "sell")
@@ -313,7 +309,7 @@ def trade_watchlist(api):
     print("POSITIONS ----------------------------------")
     for pos in positions:
         print(pos)
-    
+
     # Positioning for the stocks that we have in the watchlist that we are missing
     for stock in watchlist:
 
@@ -340,8 +336,7 @@ def awaitMarketOpen(api):
         timeToOpen = int((openingTime - currTime) / 60)
         print(str(timeToOpen) + " minutes til market open.")
         time.sleep(60)
-        isOpen = api.get_clock().is_open           
-
+        isOpen = api.get_clock().is_open
 
 
 def main():
@@ -353,31 +348,30 @@ def main():
     awaitMarketOpen(api)
     trade_watchlist(api)
 
-    time_array = []
     gain = {}
     update_positions(api, gain)
 
     print("You are trading on " + str(len(watchlist)) + " assets")
     # time_array.append(datetime.datetime.now())
-    #date_index = pd.DatetimeIndex(np.array(time_array))
-    #dataframe = pd.DataFrame(None, date_index, None)
-    #idx = {}
-    #fig_printed = False
-    #legend = True
+    # date_index = pd.DatetimeIndex(np.array(time_array))
+    # dataframe = pd.DataFrame(None, date_index, None)
+    # idx = {}
+    # fig_printed = False
+    # legend = True
     while True:
 
         awaitMarketOpen(api)
-        #trade_watchlist(api)
+        # trade_watchlist(api)
         # plt.clf()
         # time_array.append(datetime.datetime.now())
         positions = update_positions(api, gain)
-        #date_index = pd.DatetimeIndex(np.array(time_array))
-        #dataframe = pd.DataFrame(None, date_index, None)
+        # date_index = pd.DatetimeIndex(np.array(time_array))
+        # dataframe = pd.DataFrame(None, date_index, None)
 
         for pos in positions:
-            #print(pos.symbol + " " + pos.side + " " + pos.qty)
+            # print(pos.symbol + " " + pos.side + " " + pos.qty)
             if pos.symbol not in gain:
-                del gain[symbol]
+                del gain[pos.symbol]
             # dataframe[stock] = np.array(gain[stock])
             # if not fig_printed:
             # dataframe[stock].plot(label=stock, figsize=(12, 8), title='Gain per stock')
