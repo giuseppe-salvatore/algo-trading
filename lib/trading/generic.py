@@ -102,20 +102,19 @@ class Position():
     def get_profit(self):
         pl = 0.0
         for t in self.trades:
-            pl += ((t.price * t.quantity) if t.side ==
-                   "buy" else -(t.price * t.quantity))
+            pl += ((t.price * t.quantity) if t.side == "buy" else -(t.price * t.quantity))
 
     def update_position(self, trade: Trade):
         if trade.symbol != self.symbol:
-            log.error("Updating position for " + trade.symbol +
-                      " but position is open for " + self.symbol)
-            raise ValueError("Unexpected trade side: " + trade.side)
+            msg = "Updating position for " + trade.symbol
+            msg += " but position is open for " + self.symbol
+            log.error(msg)
+            raise ValueError(msg)
 
         if not self.is_open():
             log.error("Trying to update a closed position")
             raise ValueError("Trying to update a closed position")
 
-        tradable_shares = abs(self.get_total_shares())
         if trade.side == "buy":
             if self.side == "long":
                 self.batches.append({
@@ -161,16 +160,16 @@ class Position():
             self.batches = [
                 batch for batch in self.batches if batch["quantity"] != 0]
         else:
-            log.error("Invalid trade cannot " + trade.side +
-                      " more than " + str(tradable_shares))
+            log.error(
+                "Invalid trade cannot " + trade.side + " more than " + str(tradable_shares))
             raise ValueError(
                 "Invalid trade cannot " + trade.side + " more than " + str(tradable_shares))
 
     def has_leg_orders(self):
-        if self.leg_orders["take_profit"] != None:
+        if self.leg_orders["take_profit"] is not None:
             return True
         else:
-            if self.leg_orders["stop_loss"] != None:
+            if self.leg_orders["stop_loss"] is not None:
                 return True
 
     def get_leg_orders(self):

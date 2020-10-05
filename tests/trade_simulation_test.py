@@ -1,16 +1,12 @@
-import os
-import sys
 import time
 import unittest
 import datetime
-import threading
 
 
 # Project specific imports from lib
+from lib.util.logger import log
 from lib.trading.generic import Trade
 from lib.trading.generic import Position
-from lib.util.logger import log
-
 
 class TradeTest(unittest.TestCase):
 
@@ -132,11 +128,11 @@ class PositionTest(unittest.TestCase):
 
         long_position = Position(symbol, buy)
 
-        log.info("Opening a long position with " +
-                 str(long_position.batches[0]["quantity"]) + " shares")
+        msg = "Opening a long position with "
+        msg += str(long_position.batches[0]["quantity"]) + " shares"
+        log.info(msg)
         self.assertTrue(long_position.batches[0]["quantity"] == quantity)
         log.info("Long position has correct quantity")
-
         log.info("Completed PositionTest - test_opening_long_position_quantity")
 
     def test_opening_short_position_quantity(self):
@@ -154,11 +150,11 @@ class PositionTest(unittest.TestCase):
 
         long_position = Position(symbol, sell)
 
-        log.info("Opening a short position with " +
-                 str(long_position.batches[0]["quantity"]) + " shares")
+        msg = "Opening a short position with "
+        msg += str(long_position.batches[0]["quantity"]) + " shares"
+        log.info(msg)
         self.assertTrue(long_position.batches[0]["quantity"] == -quantity)
         log.info("Short position has correct quantity")
-
         log.info("Completed PositionTest - test_opening_short_position_quantity")
 
     def test_increasing_long_position_quantity(self):
@@ -177,17 +173,16 @@ class PositionTest(unittest.TestCase):
         buy2 = Trade(symbol, quantity2, price, side, date)
 
         long_position = Position(symbol, buy1)
-        log.info("Opening a long position with " +
-                 str(long_position.batches[0]["quantity"]) + " shares")
+        msg = "Opening a long position with "
+        msg += str(long_position.batches[0]["quantity"]) + " shares"
+        log.info(msg)
         long_position.update_position(buy2)
-        log.info("Increasing long position by " +
-                 str(quantity2) + " shares at same price")
+        log.info("Increasing long position by " + str(quantity2) + " shares at same price")
 
-        self.assertTrue(long_position.get_total_shares()
-                        == (quantity1 + quantity2))
-        log.info("Long position has been correctly increased at " +
-                 str(long_position.get_total_shares()))
-
+        self.assertTrue(long_position.get_total_shares() == (quantity1 + quantity2))
+        msg = "Long position has been correctly increased at "
+        msg += str(long_position.get_total_shares())
+        log.info(msg)
         log.info("Completed PositionTest - test_increasing_long_position_quantity")
 
     def test_increasing_short_position_quantity(self):
