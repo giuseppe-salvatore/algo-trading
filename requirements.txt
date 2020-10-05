@@ -13,3 +13,4 @@ PyPortfolioOpt
 pylint
 autopep8
 colorlog
+xmlrunner

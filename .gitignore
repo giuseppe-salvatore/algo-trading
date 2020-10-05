@@ -7,3 +7,4 @@
 **/*.sql
 **/*.db
 .venv/
+conf/secret.py
