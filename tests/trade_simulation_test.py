@@ -201,16 +201,23 @@ class PositionTest(unittest.TestCase):
         sell2 = Trade(symbol, quantity2, price, side, date)
 
         position = Position(symbol, sell1)
-        log.info("Opening a " + position.side + " position with " +
-                 str(position.batches[0]["quantity"]) + " shares")
-        position.update_position(sell2)
-        log.info("Increasing " + position.side + " position by " +
-                 str(quantity2) + " shares at same price")
+        log.info("Opening a {} position with {} shares".format(
+            position.side,
+            position.batches[0]["quantity"]
+        ))
 
-        self.assertTrue(position.get_total_shares()
-                        == -(quantity1 + quantity2))
-        log.info("Short position has been correctly increased at " +
-                 str(position.get_total_shares()))
+        position.update_position(sell2)
+        log.info("Increasing {} position by {} shares at same price".format(
+            position.side,
+            quantity2
+        ))
+        total_shares = position.get_total_shares()
+        expected_shares = -(quantity1 + quantity2)
+
+        self.assertTrue(total_shares == expected_shares)
+        log.info("Short position has been correctly increased at {} ".format(
+            total_shares
+        ))
 
         log.info("Completed PositionTest - test_increasing_short_position_quantity")
 
@@ -232,29 +239,34 @@ class PositionTest(unittest.TestCase):
         buy2 = Trade(symbol, quantity2, price2, side, date)
 
         long_position = Position(symbol, buy1)
-        log.info("Opening a long position with " +
-                 str(long_position.batches[0]["quantity"]) + " shares at " + str(price1) + "$")
+        log.info("Opening a long position with {} shares a {}$".format(
+            long_position.batches[0]["quantity"],
+            price1
+        ))
         long_position.update_position(buy2)
-        log.info("Increasing long position by " +
-                 str(quantity2) + " shares at " + str(price2) + "$")
+        log.info("Increasing long position by {} shares a {}$".format(
+            quantity2,
+            price2
+        ))
 
         expected_average_price = (
             (price1 * quantity1) + (price2 * quantity2)) / (quantity1 + quantity2)
-        log.info("Expected average price " + str(expected_average_price) + "$")
-        log.info("Actual average price " +
-                 str(long_position.get_average_entry_price()) + "$")
-        self.assertTrue(long_position.get_average_entry_price()
-                        == expected_average_price)
-        log.info("Long position average entry price is correct " +
-                 str(long_position.get_average_entry_price()))
+        actual_average_price = long_position.get_average_entry_price()
 
-        log.info(
-            "Completed PositionTest - test_increasing_long_position_average_price_check")
+        log.info("Expected average price {}$".format(expected_average_price))
+        log.info("Actual average price {}$".format(actual_average_price))
+
+        self.assertTrue(actual_average_price == expected_average_price)
+
+        log.info("Long position average entry price is correct {}".format(
+            long_position.get_average_entry_price()
+        ))
+
+        log.info("Completed PositionTest - test_increasing_long_position_average_price_check")
 
     def test_increasing_short_position_average_price_check(self):
         print("")
-        log.info(
-            "Running   PositionTest - test_increasing_short_position_average_price_check")
+        log.info("Running   PositionTest - test_increasing_short_position_average_price_check")
 
         # First we need a buy order to pass to the position
         date = datetime.datetime.now()
@@ -453,19 +465,154 @@ class PositionTest(unittest.TestCase):
         trade2 = Trade(symbol, quantity2, price, "buy", date)
 
         position = Position(symbol, trade1)
-        log.info("Opening a short position with " +
-                 str(position.batches[0]["quantity"]) + " shares")
+        log.info("Opening a short position with {} shares".format(
+            position.batches[0]["quantity"]
+        ))
         position.update_position(trade2)
-        log.info("Decreasing short position by " +
-                 str(quantity2) + " shares at same price")
+        log.info("Decreasing short position by {} shares at same price".format(
+            quantity2
+        ))
 
-        print(position.get_total_shares())
-        self.assertTrue(position.get_total_shares()
-                        == -(quantity1 - quantity2))
-        log.info("Short position has been correctly decreased at " +
-                 str(position.get_total_shares()))
+        expected_shares = -(quantity1 - quantity2)
+        actual_shares = position.get_total_shares()
+        self.assertTrue(actual_shares == expected_shares)
+        log.info("Short position has been correctly decreased at {}".format(
+            position.get_total_shares()
+        ))
 
         log.info("Completed PositionTest - test_decreasing_short_position_quantity")
+
+    def test_profit_on_long_position(self):
+        print("")
+        log.info("Running   PositionTest - test_profit_on_long_position")
+
+        # First we need a buy order to pass to the position
+        date = datetime.datetime.now()
+        price1 = 10
+        price2 = 15
+        symbol = "SPY"
+        quantity1 = 10
+        quantity2 = 10
+
+        trade1 = Trade(symbol, quantity1, price1, "buy", date)
+        trade2 = Trade(symbol, quantity2, price2, "sell", date)
+
+        position = Position(symbol, trade1)
+        log.info("Opening a {} position with {} shares".format(
+            position.side,
+            position.batches[0]["quantity"]
+        ))
+        position.update_position(trade2)
+        log.info("Closing {} position".format(position.side))
+
+        actual_profit = position.get_profit()
+        expected_profit = 50
+        log.info("Expected profit: {}$\nActual profit: {}$".format(
+            expected_profit,
+            actual_profit
+        ))
+        self.assertTrue(expected_profit == actual_profit)
+
+        log.info("Completed PositionTest - test_profit_on_long_position")
+
+    def test_loss_on_long_position(self):
+        print("")
+        log.info("Running   PositionTest - test_loss_on_long_position")
+
+        # First we need a buy order to pass to the position
+        date = datetime.datetime.now()
+        price1 = 15
+        price2 = 10
+        symbol = "SPY"
+        quantity1 = 10
+        quantity2 = 10
+
+        trade1 = Trade(symbol, quantity1, price1, "buy", date)
+        trade2 = Trade(symbol, quantity2, price2, "sell", date)
+
+        position = Position(symbol, trade1)
+        log.info("Opening a {} position with {} shares".format(
+            position.side,
+            position.batches[0]["quantity"]
+        ))
+        position.update_position(trade2)
+        log.info("Closing {} position".format(position.side))
+
+        actual_profit = position.get_profit()
+        expected_profit = -50
+        log.info("Expected profit: {}$\nActual profit: {}$".format(
+            expected_profit,
+            actual_profit
+        ))
+        self.assertTrue(expected_profit == actual_profit)
+
+        log.info("Completed PositionTest - test_loss_on_long_position")
+
+    def test_profit_on_short_position(self):
+        print("")
+        log.info("Running   PositionTest - test_profit_on_short_position")
+
+        # First we need a buy order to pass to the position
+        date = datetime.datetime.now()
+        price1 = 15
+        price2 = 10
+        symbol = "SPY"
+        quantity1 = 10
+        quantity2 = 10
+
+        trade1 = Trade(symbol, quantity1, price1, "sell", date)
+        trade2 = Trade(symbol, quantity2, price2, "buy", date)
+
+        position = Position(symbol, trade1)
+        log.info("Opening a {} position with {} shares".format(
+            position.side,
+            position.batches[0]["quantity"]
+        ))
+        position.update_position(trade2)
+        log.info("Closing {} position".format(position.side))
+
+        actual_profit = position.get_profit()
+        expected_profit = 50
+        log.info("Expected profit: {}$\nActual profit: {}$".format(
+            expected_profit,
+            actual_profit
+        ))
+        self.assertTrue(expected_profit == actual_profit)
+
+        log.info("Completed PositionTest - test_profit_on_long_position")
+
+    def test_loss_on_short_position(self):
+        print("")
+        log.info("Running   PositionTest - test_loss_on_short_position")
+
+        # First we need a buy order to pass to the position
+        date = datetime.datetime.now()
+        price1 = 10
+        price2 = 15
+        symbol = "SPY"
+        quantity1 = 10
+        quantity2 = 10
+
+        trade1 = Trade(symbol, quantity1, price1, "sell", date)
+        trade2 = Trade(symbol, quantity2, price2, "buy", date)
+
+        position = Position(symbol, trade1)
+        log.info("Opening a {} position with {} shares".format(
+            position.side,
+            position.batches[0]["quantity"]
+        ))
+        position.update_position(trade2)
+        log.info("Closing {} position".format(position.side))
+
+        actual_profit = position.get_profit()
+        expected_profit = -50
+        log.info("Expected profit: {}$\nActual profit: {}$".format(
+            expected_profit,
+            actual_profit
+        ))
+        self.assertTrue(expected_profit == actual_profit)
+
+        log.info("Completed PositionTest - test_loss_on_short_position")
 
 if __name__ == '__main__':
     unittest.main()

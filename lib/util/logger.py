@@ -8,10 +8,10 @@ try:
 except ImportError:
     pass
 
-def setup_logging():
-    root = logging.getLogger("algo-trading")
+def setup_logging(name):
+    root = logging.getLogger(name)
     root.setLevel(logging.DEBUG)
-    format      = '%(asctime)s - %(levelname)-8s - %(message)s'
+    format      = '%(asctime)s - %(name)-12s - %(levelname)-8s - %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
     if 'colorlog' in sys.modules and os.isatty(2):
         cformat = '%(log_color)s' + format
@@ -25,5 +25,6 @@ def setup_logging():
     ch.setFormatter(f)
     root.addHandler(ch)
 
-setup_logging()
-log = logging.getLogger("algo-trading")
+
+setup_logging(__name__)
+log = logging.getLogger(__name__)

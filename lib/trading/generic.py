@@ -102,7 +102,8 @@ class Position():
     def get_profit(self):
         pl = 0.0
         for t in self.trades:
-            pl += ((t.price * t.quantity) if t.side == "buy" else -(t.price * t.quantity))
+            pl += (-(t.price * t.quantity) if t.side == "buy" else +(t.price * t.quantity))
+        return pl
 
     def update_position(self, trade: Trade):
         if trade.symbol != self.symbol:
@@ -183,3 +184,6 @@ class Position():
 
     def is_open(self):
         return (False if len(self.batches) == 0 else True)
+
+    def get_trades(self):
+        return self.trades
