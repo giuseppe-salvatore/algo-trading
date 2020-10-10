@@ -1,3 +1,4 @@
+from lib.util.logger import log
 from lib.trading.alpaca import AlpacaTrading
 
 proxy = AlpacaTrading()
@@ -20,23 +21,24 @@ def get_asset_data():
             if asset.status == 'active':
                 active_asset_count += 1
 
-            if asset.tradable == True:
+            if asset.tradable is True:
                 tradable_asset_count += 1
 
             price = str(proxy.get_quote(asset.symbol).askprice)
-            if asset.status == 'active' and asset.tradable == True:
+            if asset.status == 'active' and asset.tradable is True:
                 print(str(asset.symbol) + ",", end="")
                 print(str(asset.tradable) + ",", end="")
                 print(str(asset.shortable) + ",", end="")
-                if asset.shortable == True:
+                if asset.shortable is True:
                     shortable_asset_count += 1
                 targets.append(asset.stymbol)
             print(price)
             # ass = proxy.api.get_asset(asset.symbol)
         except KeyboardInterrupt as ki:
+            log.error(ki)
             break
-        except:
-            pass
+        except Exception as e:
+            log.error(e)
 
     target_string = ""
     for target in targets:
@@ -53,5 +55,5 @@ def get_asset_data():
 if __name__ == "__main__":
 
     # get_asset_data()
-    print(proxy.api.polygon.news('MSFT'))
+    log.info(proxy.api.polygon.news('MSFT'))
     # print(proxy.api.polygon.gainers_losers("gainers"))

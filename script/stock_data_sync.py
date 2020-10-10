@@ -206,7 +206,7 @@ def rest_init():
             config.ALPACA_DATA_REST_ENDPOINT + "/v1/last/stocks/" + stock_name, headers=headers)
         status = response.json().get('status')
         if status == 'success':
-            latest_timestamp = response.json().get('last').get('timestamp')
+            # latest_timestamp = response.json().get('last').get('timestamp')
             last_price = float(response.json().get('last').get('price'))
             stocks_price[stock_name].append(last_price)
 

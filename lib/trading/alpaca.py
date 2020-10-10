@@ -2,15 +2,15 @@ import conf.secret as config
 import alpaca_trade_api as alpaca
 
 from lib.util.logger import log
+# import lib.util.logger as logger
+# logger.setup_logging("AlpacaTrading")
+# log = logger.logging.getLogger("AlpacaTrading")
 
 STOP_LOSS_PERC = 0.5
 open_orders = None
 close_orders = None
 all_orders = None
 open_orders_dic = dict()
-
-
-
 
 class AlpacaTrading():
 

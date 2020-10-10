@@ -3,7 +3,6 @@ import sys
 import time
 import math
 import json
-import logging
 import traceback
 import datetime
 import operator

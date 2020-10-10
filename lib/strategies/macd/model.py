@@ -3,7 +3,6 @@ import sys
 import time
 import math
 import json
-import logging
 import traceback
 import datetime
 import operator
@@ -21,9 +20,9 @@ from api_proxy import TradeApiProxy
 from stockstats import StockDataFrame
 from strategies.model import StockMarketStrategy
 
-logging.basicConfig(level='WARNING')
-log = logging.getLogger(__name__)
-log.setLevel('DEBUG')
+# logging.basicConfig(level='WARNING')
+# log = logging.getLogger(__name__)
+# log.setLevel('DEBUG')
 
 
 class MovingAverageConvDiv(StockMarketStrategy):

@@ -1,13 +1,13 @@
 sql_create_order_table = """CREATE TABLE IF NOT EXISTS orders (
                                     id              VARCHAR(20) PRIMARY KEY,
-                                    client_id       VARCHAR(6) NOT NULL, 
+                                    client_id       VARCHAR(6) NOT NULL,
                                     symbol          VARCHAR(6) NOT NULL,
                                     asset_id        VARCHAR(20) NOT NULL,
                                     asset_class     VARCHAR(10) NOT NULL,
                                     status          VARCHAR(20) NOT NULL,
                                     side            VARCHAR(10) NOT NULL,
                                     order_class     VARCHAR(10) NOT NULL,
-                                    time_in_force   DATETIME NOT NULL,                                     
+                                    time_in_force   DATETIME NOT NULL,
                                     failed_at       DATETIME,
                                     filled_at       DATETIME,
                                     expired_at      DATETIME,
@@ -28,7 +28,7 @@ sql_create_order_table = """CREATE TABLE IF NOT EXISTS orders (
 
 sql_create_order_legs_table = """CREATE TABLE IF NOT EXISTS order_legs (
                                     id           INTEGER PRIMARY KEY,
-                                    order_id     VARCHAR(20) NOT NULL, 
+                                    order_id     VARCHAR(20) NOT NULL,
                                     order_leg_id VARCHAR(20) NOT NULL,
                                     UNIQUE(order_id, order_leg_id)
                                 );"""
@@ -69,8 +69,6 @@ sql_create_table_tradable_assets_table = """CREATE TABLE IF NOT EXISTS tradable_
                                     UNIQUE (symbol,date)
                                 );"""
 
-
-
 sql_upsert_into_order = """ INSERT INTO orders(
     id,client_id,
     symbol,
@@ -96,8 +94,8 @@ sql_upsert_into_order = """ INSERT INTO orders(
     replaced_by,
     replaced_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    ON CONFLICT(id) DO UPDATE SET 
-        status=excluded.status, 
+    ON CONFLICT(id) DO UPDATE SET
+        status=excluded.status,
         time_in_force=excluded.time_in_force,
         failed_at=excluded.failed_at,
         filled_at=excluded.filled_at,
@@ -119,3 +117,7 @@ sql_insert_leg_order = """INSERT INTO order_legs(
     order_id ,
     order_leg_id)
     VALUES(?,?);"""
+
+sql_get_minute_candles = """SELECT time, open, close, high, low, volume
+                            FROM minute_bars
+                            WHERE symbol = '?' AND time > ? AND time < ?"""

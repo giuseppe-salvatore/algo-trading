@@ -2,6 +2,13 @@ import datetime
 from lib.util.logger import log
 
 
+capital_invested = 0.0
+max_capital_invested = 0.0
+
+def get_max_capital_invested():
+    global max_capital_invested
+    return max_capital_invested
+
 class Trade():
 
     def __init__(self, symbol: str, quantity: int, price: float, side: str, date: datetime):
@@ -65,7 +72,7 @@ class Trade():
 
 class Position():
 
-    def __init__(self, symbol: str, trade):
+    def __init__(self, symbol: str, trade: Trade):
         self.side = "long" if trade.side == "buy" else "short"
         self.open_time = trade.date
         self.close_time = None
@@ -86,6 +93,18 @@ class Position():
             "quantity": -trade.quantity,
             "price": -trade.price
         }]
+
+        log.info("Opening {} {} position ({})".format(
+            self.symbol,
+            self.side,
+            trade.quantity
+        ))
+
+        global capital_invested
+        global max_capital_invested
+        capital_invested -= abs(trade.quantity * trade.price)
+        max_capital_invested = min(capital_invested, max_capital_invested)
+        log.debug("Trade executed: {}".format(trade))
 
     def get_total_shares(self):
         total_shares = 0
@@ -116,6 +135,8 @@ class Position():
             log.error("Trying to update a closed position")
             raise ValueError("Trying to update a closed position")
 
+        log.debug("Trade executed: {}".format(trade))
+
         if trade.side == "buy":
             if self.side == "long":
                 self.batches.append({
@@ -138,8 +159,14 @@ class Position():
 
         self.trades.append(trade)
 
+        global capital_invested
         if self.get_total_shares() == 0:
-            log.info("Closing " + self.symbol + " " + self.side + " position ")
+            log.info("Closing {} {} position (profit = {:.2f})".format(
+                self.symbol,
+                self.side,
+                self.get_profit()
+            ))
+            capital_invested += abs(trade.quantity * trade.price)
 
     def _remove_shares(self, trade: Trade):
         tradable_shares = self.get_total_shares()
@@ -162,7 +189,11 @@ class Position():
                 batch for batch in self.batches if batch["quantity"] != 0]
         else:
             log.error(
-                "Invalid trade cannot " + trade.side + " more than " + str(tradable_shares))
+                "Invalid trade cannot {} more than {}, {} not acceptable".format(
+                    trade.side,
+                    tradable_shares,
+                    trade_quantity
+                ))
             raise ValueError(
                 "Invalid trade cannot " + trade.side + " more than " + str(tradable_shares))
 
@@ -187,3 +218,26 @@ class Position():
 
     def get_trades(self):
         return self.trades
+
+    def liquidate(self, price: float):
+        if self.is_open():
+            if self.side == "long":
+                side = "sell"
+            else:
+                side = "buy"
+            previous_trade_date: datetime = self.trades[-1].date
+            close_date = datetime.datetime(
+                previous_trade_date.year,
+                previous_trade_date.month,
+                previous_trade_date.day,
+                20,
+                59
+            )
+
+            self.update_position(
+                Trade(self.symbol, abs(self.get_total_shares()), price, side, close_date)
+            )
+        log.debug("{}' position liquidated, profit = {:.2f}$".format(
+            self.symbol,
+            self.get_profit()
+        ))

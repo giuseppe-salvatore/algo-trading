@@ -10,9 +10,9 @@ def populate_watchlist(account):
 
 if __name__ == "__main__":
 
-    paper_api = TradeApiProxy('paper')
-    paper_api2 = TradeApiProxy('paper2')
-    live_api = TradeApiProxy('live')
+    paper_api = AlpacaTrading('paper')
+    # paper_api2 = TradeApiProxy('paper2')
+    live_api = AlpacaTrading('live')
 
     # populate_watchlist(paper_api)
     # populate_watchlist(paper_api2)
@@ -22,9 +22,9 @@ if __name__ == "__main__":
     # paper_api.sort_watchlist()
     # paper_api2.sort_watchlist()
 
-    #print("Paper trading has " + str(len(paper_api.get_watchlist())))
-    #print("Paper2 trading has " + str(len(paper_api2.get_watchlist())))
-    #print("Live trading has " + str(len(live_api.get_watchlist())))
+    # print("Paper trading has " + str(len(paper_api.get_watchlist())))
+    # print("Paper2 trading has " + str(len(paper_api2.get_watchlist())))
+    # print("Live trading has " + str(len(live_api.get_watchlist())))
 
     # print("Listing all orders ----------------------")
     # all_orders = paper_api.list_all_orders()

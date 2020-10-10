@@ -68,9 +68,7 @@ class DummyStrategy(StockMarketStrategy):
 
             return [p]
 
-
-
-    def run_strategy(self, api):
+    def run_strategy(self):
         trades = {}
 
         try:

@@ -1,10 +1,11 @@
 import os
 import operator
+import datetime
 import pandas as pd
 import datetime as dt
 import multiprocessing as mp
 import matplotlib.pyplot as plt
-
+import lib.trading.generic as capital_managment
 
 import lib.util.logger as logger
 logger.setup_logging("BaseStrategy")
@@ -54,13 +55,78 @@ class BacktestStrategy():
         for result in backtesting_results:
             total_profit = 0
             for symbol in result:
+                stock_profit = 0
                 for position in result[symbol]:
                     profit = position.get_profit()
-                    log.info("{:8s} profit: {}".format(
+                    log.debug("{:8s} profit: {:.2f}$".format(
                         symbol+"'s",
                         profit))
+                    stock_profit += profit
+                log.info("Total {} profit: {:.2f}$".format(symbol, stock_profit))
+                total_profit += stock_profit
+            log.info("Total profit: {:.2f}$".format(total_profit))
+
+    def print_trade_stats(self):
+        for result in backtesting_results:
+            winners = 0
+            losers = 0
+            for symbol in result:
+                for position in result[symbol]:
+                    profit = position.get_profit()
+                    if profit > 0:
+                        winners += 1
+                    else:
+                        losers += 1
+                # log.info("Total {} profit: {}".format(symbol, stock_profit))
+
+            log.info("Total winners: {} ({:.2f}%)".format(winners, winners/(winners+losers)))
+            log.info("Total losers: {} ({:.2f}%)".format(losers, losers/(winners+losers)))
+
+    def profits_to_dataframe(self):
+        df = pd.DataFrame(columns=['date', 'symbol', 'profit', "total"])
+        total_profit = 0.0
+        for result in backtesting_results:
+            for symbol in result:
+                for position in result[symbol]:
+                    profit = position.get_profit()
+                    last_trade = position.get_trades()[-1]
                     total_profit += profit
-            log.info("Total profit: {}".format(total_profit))
+                    df = df.append({
+                        "date": last_trade.date,
+                        "symbol": last_trade.symbol,
+                        "profit": profit
+                    }, ignore_index=True)
+        df = df.set_index("date")
+        df.sort_index(inplace=True)
+        df["total"] = df["profit"].cumsum()
+        df["total"].plot()
+        plt.grid()
+        plt.show()
+
+    def trades_to_dataframe(self):
+        df = pd.DataFrame(columns=['date', 'capital', 'max'])
+        for result in backtesting_results:
+            for symbol in result:
+                for position in result[symbol]:
+                    for trade in position.get_trades():
+                        if (position.side == "long" and trade.side == "buy" or
+                                position.side == "short" and trade.side == "sell"):
+                            traded_capital = -abs(trade.quantity * trade.price)
+                        else:
+                            traded_capital = abs(trade.quantity * trade.price)
+                        df = df.append({
+                            "date": trade.date,
+                            "capital": -traded_capital
+                        }, ignore_index=True)
+        df = df.set_index("date")
+        df.sort_index(inplace=True)
+        capital_invested = 0.0
+        max_capital_invested = 0.0
+        log.info("Max capital invested {}$".format(max_capital_invested))
+        df["max"] = df["capital"].cumsum()
+        df["max"].plot()
+        plt.grid()
+        plt.show()
 
     def stringify_strategy_params(self, params):
         param_string = params['strategy'] + "("
@@ -151,8 +217,9 @@ class BacktestStrategy():
                 strategy.set_year(year)
                 strategy.set_api(api)
 
-                pool.apply_async(strategy.run_strategy, args=[
-                    api], callback=collect_result)
+                pool.apply_async(strategy.run_strategy, callback=collect_result)
+                # pool.apply_async(strategy.run_strategy, args=[
+                #     api], callback=collect_result)
 
         pool.close()
         pool.join()
@@ -162,11 +229,108 @@ class BacktestStrategy():
 
         self.print_backtest_profits()
 
+        self.print_trade_stats()
+
+        self.profits_to_dataframe()
+
+        self.trades_to_dataframe()
+
         # self.print_backtest_csv_format(result_folder)
 
         # self.create_barchart_for_results(result_folders, "TOTAL")
 
         # Here we want to get some other results like min, max, avg and stddev
+
+    """
+    Runs the backtesting for a specific set of inputs you need to select
+
+    Parameters
+    ----------
+    - strategy_class: type
+        One of the strategies available in lib.strategies
+    - trading_type: str
+        Intra-day or multy-days (note that intra-day will force closing all your position by EOD)
+    - datetime_start: datetime
+        The beginning of the time frame for the simulation
+    - datetime_end: datetime
+        The end of the time frame for the simulation
+    - param_size: str
+        The strategy and indicators will be generating possible combinations of parameters, the
+        size of these combinations will be default, light, medium, full
+    - indicator_list: list
+        A list of indicators to use with the strategy, these will be used by the strategy which
+        should know which indicators to use and how
+    - parallel_processes: int
+        Number of parallel processes to run for the simulation to use. A good number (considering m
+        to be the number of cores available on the platfrom) will be between m and m*2 depending on
+        the stress you want to put on your machine
+
+    Returns
+    -------
+    list
+        a list of strings used that are the header columns
+    """
+
+    def run_new(self,
+                symbols: str,
+                strategy_class: type,
+                param_size: str,
+                indicator_list: list,
+                datetime_start: datetime,
+                datetime_end: datetime,
+                trading_type: str,
+                pool_size: int):
+
+        global total_results
+        now = dt.datetime.now()
+        pool = mp.Pool(pool_size)
+
+        days = ["08"]
+        month = "09"
+        year = "2020"
+
+        dates = []
+        result_folders = {}
+
+        for day in days:
+            strategy = strategy_class()
+            strategy.set_day(day)
+            strategy.set_month(month)
+            strategy.set_year(year)
+            dates.append(strategy.get_date_string())
+            strategy.set_api(api)
+            strategy.pull_stock_info()
+            param_comb = strategy.generate_param_combination('single')
+            result_folder = strategy.result_folder + "/" + \
+                str(now)[:19] + "/" + strategy.get_date_string() + "/"
+            os.makedirs(result_folder)
+            result_folders[strategy.get_date_string()] = result_folder
+
+            total_results += len(param_comb)
+            log.info("Total number of simulations = " + str(total_results))
+
+            for param_set in param_comb:
+                log.info("Param set: " + str(param_set))
+                strategy = strategy_class()
+                strategy.results_folder = result_folder
+                strategy.set_generated_param(param_set)
+                strategy.set_day(day)
+                strategy.set_month(month)
+                strategy.set_year(year)
+                strategy.set_api(api)
+
+                pool.apply_async(strategy.run_strategy, args=[
+                    api], callback=collect_result)
+
+        pool.close()
+        pool.join()
+        if len(backtesting_results) == 0:
+            log.critical("No results generated by simulation")
+            return
+
+        log.info("Simulations completed, storing results now")
+
+        self.print_backtest_profits()
 
 
 class StockMarketStrategy():

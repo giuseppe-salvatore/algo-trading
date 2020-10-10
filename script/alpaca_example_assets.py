@@ -1,14 +1,14 @@
 import sys
 import time
 import sqlite3
-import asyncio
 import datetime
 import api_proxy
 import db_queries
+
 import market_data_provider.finnhub_proxy
 import market_data_provider.polygon_proxy as polygon_data
 from sqlite3 import Error
-
+from lib.util.logger import log
 
 def create_connection(db_file):
     """ create a database connection to a SQLite database """
@@ -17,11 +17,9 @@ def create_connection(db_file):
         conn = sqlite3.connect(db_file)
         print(sqlite3.version)
     except Error as e:
-        print(e)
+        log.error(e)
     return conn
 
-
-    
 
 def create_table(conn, create_table_sql):
     """ create a table from the create_table_sql statement
@@ -33,7 +31,7 @@ def create_table(conn, create_table_sql):
         c = conn.cursor()
         c.execute(create_table_sql)
     except Error as e:
-        print(e)
+        log.error(e)
 
 
 def insert_asset(conn, asset, date):
@@ -50,9 +48,8 @@ def insert_asset(conn, asset, date):
         date)[:10], asset.shortable, asset.marginable)
     try:
         cur.execute(sql, asset_tuple)
-    except sqlite3.IntegrityError as error:
-        print(error)
-        print(asset)
+    except sqlite3.IntegrityError as e:
+        log.error(e)
     return cur.lastrowid
 
 
@@ -68,8 +65,8 @@ def insert_bar(conn, bar):
     cur = conn.cursor()
     try:
         cur.execute(sql, bar)
-    except sqlite3.IntegrityError as error:
-        print(error)
+    except sqlite3.IntegrityError as e:
+        log.error(e)
     return cur.lastrowid
 
 def get_filtered_watchlist(conn):
@@ -97,12 +94,13 @@ def update_asset_with_company_info(conn, symbol, params):
             params["type"],
             params["url"],
             params["logo"],
-            params["description"], 
+            params["description"],
             symbol))
         cur.execute("COMMIT")
-    except:
+    except Exception as e:
+        log.error(e)
         cur.execute("ROLLBACK")
-    
+
 def get_tradable_asset_symbols(db_conn):
     cur = db_conn.cursor()
     cur.execute("SELECT symbol FROM tradable_assets ORDER BY symbol;")
@@ -120,22 +118,21 @@ def get_watchlist(db_conn):
     for row in rows:
         watchlist.append(row[0])
     return watchlist
-    
+
 def inset_all_into_watchlist(conn, symbols):
 
     wl = get_watchlist(conn)
     print(wl)
-    excluted = []
     for elem in wl:
         if elem in symbols:
             print("WARNING: " + elem + " already in watchlist")
             symbols.remove(elem)
-    
+
     if len(symbols) == 0:
         print("WARNING: no symbols to add")
         return None
 
-    conn.isolation_level = None    
+    conn.isolation_level = None
     cur = conn.cursor()
 
     cur.execute("BEGIN")
@@ -151,7 +148,6 @@ def inset_all_into_watchlist(conn, symbols):
 
     cur.execute("COMMIT")
 
-    
 
 def insert_symbol_in_watchlist(conn, symbol):
     """
@@ -173,6 +169,7 @@ def update_symbol(db_conn, symbol):
     params = polygon_data.get_company_details(symbol)
     update_asset_with_company_info(db_conn, symbol, params)
 
+
 if __name__ == "__main__":
 
     paper_account = api_proxy.TradeApiProxy("paper")
@@ -188,7 +185,7 @@ if __name__ == "__main__":
         print("Error! cannot create the database connection.")
     db_conn.commit()
 
-    # 
+    #
     # This will insert new symbols in the simple watchlist
     #
     watchlist = paper_account.get_watchlist()
@@ -198,7 +195,7 @@ if __name__ == "__main__":
 
     # skip = True
     # for symbol in assets:
-        
+
     #     if symbol == "LSAF":
     #         skip = False
 
@@ -213,7 +210,7 @@ if __name__ == "__main__":
     #         print(" DONE")
     #     except Exception as e:
     #         print(" ERROR " + str(e))
-        
+
     # time.sleep(120)
 
     sys.exit(0)
@@ -241,36 +238,36 @@ if __name__ == "__main__":
     skip = True
     for row in rows:
         symbol = row[0]
-        try:            
+        try:
             if symbol == start_from:
                 skip = False
             if skip:
-                print("Skipping symbol " + symbol, end="")
+                log.info("Skipping symbol " + symbol, end="")
                 continue
 
-            print("Processing symbol " + symbol, end="")
-            print("  Fetching", end="")
+            log.info("Processing symbol " + symbol, end="")
+            log.info("  Fetching", end="")
             result = market_data_provider.finnhub_proxy.get_minute_bars(
                 symbol, "2019-09-27", "2019-09-28")
             time.sleep(15)
             if result is None:
-                print("  Symbol not available or no data", end="")
+                log.info("  Symbol not available or no data", end="")
                 continue
-            print("  (market=" + str(result["market"]) + ")", end="")
-            print("  (extra=" + str(result["extra_hours"]) + ")", end="")
+            log.info("  (market=" + str(result["market"]) + ")", end="")
+            log.info("  (extra=" + str(result["extra_hours"]) + ")", end="")
             if result["market"] < 385:
-                print("  Not enough market data", end="")
+                log.info("  Not enough market data", end="")
                 continue
             for elem in result['data']:
                 insert_bar(db_conn, elem)
-            print("  Committing", end="")
+            log.info("  Committing", end="")
             db_conn.commit()
             insert_symbol_in_watchlist(db_conn, symbol)
             db_conn.commit()
-            print("  Done", end="")
-        except:
-            print("\n   Error parsing symbol " + symbol)
+            log.info("  Done", end="")
+        except Exception as e:
+            log.error("Error parsing symbol " + symbol)
+            log.error(e)
             time.sleep(10)
         finally:
             print("")
-

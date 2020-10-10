@@ -284,7 +284,7 @@ class RSIStrategy(StockMarketStrategy):
             else:
                 current_band = self.get_rsi_band(df['rsi'][i])
                 if current_band == start_band and in_band_count != -1:
-                    in_band_count += 1                    
+                    in_band_count += 1
                 else:
                     in_band_count = -1
 
