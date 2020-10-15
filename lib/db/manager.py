@@ -17,6 +17,9 @@ class DBManager():
         else:
             log.debug("SQLITE_DB_FILE = {}".format(db_file))
 
+        if not os.path.exists(db_file):
+            log.fatal("Database file doesn't exist: {}".format(db_file))
+
         self.conn = self._create_connection(db_file)
 
     def _create_connection(self, db_file):
