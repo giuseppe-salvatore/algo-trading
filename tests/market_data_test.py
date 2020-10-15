@@ -20,21 +20,21 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
     def test_get_minute_candles(self):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
-            symbol="AAPL",
+            symbol="TSLA",
             start_date="2020-10-07",
             end_date="2020-10-09",
             force_provider_fetch=True,
-            store_fetched_data=False)
+            store_fetched_data=True)
         self.assertTrue(len(df.index) > 100)
 
     def test_minute_candle_content_on_single_day(self):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
-            symbol="AAPL",
+            symbol="TSLA",
             start_date="2020-10-07",
             end_date="2020-10-09",
             force_provider_fetch=True,
-            store_fetched_data=False)
+            store_fetched_data=True)
         self.assertIsNotNone(df)
 
 class PolygonMarketDataProviderTest(unittest.TestCase):
@@ -74,7 +74,7 @@ class GenericFailureMarketDataProviderTest(unittest.TestCase):
 
     def test_minute_candles_checker_multiple_days(self):
         db = DBManager()
-        df = db.minute_candles_to_dataframe('TEST', datetime(2020, 10, 7), datetime(2020, 10, 9))
+        df = db.minute_candles_to_dataframe('TSLA', datetime(2020, 10, 7), datetime(2020, 10, 9))
         res = MarketDataUtils.check_candles_in_timeframe(
             df,
             datetime(2020, 10, 7),

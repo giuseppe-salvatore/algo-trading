@@ -13,10 +13,10 @@ class MarketDataDatabaseTest(unittest.TestCase):
 
         db = DBManager()
         fh = MarketDataProviderUtils.get_provider("Finnhub")
-        dataframe = fh.get_minute_candles('AAPL', datetime(2020, 10, 6), datetime(2020, 10, 9))
+        dataframe = fh.get_minute_candles('TSLA', datetime(2020, 10, 6), datetime(2020, 10, 10))
 
-        db.delete_rows_from("minute_bars", "symbol='TEST'")
-        db.dataframe_to_minute_candles('TEST', dataframe)
+        db.delete_rows_from("minute_bars", "symbol='TSLA'")
+        db.dataframe_to_minute_candles('TSLA', dataframe)
 
         db.close()
 
@@ -24,10 +24,10 @@ class MarketDataDatabaseTest(unittest.TestCase):
 
         db = DBManager()
         start_date = datetime(2020, 10, 6)
-        end_date = datetime(2020, 10, 9)
+        end_date = datetime(2020, 10, 10)
         print(start_date)
         print(type(start_date))
-        df = db.minute_candles_to_dataframe('TEST', start_date, end_date)
+        df = db.minute_candles_to_dataframe('TSLA', start_date, end_date)
         db.close()
         log.debug(df)
         log.debug(df.shape)

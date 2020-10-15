@@ -130,7 +130,9 @@ class FinnhubDataProvider(MarketDataProvider):
 
         if store_fetched_data is True:
             try:
+                db = DBManager()
                 db.dataframe_to_minute_candles(symbol, df)
+                db.close()
             except Exception as e:
                 log.error("Failed to store data in db: {}".format(e))
 

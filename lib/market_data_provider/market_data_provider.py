@@ -187,6 +187,11 @@ class MarketDataUtils():
                 filtered_by_time = filtered_df.between_time("14:30", "21:00")
                 print(filtered_by_time)
                 if len(filtered_by_time.index) < 385:
+                    log.warning("Candles for {} -> {} are {}".format(
+                        tmp_start,
+                        tmp_end,
+                        len(filtered_by_time.index)
+                    ))
                     return False
                 tmp_start = tmp_end
 

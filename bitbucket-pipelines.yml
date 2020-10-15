@@ -13,10 +13,17 @@ pipelines:
           caches:
             - pip
           script:
-            - python3 -m venv .venv/
+            - apt-get -y update
+            - apt-get -y install sqlite3
+            - python -m venv .venv/
             - source .venv/bin/activate
+            - python -m pip install --upgrade pip
+            - ls -l
+            - ls -la tests/data
+            - pwd
             - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
             - pip install pytest
+            - SQLITE_DB_FILE="$(pwd)/tests/data/test_data.db"
             - pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
       - step:
           name: Lint code
