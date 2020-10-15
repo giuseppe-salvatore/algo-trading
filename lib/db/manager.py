@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import pandas as pd
 from sqlite3 import Error
@@ -7,7 +8,10 @@ from lib.util.logger import log
 
 class DBManager():
 
-    def __init__(self, db_file="data/stock_prices.db"):
+    def __init__(self):
+        db_file = os.environ.get("SQLITE_DB_FILE")
+        if db_file is None:
+            db_file = "data/stock_prices.db"
         self.conn = self._create_connection(db_file)
 
     def _create_connection(self, db_file):

@@ -11,7 +11,7 @@ class MarketDataDatabaseTest(unittest.TestCase):
 
     def test_store_market_data_in_db(self):
 
-        db = DBManager("tests/data/test_data.db")
+        db = DBManager()
         fh = MarketDataProviderUtils.get_provider("Finnhub")
         dataframe = fh.get_minute_candles('AAPL', datetime(2020, 10, 6), datetime(2020, 10, 9))
 
@@ -22,7 +22,7 @@ class MarketDataDatabaseTest(unittest.TestCase):
 
     def test_load_market_data_from_db_date_as_datetime(self):
 
-        db = DBManager("tests/data/test_data.db")
+        db = DBManager()
         start_date = datetime(2020, 10, 6)
         end_date = datetime(2020, 10, 9)
         print(start_date)
