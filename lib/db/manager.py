@@ -11,7 +11,12 @@ class DBManager():
     def __init__(self):
         db_file = os.environ.get("SQLITE_DB_FILE")
         if db_file is None:
+            log.warning("Expected SQLITE_DB_FILE varialbe to be set pointing to the db file to use")
             db_file = "data/stock_prices.db"
+            log.warning("Setting the db file to local file: {}".format(db_file))
+        else:
+            log.debug("SQLITE_DB_FILE = {}".format(db_file))
+
         self.conn = self._create_connection(db_file)
 
     def _create_connection(self, db_file):
