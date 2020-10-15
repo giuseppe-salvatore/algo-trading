@@ -7,3 +7,6 @@
 **/*.sql
 **/*.db
 .venv/
+conf/secret.py
+notebooks/.ipynb_checkpoints/
+test-reports/

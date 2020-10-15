@@ -1,0 +1,26 @@
+{
+    "strategy": "Simple Scalping",
+    "description": "Some descrition",
+    "parameters": [
+        {
+            "name": "name",
+            "value": "value"
+        }
+    ],
+    "options": [
+        {
+            "name": "name",
+            "value": "value"
+        }
+    ],
+    "symbols": [],
+    "initial capital": 0.0,
+    "final capital": 0.0,
+    "percentage gain" : "",
+    "total gain": 0.0,
+    "amount gained": 0.0,
+    "amount lost": 0.0,
+    "total trades": 0,
+    "good trades": 0,
+    "bad trades": 0
+}
