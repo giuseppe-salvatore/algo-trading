@@ -4,7 +4,7 @@ from datetime import datetime
 # Project specific imports
 from lib.util.logger import log
 from lib.db.manager import DBManager
-from lib.market_data_provider.finnhub import FinnhubDataProvider
+from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 
 
 class MarketDataDatabaseTest(unittest.TestCase):
@@ -12,8 +12,8 @@ class MarketDataDatabaseTest(unittest.TestCase):
     def test_store_market_data_in_db(self):
 
         db = DBManager("tests/data/test_data.db")
-        fh = FinnhubDataProvider()
-        dataframe = fh.get_minute_candles('TSLA', datetime(2020, 10, 6), datetime(2020, 10, 9))
+        fh = MarketDataProviderUtils.get_provider("Finnhub")
+        dataframe = fh.get_minute_candles('AAPL', datetime(2020, 10, 6), datetime(2020, 10, 9))
 
         db.delete_rows_from("minute_bars", "symbol='TEST'")
         db.dataframe_to_minute_candles('TEST', dataframe)

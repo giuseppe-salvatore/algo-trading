@@ -23,7 +23,8 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
             symbol="AAPL",
             start_date="2020-10-07",
             end_date="2020-10-09",
-            force_provider_fetch=True)
+            force_provider_fetch=True,
+            store_fetched_data=False)
         self.assertTrue(len(df.index) > 100)
 
     def test_minute_candle_content_on_single_day(self):
@@ -31,7 +32,10 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         df = provider.get_minute_candles(
             symbol="AAPL",
             start_date="2020-10-07",
-            end_date="2020-10-09")
+            end_date="2020-10-09",
+            force_provider_fetch=True,
+            store_fetched_data=False)
+        self.assertIsNotNone(df)
 
 class PolygonMarketDataProviderTest(unittest.TestCase):
 

@@ -1,3 +1,4 @@
+import os
 import time
 import pandas as pd
 import conf.secret as config
@@ -16,12 +17,15 @@ class FinnhubDataProvider(MarketDataProvider):
         self.set_provider_name("Finnhub")
         self.set_provider_url("https://finnhub.io")
         self.set_base_url("https://finnhub.io/api")
+        self.api_key = os.environ.get('FINNHUB_API_KEY_01')
+        if self.api_key is None:
+            self.api_key = config.FINNHUB_API_KEY_01
 
     def get_key_name(self):
         return "token"
 
     def get_key_value(self):
-        return config.FINNHUB_API_KEY
+        return self.api_key
 
     def _transform_to_dataframe(self, json_res):
         result_list = []
