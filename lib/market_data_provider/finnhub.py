@@ -55,7 +55,8 @@ class FinnhubDataProvider(MarketDataProvider):
                            force_provider_fetch: bool = False,
                            store_fetched_data: bool = False):
         """
-        Example: https://finnhub.io/api/v1/stock/candle?symbol=AAPL&resolution=1&from=1572651390&to=1572910590
+        Example: https://finnhub.io/api/v1/stock/candle?
+                 symbol=AAPL&resolution=1&from=1572651390&to=1572910590
 
         Arguments:
 

@@ -1,7 +1,8 @@
 import json
-import config
 import requests
 import datetime
+
+from conf import secret as config
 
 
 marketstack_v1_base_api_url = "http://api.marketstack.com/v1"
@@ -19,7 +20,7 @@ def append_params(url: str, params):
         if elem == "access_key":
             continue
         url += "&" + elem + "=" + params[elem]
-    
+
     return url
 
 def get_daily_bars(symbol: str, time_from: str, time_to: str):
@@ -35,6 +36,7 @@ def get_daily_bars(symbol: str, time_from: str, time_to: str):
 def get_tickers(symbol: str):
     url = marketstack_v1_base_api_url + tickers_endpoint + "/" + symbol
     url = append_params({"access_key": config.MARKETSTACK_FREE_API_KEY})
+    print(url)
 
 def get_minute_bars(symbol: str, time_from: str, time_to: str):
     url = marketstack_v1_base_api_url + intraday_endpoint + "/" + time_from
@@ -47,13 +49,13 @@ def get_minute_bars(symbol: str, time_from: str, time_to: str):
     response = requests.get(url)
     content = json.loads(response.content)
 
-    print(json.dumps(content,indent=4))
+    print(json.dumps(content, indent=4))
     count = 0
     for elem in content["results"]:
         date_time = datetime.datetime.fromtimestamp(float(elem["t"])/1000)
-        
+
         if date_time >= datetime.datetime.strptime(time_from + " 06:00", '%Y-%m-%d %H:%M') and \
-            date_time <= datetime.datetime.strptime(time_from + " 22:30", '%Y-%m-%d %H:%M'):
+                date_time <= datetime.datetime.strptime(time_from + " 22:30", '%Y-%m-%d %H:%M'):
             print(date_time)
             count += 1
 

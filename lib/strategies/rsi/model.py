@@ -1,23 +1,22 @@
 import os
-import sys
-import time
-import math
-import json
+# import sys
+# import time
+# import math
+# import json
 import traceback
-import datetime
 import operator
 import itertools
 import numpy as np
 import pandas as pd
-import finplot as fplt
-import multiprocessing as mp
+# import finplot as fplt
+# import multiprocessing as mp
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+# import matplotlib.ticker as ticker
 
 
 from lib.util.logger import log
-from stockstats import StockDataFrame
-from lib.trading.alpaca import AlpacaTrading
+# from stockstats import StockDataFrame
+# from lib.trading.alpaca import AlpacaTrading
 from lib.strategies.base import StockMarketStrategy
 
 # Indicators
@@ -44,7 +43,7 @@ class RSIStrategyParams():
 
         self.params = self.default_params
 
-        #self.period = self.params["Period"]
+        # self.period = self.params["Period"]
         self.entry_signal = self.params["Entry Signal"]
         self.fifty_cross_diff = self.params["50 Cross Diff"]
         self.upper_threshold = self.params["Upper Threshold"]
@@ -211,7 +210,7 @@ class RSIStrategy(StockMarketStrategy):
                 "Unexpected entry signal parameter: " + self.params.entry_signal)
 
         if buy_signal == sell_signal:
-            assert(buy_signal == False)
+            assert(buy_signal is False)
 
         if buy_signal:
             df['long'][i] = df['Perc Var'][i]
@@ -227,29 +226,25 @@ class RSIStrategy(StockMarketStrategy):
         if value > self.params.upper_threshold:
             return 'upper_band'
         return 'none'
-        
 
     def simulate(self, stock):
 
         log.debug("Running simulation on " + stock)
         i = 0
-        in_position = False
         df = self.get_df()
-        start = df['Perc Var'][0]
-        liquidate_threshold = 0
-        reset_threshold = 0
-        position = ""
+        # start = df['Perc Var'][0]
         market_closing_soon = False
 
         close_price = df['close'][0]
         if self.value_close_to_threshold(close_price) == 0:
-            log.debug("Skipping " + stock +
-                      " as it's too expensive " + str(close_price))
+            log.debug("Skipping {} as it's too expensive: {}".format(
+                stock,
+                close_price
+            ))
             return False
 
         self.init_helper_dataframes()
 
-        threshold_reset = 0
         buy_signal = False
         sell_signal = False
         self.set_scale_target(0.5)
@@ -292,13 +287,13 @@ class RSIStrategy(StockMarketStrategy):
                 if in_band_count == self.params.upfront_samples:
                     if start_band == 'upper_band':
                         buy_signal = True
-                    else: 
+                    else:
                         sell_signal = True
                 elif in_band_count > self.params.upfront_samples:
                     in_band_count = -1
             else:
                 buy_signal, sell_signal = self.generate_strategy_signal(i)
-            time = df['time'][i]
+            t = df['time'][i]
             close = df['close'][i]
 
             if buy_signal is True:
@@ -309,11 +304,11 @@ class RSIStrategy(StockMarketStrategy):
 
             if not self.in_position() and not market_closing_soon:
                 if buy_signal is True:
-                    self.long(stock, close, time, i)
+                    self.long(stock, close, t, i)
                     self.enter_position("long")
 
                 if sell_signal is True:
-                    self.short(stock, close, time, i)
+                    self.short(stock, close, t, i)
                     self.enter_position("short")
 
             elif self.in_position() and not market_closing_soon:
@@ -323,12 +318,12 @@ class RSIStrategy(StockMarketStrategy):
                 # if sell_signal is True:
                 #     log.warn("Ignoring sell signal becaseu we are already in position")
 
-                position_info = self.get_position_info(stock, close)
+                # position_info = self.get_position_info(stock, close)
 
                 if self.hit_target(stock, close):
                     self.scale_trade()
                 elif self.hit_loss(stock, close):
-                    self.liquidate(stock, close, time)
+                    self.liquidate(stock, close, t)
                     self.exit_position()
 
                 # if buy_signal or sell_signal:
@@ -345,7 +340,7 @@ class RSIStrategy(StockMarketStrategy):
             elif self.in_position() and market_closing_soon:
                 buy_signal = False
                 sell_signal = False
-                self.liquidate(stock, close, time)
+                self.liquidate(stock, close, t)
                 self.exit_position()
 
             i += 1
@@ -475,11 +470,9 @@ class RSIStrategy(StockMarketStrategy):
                 fig.savefig(rsfld)
                 plt.close(fig)
 
-                
-
             # print("Total gain for " + s + " = " +
             #      str(self.current_capital - self.start_capital))
-            #gains[s] = (self.current_capital - self.start_capital)
+            # gains[s] = (self.current_capital - self.start_capital)
 
             total_gain = 0.0
             for s in gains:
@@ -506,19 +499,19 @@ class RSIStrategy(StockMarketStrategy):
                 # schema["bad trades"] += bad_trades
                 per_stock_profit[stock] = per_stock_gain
 
-                #print(stock + " profit: " + str(per_stock_gain))
-                #print("  good: " + str(good_trades))
-                #print("  bad : " + str(bad_trades))
+                # print(stock + " profit: " + str(per_stock_gain))
+                # print("  good: " + str(good_trades))
+                # print("  bad : " + str(bad_trades))
                 result_array.append({
-                "strategy": "rsi",
-                "period": str(period),
-                "mean_type": str(mean_type),
-                "mean_period": str(mean_period),
-                "threshold": str(threshold),
-                "stock": stock,
-                "gain": total_gain
-            })
-            #print('Overall Total Gain: ' + str(total_gain))
+                    "strategy": "rsi",
+                    "period": str(period),
+                    "mean_type": str(mean_type),
+                    "mean_period": str(mean_period),
+                    "threshold": str(threshold),
+                    "stock": stock,
+                    "gain": total_gain
+                })
+            # print('Overall Total Gain: ' + str(total_gain))
 
             per_stock_profit_sorted = dict(
                 sorted(per_stock_profit.items(), key=operator.itemgetter(1), reverse=True))
@@ -532,7 +525,7 @@ class RSIStrategy(StockMarketStrategy):
             profit_df.plot.bar(title='Per stock profit', x='stocks',
                                y='gain', rot=90, ax=ax, figure=fig, grid=True)
             fig.savefig(profit_file_name)
-            plt.close(fig)            
+            plt.close(fig)
 
             result_array.append({
                 "strategy": "rsi",
@@ -545,7 +538,6 @@ class RSIStrategy(StockMarketStrategy):
                 "gain": total_gain
             })
             return result_array
-            
 
         except Exception as e:
             log.error("Got exception " + str(e))
@@ -582,17 +574,17 @@ class RSIStrategy(StockMarketStrategy):
 
         os.makedirs(self.results_folder)
 
-    def generate_param_combination(self,size):
+    def generate_param_combination(self, size):
 
         if size == 'full':
             # RSI Indicator Parameters
-            rsi_period = [6,7,8,9,10,11,12,13,14]
-            rsi_mean_period = [4,5,6,7,8,9,10]
-            mean_type = ['SMA','EMA']
+            rsi_period = [6, 7, 8, 9, 10, 11, 12, 13, 14]
+            rsi_mean_period = [4, 5, 6, 7, 8, 9, 10]
+            mean_type = ['SMA', 'EMA']
             source = ['close']
 
             # RSI Strategy Parameters
-            limit_threshold = [20,21,27,28,29,30,31,32]
+            limit_threshold = [20, 21, 27, 28, 29, 30, 31, 32]
             entry_signal = [
                 # 'enter_threshold'
                 'exit_threshold'
@@ -601,13 +593,13 @@ class RSIStrategy(StockMarketStrategy):
 
         elif size == 'medium':
             # RSI Indicator Parameters
-            rsi_period = [6,7,8,9,10,11,12,13,14]
-            rsi_mean_period = [4,5,6,7,8,9,10]
-            mean_type = ['SMA','EMA']
+            rsi_period = [6, 7, 8, 9, 10, 11, 12, 13, 14]
+            rsi_mean_period = [4, 5, 6, 7, 8, 9, 10]
+            mean_type = ['SMA', 'EMA']
             source = ['close']
 
             # RSI Strategy Parameters
-            limit_threshold = [20,21,27,28,29,30,31,32]
+            limit_threshold = [20, 21, 27, 28, 29, 30, 31, 32]
             entry_signal = [
                 # 'enter_threshold'
                 'exit_threshold'
@@ -616,13 +608,13 @@ class RSIStrategy(StockMarketStrategy):
 
         elif size == 'small':
             # RSI Indicator Parameters
-            rsi_period = [6,7]
-            rsi_mean_period = [4,6]
-            mean_type = ['SMA','EMA']
+            rsi_period = [6, 7]
+            rsi_mean_period = [4, 6]
+            mean_type = ['SMA', 'EMA']
             source = ['close']
 
             # RSI Strategy Parameters
-            limit_threshold = [30,32]
+            limit_threshold = [30, 32]
             entry_signal = [
                 # 'enter_threshold'
                 'exit_threshold'
@@ -631,13 +623,13 @@ class RSIStrategy(StockMarketStrategy):
 
         elif size == 'single':
             # RSI Indicator Parameters
-            rsi_period = [6,7]
+            rsi_period = [6, 7]
             rsi_mean_period = [6]
             mean_type = ['SMA']
             source = ['close']
 
             # RSI Strategy Parameters
-            limit_threshold = [30,32]
+            limit_threshold = [30, 32]
             entry_signal = [
                 # 'enter_threshold'
                 'exit_threshold'
@@ -657,7 +649,6 @@ class RSIStrategy(StockMarketStrategy):
         # ]
         # fifty_cross_diff = [10]
 
-        
         fifty_cross_diff = [10]
 
         param_product = itertools.product(

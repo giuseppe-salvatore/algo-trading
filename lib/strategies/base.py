@@ -5,7 +5,7 @@ import pandas as pd
 import datetime as dt
 import multiprocessing as mp
 import matplotlib.pyplot as plt
-import lib.trading.generic as capital_managment
+# import lib.trading.generic as capital_managment
 
 import lib.util.logger as logger
 logger.setup_logging("BaseStrategy")
@@ -120,7 +120,6 @@ class BacktestStrategy():
                         }, ignore_index=True)
         df = df.set_index("date")
         df.sort_index(inplace=True)
-        capital_invested = 0.0
         max_capital_invested = 0.0
         log.info("Max capital invested {}$".format(max_capital_invested))
         df["max"] = df["capital"].cumsum()
@@ -298,7 +297,7 @@ class BacktestStrategy():
             strategy.set_month(month)
             strategy.set_year(year)
             dates.append(strategy.get_date_string())
-            strategy.set_api(api)
+            # strategy.set_api(api)
             strategy.pull_stock_info()
             param_comb = strategy.generate_param_combination('single')
             result_folder = strategy.result_folder + "/" + \
@@ -317,10 +316,9 @@ class BacktestStrategy():
                 strategy.set_day(day)
                 strategy.set_month(month)
                 strategy.set_year(year)
-                strategy.set_api(api)
+                # strategy.set_api(api)
 
-                pool.apply_async(strategy.run_strategy, args=[
-                    api], callback=collect_result)
+                pool.apply_async(strategy.run_strategy, callback=collect_result)
 
         pool.close()
         pool.join()
@@ -409,7 +407,7 @@ class StockMarketStrategy():
             self.set_stop_loss(1.0)
             self.set_scale_target(0.5)
         else:
-            raise Exception("Unknown position " + position)
+            raise Exception("Unknown position " + self.position)
 
     def set_stop_loss(self, perc_val):
         self.stop_loss = -perc_val
@@ -460,7 +458,6 @@ class StockMarketStrategy():
         times = []
         opens = []
         highs = []
-        values = []
         closes = []
         volumes = []
 
@@ -517,16 +514,6 @@ class StockMarketStrategy():
 
     def get_symbols(self):
         return ['AAPL', 'INTC']
-
-    def pull_stock_info(self):
-        symbols = self.get_symbols()
-        base_data_dir = self.get_bars_data_folder()
-        for s in symbols:
-            df = None
-            symbol_data_file_name = base_data_dir + s + ".csv"
-            if not os.path.exists(symbol_data_file_name):
-                barset = self.get_api().get_minute_barset(s)
-                df = self.build_dataframe(barset, s)
 
     def get_position_info(self, stock, curr_val):
         if not self.in_position():
@@ -614,7 +601,8 @@ class StockMarketStrategy():
             # print("")
             direction = current_position["direction"]
             log.debug("Liquidate " + direction + " position " +
-                      str(int(current_position["quantity"])) + " stocks at " + "{:.2f}".format(value) + " and profit " + str(profit))
+                      str(int(current_position["quantity"])) + " stocks at " +
+                      "{:.2f}".format(value) + " and profit " + str(profit))
             if direction == "long":
                 if value > current_position["value"]:
                     assert(profit > 0)
@@ -663,7 +651,7 @@ class StockMarketStrategy():
     def store_transactions(self):
         try:
             for stock in self.transactions:
-                #print(stock + "'s transactions")
+                # print(stock + "'s transactions")
                 index = 0
                 total_profit = 0.0
                 for trans in self.transactions[stock]:
@@ -675,11 +663,11 @@ class StockMarketStrategy():
                                                             1]['quantity']
                         if self.transactions[stock][index-1]['type'] == 'long':
                             profit = (curr_value - prev_value) * abs(quantity)
-                            #print(" Profit: " + str(profit))
+                            # print(" Profit: " + str(profit))
                             total_profit += profit
                         elif self.transactions[stock][index-1]['type'] == 'short':
                             profit = (prev_value - curr_value) * abs(quantity)
-                            #print(" Profit: " + str(profit))
+                            # print(" Profit: " + str(profit))
                             total_profit += profit
 
                     # else:

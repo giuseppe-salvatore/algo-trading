@@ -5,10 +5,10 @@ class TradeMgt():
         self.take_target = None
 
     def has_stop_loss(self):
-        return (True if self.stop_loss != None else False)            
+        return (True if self.stop_loss is not None else False)
 
     def has_take_target(self):
-        return (True if self.take_target != None else False)
+        return (True if self.take_target is not None else False)
 
     def set_stop_loss(self, value: float):
         self.stop_loss = value
@@ -16,12 +16,10 @@ class TradeMgt():
     def set_take_target(self, value: float):
         self.take_target = value
 
-
 class NoMgt(TradeMgt):
 
     def __init__(self):
         super().__init__()
-
 
 class FixedLevelsTradeMgt(TradeMgt):
 
@@ -31,7 +29,7 @@ class FixedLevelsTradeMgt(TradeMgt):
         self.set_stop_loss(stop_loss)
         self.set_take_target(take_target)
 
-class RiskRewardRatioTradeMgt(TradeMgt)
+class RiskRewardRatioTradeMgt(TradeMgt):
 
     def __init__(self, entry_level, stop_loss, risk_reward_ratio):
         super().__init__()

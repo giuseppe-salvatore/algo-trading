@@ -3,12 +3,6 @@ import importlib
 import pandas as pd
 from lib.trading.alpaca import AlpacaTrading
 from lib.strategies.base import BacktestStrategy
-# from lib.strategies.rsi.model import RSIStrategy
-# from lib.strategies.dummy import DummyStrategy
-# from lib.strategies.macd.model import MovingAverageConvDiv
-# from lib.strategies.ma_min_max.model import MovingAverageMinMax
-# from strategies.macd_reversal.model import MovingAverageConvDivReversal
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("package")

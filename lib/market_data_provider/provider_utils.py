@@ -19,5 +19,3 @@ class MarketDataProviderUtils():
             raise ValueError("No provider avaialbe named: {}".format(
                 provider_name
             ))
-
-

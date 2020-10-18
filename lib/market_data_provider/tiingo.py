@@ -1,7 +1,8 @@
 import json
-import config
 import datetime
 import requests
+
+from conf import secret as config
 
 tiingo_base_api_url = "https://api.tiingo.com"
 price_endpoint = "/iex/prices"
@@ -32,10 +33,11 @@ def get_minute_bars(symbol: str, time_from: str, time_to: str):
     content = json.loads(response.content)
 
     for elem in content:
-        #date = datetime.datetime.strptime(elem['date'],'%Y-%m-%dT%H:%M:%S.%z')
         date = datetime.datetime.fromisoformat(elem['date'][:-1])
-        print(str(date - datetime.timedelta(hours=4)) +
-              " " + str(elem['volume']))
+        print("{} {}".format(
+            date - datetime.timedelta(hours=4),
+            elem['volume']
+        ))
 
 
 def get_fundamentals(symbol: str):

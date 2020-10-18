@@ -35,8 +35,11 @@ class AlpacaTrading():
         if not (self.account_type == 'paper' or
                 self.account_type == 'paper2' or
                 self.account_type == 'live'):
-            raise ValueError(
-                "Account type should be either 'paper', 'paper2' or 'live': " + self.account_type + " provided instead")
+            msg = "Account type should be either 'paper', 'paper2' or 'live': {}".format(
+                self.account_type
+            )
+            msg += " provided instead"
+            raise ValueError(msg)
 
         log.info("Initialising Alpaca REST API to trade with " + self.account_type + " account")
 
@@ -64,7 +67,6 @@ class AlpacaTrading():
         )
 
         log.info("Alpaca REST API " + self.account_type + " account successfully initialised")
-        
 
     def can_trade(self):
         '''
@@ -190,13 +192,17 @@ class AlpacaTrading():
         return open_orders
 
     def list_closed_orders(self, use_cache: bool = True):
-        global closed_orders
-        if not (use_cache and closed_orders is not None):
-            closed_orders = self.api.list_orders(status='closed', limit=500)
+        global close_orders
+        if not (use_cache and close_orders is not None):
+            closed_order = self.api.list_orders(status='closed', limit=500)
 
-        return closed_orders
+        return closed_order
 
-    def replace_order(self, id: str, qty: int = None, limit: float = None, stop: float = None, tif: str = None):
+    def replace_order(self,
+                      id: str, qty: int = None,
+                      limit: float = None,
+                      stop: float = None,
+                      tif: str = None):
         stop = "{:.2f}".format(stop) if stop is not None else None
         limit = "{:.2f}".format(limit) if limit is not None else None
         qty = str(qty) if qty is not None else None
@@ -277,7 +283,7 @@ class AlpacaTrading():
         wl = None
         for wl in self._cached_watchlist:
             for elem in self._cached_watchlist[wl]:
-                #self.api.delete_from_watchlist(wl, elem['symbol'])
+                # self.api.delete_from_watchlist(wl, elem['symbol'])
                 watchlist_symbols.append(elem['symbol'])
 
         return watchlist_symbols

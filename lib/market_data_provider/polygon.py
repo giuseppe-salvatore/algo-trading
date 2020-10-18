@@ -124,5 +124,3 @@ class PolygonDataProvider(MarketDataProvider):
             params["type"] = type
 
         return self.get(supported_tickers_endpoint, params)
-
-
