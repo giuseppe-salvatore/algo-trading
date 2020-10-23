@@ -11,27 +11,20 @@ import matplotlib.dates as mdates
 from mplfinance.original_flavor import candlestick_ohlc
 
 
-class ChartDraw():
+class EquityChart():
+    pass
 
+class TradeChart():
     def __init__(self):
-        self.df = None
-        self.name = None
-        self.positions = []
-
-    def set_dataframe(self, dataframe):
-        self.df = dataframe
-
-    def set_size(self, size):
-        self.size = size
-
-    def set_title(self, title):
-        self.title = title
+        self._title = None
+        self._indicators = []
+        self._market_data = None
 
     def add_position(self, position):
         self.positions.append(position)
 
     def draw(self, day):
-        sub_df = self.df[self.df.index.day == 9].between_time("14:00", "21:30")
+        sub_df = self.market_data[self.market_data.index.day == 9].between_time("14:00", "21:30")
         sub_df['Close'].between_time("14:00", "21:30").plot(
             title=self.title + " close price", figsize=(26, 12))
 
@@ -45,3 +38,29 @@ class ChartDraw():
         sub_df['med_ma'].between_time("14:00", "21:30").plot()
         ax.xaxis_date()
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
+
+    def save_to_file(self, file):
+        pass
+
+    def add_indicator(self, indicator, in_chart: bool = True):
+        self._indicators.append({
+            "name": indicator.name,
+            "indicator": indicator,
+            "in chart": in_chart
+        })
+
+    @property
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, val):
+        self._title = val
+
+    @property
+    def market_data(self):
+        return self._market_data
+
+    @market_data.setter
+    def market_data(self, val):
+        self._market_data = val

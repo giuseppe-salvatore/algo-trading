@@ -10,8 +10,10 @@ except ImportError:
 
 def setup_logging(name):
     root = logging.getLogger(name)
-    root.setLevel(logging.DEBUG)
-    format = '%(asctime)s - %(name)-12s - %(levelname)-8s - %(message)s'
+    root.setLevel(logging.INFO)
+    # following includes the module name
+    # format = '%(asctime)s - %(name)-12s - %(levelname)-8s - %(message)s'
+    format = '%(asctime)s - %(levelname)-8s - %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
     if 'colorlog' in sys.modules and os.isatty(2):
         cformat = '%(log_color)s' + format

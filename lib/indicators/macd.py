@@ -2,25 +2,46 @@ import pandas as pd
 import itertools as itl
 from lib.indicators.base_indicator import Indicator
 
-# logging.basicConfig(level='WARNING')
-# log = logging.getLogger(__name__)
-# log.setLevel('DEBUG')
+default_params = {
+    "long_mean_period": 26,
+    "short_mean_period": 12,
+    "mean_type": "EMA",
+    "signal_smooth": 9,
+    "source": "close"
+}
 
 class MACD(Indicator):
 
-    def __init__(self):
+    def __init__(self, params=default_params):
         super().__init__()
-        self.short_name = "rsi"
+        self.short_name = "MACD"
         self.long_name = "Relative Strenght Index"
         self.description = "An inicator that goes between 0 and 100 that takes \
                             into accout the strenght of the price action"
-        self.params = {
-            "long_mean_period": 26,
-            "short_mean_period": 12,
-            "mean_type": "SMA",
-            "signal_mean_period": 9,
-            "source": "close"
-        }
+        # Swith to use of dot notation:
+        # https://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary/41274937#41274937
+        self.set_params(params)
+
+    @staticmethod
+    def get_default_params():
+        return default_params
+
+    def set_param(self, key, val):
+        self.params[key] = val
+        self._update_name()
+
+    def set_params(self, val):
+        self.params = val
+        self._update_name()
+
+    def _update_name(self):
+        self.name = "{} {} {} {} {}".format(
+            "MACD",
+            self.params["short_mean_period"],
+            self.params["long_mean_period"],
+            self.params["signal_smooth"],
+            self.params["source"]
+        )
 
     def calculate(self, data):
         source = data[self.params["source"]]
@@ -34,8 +55,8 @@ class MACD(Indicator):
         # Calcualte the signal line
         signal = macd.ewm(span=self.params["signal_mean_period"], adjust=False).mean()
 
-        df = pd.DataFrame({"signal": signal, "macd": macd, "histogram": macd - signal})
-        return df
+        self.data = pd.DataFrame({"signal": signal, "macd": macd, "histogram": macd - signal})
+        return self.data
 
     def generate_param_combination(self, size):
 

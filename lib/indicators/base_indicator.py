@@ -6,6 +6,7 @@ class Indicator():
         self._short_name = ""
         self._long_name = ""
         self._description = ""
+        self._data = None
         self._params = {}
 
     @property
@@ -39,6 +40,22 @@ class Indicator():
     @params.setter
     def params(self, val):
         self._params = val
+        self._update_name()
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, val):
+        self._data = val
+
+    @property
+    def indicator_type(self):
+        pass
+
+    def _update_name(self):
+        pass
 
     def calculate(self, data):
         pass

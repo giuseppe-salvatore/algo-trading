@@ -33,7 +33,3 @@ class MarketDataDatabaseTest(unittest.TestCase):
         log.debug(df.shape)
 
         self.assertTrue(df.shape[0] > 390)
-
-
-if __name__ == '__main__':
-    unittest.main()

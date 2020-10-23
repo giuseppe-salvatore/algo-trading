@@ -5,7 +5,7 @@ from datetime import datetime
 from lib.util.logger import log
 from lib.db.manager import DBManager
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
-from lib.market_data_provider.market_data_provider import MarketDataProvider, MarketDataUtils
+from lib.market_data_provider.market_data_provider import MarketDataUtils
 
 
 class FinnhubMarketDataProviderTest(unittest.TestCase):

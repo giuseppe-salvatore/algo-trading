@@ -30,7 +30,6 @@ class DBManager():
         conn = None
         try:
             conn = sqlite3.connect(db_file)
-            print(sqlite3.version)
             return conn
         except Error as e:
             log.fatal(e)
@@ -77,7 +76,7 @@ class DBManager():
 
     def dataframe_to_minute_candles(self, symbol: str, dataframe: pd.DataFrame):
         dataframe['symbol'] = symbol
-        print(dataframe)
+        # print(dataframe)
 
         dataframe.to_sql(
             "minute_bars",

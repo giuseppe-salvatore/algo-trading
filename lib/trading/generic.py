@@ -94,7 +94,7 @@ class Position():
             "price": -trade.price
         }]
 
-        log.info("Opening {} {} position ({})".format(
+        log.debug("Opening {} {} position ({})".format(
             self.symbol,
             self.side,
             trade.quantity
@@ -161,7 +161,7 @@ class Position():
 
         global capital_invested
         if self.get_total_shares() == 0:
-            log.info("Closing {} {} position (profit = {:.2f})".format(
+            log.debug("Closing {} {} position (profit = {:.2f})".format(
                 self.symbol,
                 self.side,
                 self.get_profit()
@@ -241,3 +241,86 @@ class Position():
             self.symbol,
             self.get_profit()
         ))
+
+
+class TradeSession():
+
+    def __init__(self):
+        self.positions = dict()
+
+    def get_symbols(self):
+        return self.positions.keys()
+
+    def add_trade(self, trade: Trade):
+        if trade.symbol not in self.positions:
+            self.positions[trade.symbol] = [Position(trade.symbol, trade)]
+        else:
+            latest_position: Position = self.positions[trade.symbol][-1]
+            if latest_position.is_open():
+                latest_position.update_position(trade)
+            else:
+                self.positions[trade.symbol].append(Position(trade.symbol, trade))
+
+    def get_total_profit(self):
+        total_profit = 0.0
+        for symbol in self.positions.keys():
+            total_profit += self.get_profit_for_symbol(symbol)
+        return total_profit
+
+    def get_profit_for_symbol(self, symbol: str):
+        profit = 0.0
+        if symbol not in self.positions:
+            return profit
+
+        for position in self.positions[symbol]:
+            profit += position.get_profit()
+        return profit
+
+    def liquidate(self, symbol: str, price: float):
+        pos = self.positions
+        if (symbol in pos and len(pos[symbol]) > 0 and pos[symbol][-1].is_open()):
+            pos[symbol][-1].liquidate(price)
+
+    def get_positions(self, symbol: str):
+        return self.positions[symbol]
+
+    def get_total_success_rate(self):
+        won = 0
+        lost = 0
+        for symbol in self.positions.keys():
+            for pos in self.positions[symbol]:
+                if pos.get_profit() > 0:
+                    won += 1
+                else:
+                    lost += 1
+        return float(won) / float(won + lost)
+
+    def get_total_trades(self):
+        trades = 0
+        for symbol in self.positions.keys():
+            trades += len(self.positions[symbol])
+        return trades
+
+    def get_won_trades(self):
+        won = 0
+        for symbol in self.positions.keys():
+            for pos in self.positions[symbol]:
+                if pos.get_profit() > 0:
+                    won += 1
+        return won
+
+    def get_max_profit_for_symbol(self, symbol):
+        curr_profit = 0.0
+        max_profit = -float("inf")
+        for pos in self.positions[symbol]:
+            curr_profit += pos.get_profit()
+            max_profit = max(max_profit, curr_profit)
+        return max_profit
+
+    def get_min_profit_for_symbol(self, symbol):
+        curr_profit = 0.0
+        min_profit = +float("inf")
+        for pos in self.positions[symbol]:
+            curr_profit += pos.get_profit()
+            min_profit = min(min_profit, curr_profit)
+        return min_profit

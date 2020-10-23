@@ -181,11 +181,11 @@ class MarketDataUtils():
                 # tmp end is always tmp start plus one day and that start date will start
                 # from same date as passed by paramenter but forcing time at 00:00
 
-                print(df)
+                # print(df)
                 tmp_end = tmp_start + timedelta(days=1)
                 filtered_df = df.loc[tmp_start: tmp_end]
                 filtered_by_time = filtered_df.between_time("14:30", "21:00")
-                print(filtered_by_time)
+                # print(filtered_by_time)
                 if len(filtered_by_time.index) < 385:
                     log.warning("Candles for {} -> {} are {}".format(
                         tmp_start,
