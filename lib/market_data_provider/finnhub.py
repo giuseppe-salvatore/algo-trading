@@ -95,7 +95,7 @@ class FinnhubDataProvider(MarketDataProvider):
             ))
             db = DBManager()
             df = db.minute_candles_to_dataframe(symbol, start_date, end_date)
-            print(df)
+            # print(df)
             if MarketDataUtils.check_candles_in_timeframe(df, start_date, end_date):
                 db.close()
                 log.debug("Successfully fetched {} candles ".format(df.shape[0]))

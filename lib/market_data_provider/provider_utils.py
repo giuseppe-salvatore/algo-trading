@@ -4,6 +4,14 @@ from lib.market_data_provider.polygon import PolygonDataProvider
 class MarketDataProviderUtils():
 
     @staticmethod
+    def get_available_providers():
+        return [
+            "Finnhub",
+            "Polygon",
+            "Tiingo"
+        ]
+
+    @staticmethod
     def get_provider(provider_name: str):
         """
         Returns an instance of the market data provider passed as string.

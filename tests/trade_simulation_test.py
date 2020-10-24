@@ -5,16 +5,11 @@ import datetime
 
 # Project specific imports from lib
 from lib.util.logger import log
-from lib.trading.generic import Trade
-from lib.trading.generic import Position
+from lib.trading.generic import Trade, Position, TradeSession
 
 class TradeTest(unittest.TestCase):
 
     def test_buy_trade_creation(self):
-
-        print("")
-        log.info("Running   SimpleTradeTest - test_buy_trade_creation")
-
         date = datetime.datetime.now()
         side = "buy"
         price = 17.8
@@ -38,13 +33,7 @@ class TradeTest(unittest.TestCase):
         self.assertEqual(buy.quantity, quantity)
         log.info("Quantity correctly set")
 
-        log.info("Completed SimpleTradeTest - test_buy_trade_creation")
-
     def test_sell_trade_creation(self):
-
-        print("")
-        log.info("Running   SimpleTradeTest - test_sell_trade_creation")
-
         date = datetime.datetime.now()
         side = "sell"
         price = 17.8
@@ -68,16 +57,9 @@ class TradeTest(unittest.TestCase):
         self.assertEqual(sell.quantity, quantity)
         log.info("Quantity correctly set")
 
-        log.info("Completed SimpleTradeTest - test_sell_trade_creation")
-
-
 class PositionTest(unittest.TestCase):
 
     def test_opening_long_position(self):
-        print("")
-        log.info("Running   PositionTest - test_opening_long_position")
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "buy"
         price = 17.8
@@ -91,13 +73,7 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(long_position.side == "long")
         log.info("Long position correctly created")
 
-        log.info("Completed PositionTest - test_opening_long_position")
-
     def test_opening_short_position(self):
-        print("")
-        log.info("Running   PositionTest - test_opening_short_position")
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "sell"
         price = 17.8
@@ -111,13 +87,7 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(long_position.side == "short")
         log.info("Short position correctly created")
 
-        log.info("Completed PositionTest - test_opening_short_position")
-
     def test_opening_long_position_quantity(self):
-        print("")
-        log.info("Running   PositionTest - test_opening_long_position_quantity")
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "buy"
         price = 17.8
@@ -133,13 +103,8 @@ class PositionTest(unittest.TestCase):
         log.info(msg)
         self.assertTrue(long_position.batches[0]["quantity"] == quantity)
         log.info("Long position has correct quantity")
-        log.info("Completed PositionTest - test_opening_long_position_quantity")
 
     def test_opening_short_position_quantity(self):
-        print("")
-        log.info("Running   PositionTest - test_opening_short_position_quantity")
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "sell"
         price = 17.8
@@ -155,13 +120,8 @@ class PositionTest(unittest.TestCase):
         log.info(msg)
         self.assertTrue(long_position.batches[0]["quantity"] == -quantity)
         log.info("Short position has correct quantity")
-        log.info("Completed PositionTest - test_opening_short_position_quantity")
 
     def test_increasing_long_position_quantity(self):
-        print("")
-        log.info("Running   PositionTest - test_increasing_long_position_quantity")
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "buy"
         price = 17.8
@@ -186,10 +146,6 @@ class PositionTest(unittest.TestCase):
         log.info("Completed PositionTest - test_increasing_long_position_quantity")
 
     def test_increasing_short_position_quantity(self):
-        print("")
-        log.info("Running   PositionTest - test_increasing_short_position_quantity")
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "sell"
         price = 17.8
@@ -222,11 +178,6 @@ class PositionTest(unittest.TestCase):
         log.info("Completed PositionTest - test_increasing_short_position_quantity")
 
     def test_increasing_long_position_average_price_check(self):
-        print("")
-        log.info(
-            "Running   PositionTest - test_increasing_long_position_average_price_check")
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "buy"
         price1 = 10.0
@@ -265,8 +216,6 @@ class PositionTest(unittest.TestCase):
         log.info("Completed PositionTest - test_increasing_long_position_average_price_check")
 
     def test_increasing_short_position_average_price_check(self):
-
-        # First we need a buy order to pass to the position
         date = datetime.datetime.now()
         side = "sell"
         price1 = 10.0
@@ -290,14 +239,12 @@ class PositionTest(unittest.TestCase):
         log.info("Expected average price " + str(expected_average_price) + "$")
         log.info("Actual average price " +
                  str(long_position.get_average_entry_price()) + "$")
-        self.assertTrue(long_position.get_average_entry_price()
-                        == expected_average_price)
+        self.assertTrue(long_position.get_average_entry_price() ==
+                        expected_average_price)
         log.info("Short position average entry price is correct " +
                  str(long_position.get_average_entry_price()))
 
     def test_list_trades_in_long_position(self):
-
-        # First we need a buy order to pass to the position
         symbol = "SPY"
 
         buy1 = Trade(symbol, 10, 10.0, "buy", datetime.datetime.now())
@@ -324,8 +271,6 @@ class PositionTest(unittest.TestCase):
         log.info("Trade 3: " + str(position.trades[2]))
 
     def test_list_trades_in_short_position(self):
-
-        # First we need a buy order to pass to the position
         symbol = "SPY"
 
         sell1 = Trade(symbol, 10, 10.0, "sell", datetime.datetime.now())
@@ -352,7 +297,6 @@ class PositionTest(unittest.TestCase):
         log.info("Trade 3: " + str(position.trades[2]))
 
     def test_closing_long_position(self):
-
         symbol = "SPY"
 
         buy1 = Trade(symbol, 10, 10.0, "buy", datetime.datetime.now())
@@ -377,7 +321,6 @@ class PositionTest(unittest.TestCase):
         log.info("Completed PositionTest - test_closing_long_position")
 
     def test_closing_short_position(self):
-
         symbol = "SPY"
 
         sell1 = Trade(symbol, 10, 10.0, "sell", datetime.datetime.now())
@@ -404,7 +347,6 @@ class PositionTest(unittest.TestCase):
         log.info("Completed PositionTest - test_closing_short_position")
 
     def test_decreasing_long_position_quantity(self):
-
         date = datetime.datetime.now()
         price = 17.8
         symbol = "SPY"
@@ -421,15 +363,14 @@ class PositionTest(unittest.TestCase):
         log.info("Decreasing long position by " +
                  str(quantity2) + " shares at same price")
 
-        self.assertTrue(position.get_total_shares()
-                        == (quantity1 - quantity2))
+        self.assertTrue(position.get_total_shares() ==
+                        (quantity1 - quantity2))
         log.info("Long position has been correctly decreased at " +
                  str(position.get_total_shares()))
 
         log.info("Completed PositionTest - test_decreasing_long_position_quantity")
 
     def test_decreasing_short_position_quantity(self):
-
         date = datetime.datetime.now()
         price = 17.8
         symbol = "SPY"
@@ -456,7 +397,6 @@ class PositionTest(unittest.TestCase):
         ))
 
     def test_profit_on_long_position(self):
-
         date = datetime.datetime.now()
         price1 = 10
         price2 = 15
@@ -484,7 +424,6 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(expected_profit == actual_profit)
 
     def test_loss_on_long_position(self):
-
         date = datetime.datetime.now()
         price1 = 15
         price2 = 10
@@ -512,7 +451,6 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(expected_profit == actual_profit)
 
     def test_profit_on_short_position(self):
-
         date = datetime.datetime.now()
         price1 = 15
         price2 = 10
@@ -540,7 +478,6 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(expected_profit == actual_profit)
 
     def test_loss_on_short_position(self):
-
         date = datetime.datetime.now()
         price1 = 10
         price2 = 15
@@ -568,7 +505,6 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(expected_profit == actual_profit)
 
     def test_liquidate_long_position(self):
-
         date = datetime.datetime.now()
         price1 = 10
         price2 = 15
@@ -603,7 +539,6 @@ class PositionTest(unittest.TestCase):
         self.assertEqual(expected_profit, actual_profit)
 
     def test_liquidate_short_position(self):
-
         date = datetime.datetime.now()
         price1 = 20
         price2 = 15
@@ -638,5 +573,140 @@ class PositionTest(unittest.TestCase):
         self.assertEqual(expected_profit, actual_profit)
 
 
-if __name__ == '__main__':
-    unittest.main()
+class TradeSessionTest(unittest.TestCase):
+
+    def test_session_single_stock_single_position_session_profit(self):
+        date = datetime.datetime.now()
+        symbol = "SPY"
+        quantity = 10
+
+        session = TradeSession()
+        session.add_trade(Trade(symbol, quantity, 10, "buy", date))
+        session.add_trade(Trade(symbol, quantity, 20, "sell", date))
+
+        self.assertEqual(session.get_total_profit(), 100)
+        self.assertEqual(session.get_profit_for_symbol(symbol), 100)
+
+    def test_session_single_stock_single_position_session_loss(self):
+        date = datetime.datetime.now()
+        symbol = "SPY"
+        quantity = 10
+
+        session = TradeSession()
+        session.add_trade(Trade(symbol, quantity, 20, "buy", date))
+        session.add_trade(Trade(symbol, quantity, 10, "sell", date))
+
+        self.assertEqual(session.get_total_profit(), -100)
+        self.assertEqual(session.get_profit_for_symbol(symbol), -100)
+
+    def test_empty_session(self):
+        symbol = "SPY"
+
+        session = TradeSession()
+
+        self.assertEqual(session.get_total_profit(), 0)
+        self.assertEqual(session.get_profit_for_symbol(symbol), 0)
+
+    def test_other_symbol_profit(self):
+        date = datetime.datetime.now()
+        symbol = "SPY"
+        quantity = 10
+
+        session = TradeSession()
+        session.add_trade(Trade(symbol, quantity, 10, "buy", date))
+        session.add_trade(Trade(symbol, quantity, 20, "sell", date))
+
+        self.assertEqual(session.get_total_profit(), 100)
+        self.assertEqual(session.get_profit_for_symbol("NONE"), 0)
+
+    def test_session_mutli_stock_single_position_session_profit(self):
+        date = datetime.datetime.now()
+        spy = "SPY"
+        qqq = "QQQ"
+        quantity = 10
+
+        session = TradeSession()
+        session.add_trade(Trade(spy, quantity, 10, "buy", date))
+        session.add_trade(Trade(spy, quantity, 20, "sell", date))
+        session.add_trade(Trade(qqq, quantity, 10, "buy", date))
+        session.add_trade(Trade(qqq, quantity, 20, "sell", date))
+
+        self.assertEqual(session.get_total_profit(), 200)
+        self.assertEqual(session.get_profit_for_symbol(spy), 100)
+        self.assertEqual(session.get_profit_for_symbol(qqq), 100)
+
+    def test_session_multi_stock_single_position_session_loss(self):
+        date = datetime.datetime.now()
+        spy = "SPY"
+        qqq = "QQQ"
+        quantity = 10
+
+        session = TradeSession()
+        session.add_trade(Trade(spy, quantity, 10.0, "buy", date))
+        session.add_trade(Trade(spy, quantity, 20, "sell", date))
+        session.add_trade(Trade(qqq, quantity, 30.0, "buy", date))
+        session.add_trade(Trade(qqq, quantity, 10, "sell", date))
+
+        self.assertEqual(session.get_total_profit(), -100)
+        self.assertEqual(session.get_profit_for_symbol(spy), 100)
+        self.assertEqual(session.get_profit_for_symbol(qqq), -200)
+
+    def test_session_multi_stock_multi_positions_session_loss(self):
+        date = datetime.datetime.now()
+        spy = "SPY"
+        qqq = "QQQ"
+        quantity = 10
+
+        session = TradeSession()
+        session.add_trade(Trade(spy, quantity, 10.0, "buy", date))
+        session.add_trade(Trade(spy, quantity, 20, "sell", date))
+        session.add_trade(Trade(spy, quantity, 5.0, "buy", date))
+        session.add_trade(Trade(spy, quantity, 10, "sell", date))
+        session.add_trade(Trade(spy, quantity, 5, "buy", date))
+        session.add_trade(Trade(spy, quantity, 20.0, "sell", date))
+
+        session.add_trade(Trade(qqq, quantity, 10.0, "sell", date))
+        session.add_trade(Trade(qqq, quantity, 20, "buy", date))
+        session.add_trade(Trade(qqq, quantity, 5.0, "sell", date))
+        session.add_trade(Trade(qqq, quantity, 10, "buy", date))
+        session.add_trade(Trade(qqq, quantity, 10, "sell", date))
+        session.add_trade(Trade(qqq, quantity, 40.0, "buy", date))
+
+        self.assertEqual(session.get_total_profit(), -150)
+        self.assertEqual(session.get_profit_for_symbol(spy), 300)
+        self.assertEqual(session.get_profit_for_symbol(qqq), -450)
+
+    def test_session_liquidate_positions(self):
+        date = datetime.datetime.now()
+        spy = "SPY"
+        qqq = "QQQ"
+        quantity = 10
+
+        session = TradeSession()
+        session.add_trade(Trade(spy, quantity, 10.0, "buy", date))
+        session.add_trade(Trade(spy, quantity, 20, "sell", date))
+        session.add_trade(Trade(spy, quantity, 5.0, "buy", date))
+        session.add_trade(Trade(spy, quantity, 10, "sell", date))
+        session.add_trade(Trade(spy, quantity, 5, "buy", date))
+        session.liquidate(spy, 20.0)
+
+        session.add_trade(Trade(qqq, quantity, 10.0, "sell", date))
+        session.add_trade(Trade(qqq, quantity, 20, "buy", date))
+        session.add_trade(Trade(qqq, quantity, 5.0, "sell", date))
+        session.add_trade(Trade(qqq, quantity, 10, "buy", date))
+        session.add_trade(Trade(qqq, quantity, 10, "sell", date))
+        session.liquidate(qqq, 40.0)
+
+        self.assertEqual(session.get_total_profit(), -150)
+        self.assertEqual(session.get_profit_for_symbol(spy), 300)
+        self.assertEqual(session.get_profit_for_symbol(qqq), -450)
+
+    def test_session_liquidate_empty_session_is_noop(self):
+        spy = "SPY"
+
+        session = TradeSession()
+        session.liquidate(spy, 20.0)
+
+        self.assertEqual(session.get_total_profit(), 0)
+        self.assertEqual(session.get_profit_for_symbol(spy), 0)
+
