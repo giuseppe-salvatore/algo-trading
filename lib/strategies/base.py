@@ -5,11 +5,12 @@ import pandas as pd
 import datetime as dt
 import multiprocessing as mp
 import matplotlib.pyplot as plt
-# import lib.trading.generic as capital_managment
-
-from lib.trading.generic import TradeSession
-from lib.backtest.model import BacktestParams, BacktestSimulation
 import lib.util.logger as logger
+
+from lib.util.charting.drawer import TradeChart
+from lib.backtest.model import BacktestParams, BacktestSimulation
+from lib.market_data_provider.market_data_provider import MarketDataUtils
+
 logger.setup_logging("BaseStrategy")
 log = logger.logging.getLogger("BaseStrategy")
 
@@ -295,7 +296,6 @@ class BacktestStrategy():
         for symbol in symbols:
             simulation = BacktestSimulation()
             simulation.symbols = [symbol]
-            simulation.trading_session = TradeSession()
             simulation.start_date = param_set["Start Date"]
             simulation.end_date = param_set["End Date"]
             simulation.strategy_class = param_set["Strategy"]
@@ -318,28 +318,42 @@ class BacktestStrategy():
         total_trades = 0
         won_trades = 0.0
         for simulation in simulations:
-            total_profit += simulation.trading_session.get_total_profit()
+            trading_session = simulation.results.trading_session
+            total_profit += trading_session.get_total_profit()
             log.info("Total Profit: {:.2f}$".format(
-                simulation.trading_session.get_total_profit()
+                trading_session.get_total_profit()
             ))
             log.info("Success rate: {:.1f}%".format(
-                simulation.trading_session.get_total_success_rate()*100
+                trading_session.get_total_success_rate()*100
             ))
             log.info("Total trades: {}".format(
-                simulation.trading_session.get_total_trades()
+                trading_session.get_total_trades()
             ))
-            symbols = simulation.trading_session.get_symbols()
+            symbols = trading_session.get_symbols()
             for symbol in symbols:
-                log.info("Max profit for {}: {:.2f}$".format(
+                log.info("Max session profit for {}: {:.2f}$".format(
                     symbol,
-                    simulation.trading_session.get_max_profit_for_symbol(symbol)
+                    trading_session.get_max_session_profit_for_symbol(symbol)
                 ))
-                log.info("Min profit for {}: {:.2f}$".format(
+                log.info("Min session profit for {}: {:.2f}$".format(
                     symbol,
-                    simulation.trading_session.get_min_profit_for_symbol(symbol)
+                    trading_session.get_min_session_profit_for_symbol(symbol)
                 ))
-                won_trades += simulation.trading_session.get_won_trades()
-                total_trades += simulation.trading_session.get_total_trades()
+                log.info("Max position profit for {}: {:.2f}$".format(
+                    symbol,
+                    trading_session.get_max_position_profit_for_symbol(symbol)
+                ))
+                log.info("Min position profit for {}: {:.2f}$".format(
+                    symbol,
+                    trading_session.get_min_position_profit_for_symbol(symbol)
+                ))
+                for pos in trading_session.get_positions(symbol):
+                    if pos.get_profit() < -10:
+                        log.info("Profit/loss = {:.2f}$".format(pos.get_profit()))
+                        for trade in pos.get_trades():
+                            log.info("{}".format(trade))
+                won_trades += trading_session.get_won_trades()
+                total_trades += trading_session.get_total_trades()
             log.info("-----------------------------")
         log.info("Overall profit : {:.2f}$".format(
             total_profit
@@ -351,7 +365,36 @@ class BacktestStrategy():
             won_trades / float(total_trades) * 100
         ))
 
-        # self.print_backtest_profits()
+        self.generate_charts(simulations, "data/simulations/")
+
+    def generate_charts(self, simulations: BacktestSimulation, base_dir: str):
+        idx = 0
+        for sim in simulations:
+            date = datetime.datetime.now()
+            os.makedirs(base_dir + date.strftime("%Y-%m-%d_%h-%M-%s_" + str(idx)))
+
+            if sim.results.trading_session is None:
+                log.critical("sim.results.trading_session is None")
+
+            chart = TradeChart()
+            chart.symbol
+            chart.market_data = sim.results.market_data
+            chart.trading_session = sim.results.trading_session
+            dates = MarketDataUtils.get_market_days_in_range(
+                sim.start_date,
+                sim.end_date
+            )
+            for symbol in sim.symbols:
+                for date in dates:
+                    chart.draw_date(symbol, date)
+
+            idx += 1
+
+    def generate_stats(self, base_dir):
+        pass
+
+    def store_logs(self, base_dir):
+        pass
 
 
 class StockMarketStrategy():

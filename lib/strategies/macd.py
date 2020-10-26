@@ -2,6 +2,7 @@
 import itertools
 
 from lib.indicators.macd import MACD
+from lib.indicators.moving_average import MovingAverage
 from lib.trading.generic import Trade
 from lib.strategies.base import StockMarketStrategy
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
@@ -22,6 +23,7 @@ class MACDStrategy(StockMarketStrategy):
         self.result_folder = "strategies/" + self.name + "/backtesting/"
         self.start_capital = 25000.0
         self.current_capital = self.start_capital
+        self.market_data = dict()
 
     @staticmethod
     def get_name():
@@ -47,9 +49,17 @@ class MACDStrategy(StockMarketStrategy):
             end_date,
             force_provider_fetch=False,
             store_fetched_data=True)
+        self.market_data[symbol] = data
 
         macd_indicator = MACD()
+        mean_period = 50
+        moving_average_indicator = MovingAverage({
+            "mean_period": mean_period,
+            "mean_type": "SMA",
+            "source": "close"
+        })
         macd = macd_indicator.calculate(data)
+        ma_200 = moving_average_indicator.calculate(data)
 
         shares = 0
         prev_macd = None
@@ -57,29 +67,80 @@ class MACDStrategy(StockMarketStrategy):
 
         # Only trade during market hours but use the rest of the market data for
         # indicators
-        filtered_data = data.between_time('14:30', '21:00')
+        data["ohlc/4"] = (data["open"] + data["close"] + data["high"] + data["low"]) / 4
+        filtered_data = data.between_time('14:30', '20:59')
         close_price = 0.0
+        manage_trade = True
+        entry_filter = True
 
         for idx, row in filtered_data.iterrows():
 
+            ohcl_4 = row["ohlc/4"]
+            close_price = row["close"]
             curr_macd = macd.loc[idx, :]["histogram"]
             if prev_macd is None:
                 prev_macd = curr_macd
-                shares = round(2000 / row["open"])
+                shares = round(4000 / row["open"])
                 continue
 
-            if prev_macd > 0 and curr_macd < 0:
-                self.trade_session.add_trade(Trade(symbol, shares, row["close"], "sell", idx))
-            elif prev_macd < 0 and curr_macd > 0:
-                self.trade_session.add_trade(Trade(symbol, shares, row["close"], "buy", idx))
-            else:
-                pass
+            curr_position = self.trade_session.get_current_position(symbol)
+            if idx.hour == 20 and idx.minute == 59:
+                if curr_position is not None:
+                    curr_profit = curr_position.get_current_profit(close_price)
+                    log.debug("Close at EOD rule: profit={:.2f}".format(
+                        curr_profit
+                    ))
+                self.trade_session.liquidate(symbol, close_price, idx)
+                continue
 
-            close_price = row["close"]
+            if manage_trade and curr_position is not None:
+                curr_profit = curr_position.get_current_profit(close_price)
+                stop_loss = -10
+                if curr_profit > 0:
+                    stop_loss = max(stop_loss, curr_profit - 3)
+                if curr_profit < stop_loss:
+                    log.debug("Stop loss rule: profit={:.2f} stop_loss={:.2f}".format(
+                        curr_profit,
+                        stop_loss))
+                    self.trade_session.liquidate(symbol, close_price, idx)
+                    prev_macd = curr_macd
+                    continue
+
+            if not (idx.hour == 20 and idx.minute > 55):
+                ma200_val = ma_200.loc[idx]["SMA " + str(mean_period)]
+                # log.debug("Position = {}, MA200 = {}, OHCL/4 = {}".format(
+                #     curr_position is not None,
+                #     ma200_val,
+                #     ohcl_4
+                # ))
+                if prev_macd > 0 and curr_macd < 0:
+                    if curr_position is None and entry_filter is True:
+                        if ma200_val is not None and close_price > ma200_val:
+                            self.trade_session.add_trade(
+                                Trade(symbol, shares, close_price, "sell", idx))
+                        else:
+                            log.debug("Above 200 SMA rule: oclh_4={:.2f} ma_200={:.2f}".format(
+                                ohcl_4,
+                                ma200_val))
+                    else:
+                        self.trade_session.add_trade(
+                            Trade(symbol, shares, close_price, "sell", idx))
+                elif prev_macd < 0 and curr_macd > 0:
+                    if curr_position is None and entry_filter is True:
+                        if ma200_val is not None and close_price < ma200_val:
+                            self.trade_session.add_trade(
+                                Trade(symbol, shares, close_price, "buy", idx))
+                        else:
+                            log.debug("Below 200 SMA rule: oclh_4={:.2f} ma_200={:.2f}".format(
+                                ohcl_4,
+                                ma200_val))
+                    else:
+                        self.trade_session.add_trade(
+                            Trade(symbol, shares, close_price, "buy", idx))
+                else:
+                    pass
 
             prev_macd = curr_macd
-
-        self.trade_session.liquidate(symbol, close_price)
 
     def set_generated_param(self, params):
         return

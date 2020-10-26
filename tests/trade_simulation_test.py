@@ -525,7 +525,7 @@ class PositionTest(unittest.TestCase):
         log.info("Liquidate {} position".format(
             position.side
         ))
-        position.liquidate(20)
+        position.liquidate(20, date)
 
         self.assertFalse(position.is_open())
         self.assertEqual(position.get_total_shares(), 0)
@@ -559,7 +559,7 @@ class PositionTest(unittest.TestCase):
         log.info("Liquidate {} position".format(
             position.side
         ))
-        position.liquidate(10)
+        position.liquidate(10, date)
 
         self.assertFalse(position.is_open())
         self.assertEqual(position.get_total_shares(), 0)
@@ -572,6 +572,29 @@ class PositionTest(unittest.TestCase):
         ))
         self.assertEqual(expected_profit, actual_profit)
 
+    def test_long_position_single_trade_current_profit(self):
+        date = datetime.datetime.now()
+        price1 = 20
+        symbol = "SPY"
+        quantity1 = 10
+
+        trade1 = Trade(symbol, quantity1, price1, "buy", date)
+        pos = Position("SPY", trade1)
+        current_profit = pos.get_current_profit(22)
+        excpected_profit = 20
+        self.assertEqual(current_profit, excpected_profit)
+
+    def test_short_position_single_trade_current_profit(self):
+        date = datetime.datetime.now()
+        price1 = 20
+        symbol = "SPY"
+        quantity1 = 10
+
+        trade1 = Trade(symbol, quantity1, price1, "sell", date)
+        pos = Position("SPY", trade1)
+        current_profit = pos.get_current_profit(18)
+        excpected_profit = 20
+        self.assertEqual(current_profit, excpected_profit)
 
 class TradeSessionTest(unittest.TestCase):
 
@@ -688,14 +711,14 @@ class TradeSessionTest(unittest.TestCase):
         session.add_trade(Trade(spy, quantity, 5.0, "buy", date))
         session.add_trade(Trade(spy, quantity, 10, "sell", date))
         session.add_trade(Trade(spy, quantity, 5, "buy", date))
-        session.liquidate(spy, 20.0)
+        session.liquidate(spy, 20.0, date)
 
         session.add_trade(Trade(qqq, quantity, 10.0, "sell", date))
         session.add_trade(Trade(qqq, quantity, 20, "buy", date))
         session.add_trade(Trade(qqq, quantity, 5.0, "sell", date))
         session.add_trade(Trade(qqq, quantity, 10, "buy", date))
         session.add_trade(Trade(qqq, quantity, 10, "sell", date))
-        session.liquidate(qqq, 40.0)
+        session.liquidate(qqq, 40.0, date)
 
         self.assertEqual(session.get_total_profit(), -150)
         self.assertEqual(session.get_profit_for_symbol(spy), 300)
@@ -705,7 +728,7 @@ class TradeSessionTest(unittest.TestCase):
         spy = "SPY"
 
         session = TradeSession()
-        session.liquidate(spy, 20.0)
+        session.liquidate(spy, 20.0, datetime.datetime.now())
 
         self.assertEqual(session.get_total_profit(), 0)
         self.assertEqual(session.get_profit_for_symbol(spy), 0)

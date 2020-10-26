@@ -92,29 +92,35 @@ class MACDTest(unittest.TestCase):
         self.assertTrue("short_mean_period" in macd.params)
         self.assertTrue("signal_smooth" in macd.params)
 
-    # def test_default_parameters_values_set(self):
-    #     macd = MACD()
-    #     self.assertEqual(macd.params["source"], "close")
-    #     self.assertEqual(macd.params["mean_type"], "SMA")
-    #     self.assertEqual(macd.params["mean_period"], 200)
+    def test_default_parameters_values_set(self):
+        macd = MACD()
+        self.assertEqual(macd.params["source"], "close")
+        self.assertEqual(macd.params["mean_type"], "EMA")
+        self.assertEqual(macd.params["long_mean_period"], 26)
+        self.assertEqual(macd.params["short_mean_period"], 12)
+        self.assertEqual(macd.params["signal_smooth"], 9)
 
-    # def test_default_name(self):
-    #     macd = MACD()
-    #     self.assertEqual(macd.name, "SMA 200 close")
+    def test_default_name(self):
+        macd = MACD()
+        self.assertEqual(macd.name, "MACD 12 26 9 close")
 
-    # def test_name_update(self):
-    #     macd = MACD()
-    #     macd.set_params({
-    #         "mean_period": 100,
-    #         "mean_type": "EMA",
-    #         "source": "hl"
-    #     })
-    #     self.assertEqual(macd.name, "EMA 100 hl")
+    def test_name_update(self):
+        macd = MACD()
+        macd.set_params({
+            "long_mean_period": 261,
+            "short_mean_period": 121,
+            "mean_type": "SMA",
+            "signal_smooth": 150,
+            "source": "open"
+        })
+        self.assertEqual(macd.name, "MACD 121 261 150 open")
 
-    # def test_name_init(self):
-    #     macd = MACD({
-    #         "mean_period": 100,
-    #         "mean_type": "EMA",
-    #         "source": "hl"
-    #     })
-    #     self.assertEqual(macd.name, "EMA 100 hl")
+    def test_name_init(self):
+        macd = MACD({
+            "long_mean_period": 260,
+            "short_mean_period": 120,
+            "mean_type": "SMA",
+            "signal_smooth": 15,
+            "source": "hl"
+        })
+        self.assertEqual(macd.name, "MACD 120 260 15 hl")
