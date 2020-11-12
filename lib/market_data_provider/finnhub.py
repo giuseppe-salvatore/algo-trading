@@ -3,6 +3,7 @@ import time
 import pandas as pd
 import conf.secret as config
 from datetime import datetime
+from datetime import timedelta
 from lib.util.logger import log
 from lib.db.manager import DBManager
 from lib.market_data_provider.market_data_provider import MarketDataProvider, MarketDataUtils
@@ -73,7 +74,8 @@ class FinnhubDataProvider(MarketDataProvider):
         UNIX timestamp. Interval initial value. (use datetime.fromtimestamp(from))
 
         to: REQUIRED
-        UNIX timestamp. Interval end value.
+        UNIX timestamp. Interval end value. (NOTE: this is excluded except
+                        for the first candle of this day at 00:00)
 
         format: optional
         By default, format=json. Strings json and csv are accepted.
@@ -86,6 +88,7 @@ class FinnhubDataProvider(MarketDataProvider):
         # Finnhub uses UNIX timestapms to operate with time ranges so we need to convert to datetime
         start_date = MarketDataUtils.from_string_to_datetime(start_date)
         end_date = MarketDataUtils.from_string_to_datetime(end_date)
+        end_date = end_date + timedelta(days=1)
 
         if force_provider_fetch is False:
             log.debug("Loading candles from db for {} time between {} {}".format(
@@ -95,7 +98,6 @@ class FinnhubDataProvider(MarketDataProvider):
             ))
             db = DBManager()
             df = db.minute_candles_to_dataframe(symbol, start_date, end_date)
-            # print(df)
             if MarketDataUtils.check_candles_in_timeframe(df, start_date, end_date):
                 db.close()
                 log.debug("Successfully fetched {} candles ".format(df.shape[0]))
@@ -104,7 +106,7 @@ class FinnhubDataProvider(MarketDataProvider):
                 log.warning("No candles available in db, fetching from data provider")
 
         log.debug("Fetching minute candles on " + self.get_provider_name() + " api")
-
+        end_date_filter = end_date.replace(hour=0, minute=0)
         start_date = str(int(time.mktime(start_date.timetuple())))
         end_date = str(int(time.mktime(end_date.timetuple())))
 
@@ -128,6 +130,7 @@ class FinnhubDataProvider(MarketDataProvider):
             return None
 
         df = self._transform_to_dataframe(json_res)
+        df.drop(pd.Timestamp(end_date_filter), inplace=True, errors='ignore')
 
         if store_fetched_data is True:
             try:

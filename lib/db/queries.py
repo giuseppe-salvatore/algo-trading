@@ -118,6 +118,11 @@ sql_insert_leg_order = """INSERT INTO order_legs(
     order_leg_id)
     VALUES(?,?);"""
 
+sql_get_watchlist_by_market_cap = """SELECT symbol
+                                     FROM filtered_watchlist
+                                     WHERE market_cap > 4000000000
+                                     ORDER BY market_cap DESC"""
+
 sql_get_minute_candles = """SELECT time, open, close, high, low, volume
                             FROM minute_bars
                             WHERE symbol = '?' AND time > ? AND time < ?"""

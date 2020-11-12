@@ -1,3 +1,4 @@
+import random
 import datetime
 from lib.util.logger import log
 
@@ -20,32 +21,28 @@ class Trade():
         self._quantity = quantity
 
     @property
-    def date(self):
-        return self._date
-
-    @property
-    def side(self):
-        return self._side
-
-    @property
     def price(self):
         return self._price
 
     @property
-    def symbol(self):
-        return self._symbol
-
-    @property
-    def quantity(self):
-        return self._quantity
+    def date(self):
+        return self._date
 
     @date.setter
     def date(self, val):
         self._date = val
 
+    @property
+    def side(self):
+        return self._side
+
     @side.setter
     def side(self, val):
         self._side = val
+
+    @property
+    def symbol(self):
+        return self._symbol
 
     @symbol.setter
     def symbol(self, val):
@@ -54,6 +51,10 @@ class Trade():
     @price.setter
     def price(self, val):
         self._price = val
+
+    @property
+    def quantity(self):
+        return self._quantity
 
     @quantity.setter
     def quantity(self, val):
@@ -267,6 +268,7 @@ class TradeSession():
 
     def __init__(self):
         self.positions = dict()
+        self.orders = dict()
 
     def get_symbols(self):
         return self.positions.keys()
@@ -372,3 +374,256 @@ class TradeSession():
             curr_profit = pos.get_profit()
             min_profit = min(min_profit, curr_profit)
         return min_profit
+
+
+class Order():
+
+    def __init__(self,
+                 symbol: str,
+                 quantity: int,
+                 side: str,
+                 date: datetime,
+                 flavor: str = "market",
+                 limit_price: float = None,
+                 stop_price: float = None,
+                 take_profit_price: float = None,
+                 stop_loss_price: float = None):
+        self._id = "{:032x}".format(random.getrandbits(128))
+        self._symbol = symbol
+        self._quantity = quantity
+        self._flavor = self._check_flavor(flavor)
+        self._date = date
+        self._side = self._check_side(side)
+        self._execution_time = None
+        self._cancelled_time = None
+        self._limit_price = limit_price
+        self._stop_price = stop_price
+        self._take_profit_price = take_profit_price
+        self._stop_loss_price = stop_loss_price
+        self._legs_by_id = dict()
+        self._legs_by_type = dict()
+        self._status = "new"
+        self._replaces = None
+        self._replaced_by = None
+        self._instrument_braket_order()
+
+    def _check_side(self, side):
+        sides = ["buy", "sell"]
+        if side not in sides:
+            raise ValueError("Order side must be of {}".format(sides))
+        return side
+
+    def _check_flavor(self, flavor):
+        flavors = ['market', 'limit', 'stop', 'take_profit', 'stop_loss']
+        if flavor not in flavors:
+            raise ValueError("Order flavor must one of {}".format(flavors))
+        return flavor
+
+    def _instrument_braket_order(self):
+        if self._take_profit_price is not None:
+            log.debug("Creating take profit leg order")
+            leg_order = Order(
+                self.symbol,
+                self.quantity,
+                "sell" if self.side == "buy" else "buy",
+                self.date,
+                flavor='take_profit',
+                limit_price=self._take_profit_price)
+            self._legs_by_id[leg_order.id] = leg_order
+            self._legs_by_type[leg_order.flavor] = leg_order
+
+        if self._stop_loss_price is not None:
+            log.debug("Creating stop loss leg order")
+            leg_order = Order(
+                self.symbol,
+                self.quantity,
+                "sell" if self.side == "buy" else "buy",
+                self.date,
+                flavor='stop_loss',
+                stop_price=self._stop_loss_price)
+            self._legs_by_id[leg_order.id] = leg_order
+            self._legs_by_type[leg_order.flavor] = leg_order
+
+    def get_stop_loss_order(self):
+        if 'stop_loss' in self._legs_by_type:
+            return self._legs_by_type['stop_loss']
+        return None
+
+    def get_take_profit_order(self):
+        if 'take_profit' in self._legs_by_type:
+            return self._legs_by_type['take_profit']
+        return None
+
+    def __str__(self):
+        str_repr = "Order({}):\n".format(self.id)
+        str_repr += " - symbol  : {}\n".format(self.symbol)
+        str_repr += " - quantity: {}\n".format(self.quantity)
+        str_repr += " - side    : {}\n".format(self.side)
+        str_repr += " - flavor  : {}\n".format(self.flavor)
+        str_repr += " - status  : {}\n".format(self.status)
+        str_repr += " - time    : {}\n".format(self.date)
+        str_repr += " - limit p.: {}\n".format(self.limit_price)
+        str_repr += " - stop p. : {}\n".format(self.stop_price)
+        leg = self.get_take_profit_order()
+        if leg is not None:
+            str_repr += " - take profit leg : {}\n".format(leg.id)
+        leg = self.get_stop_loss_order()
+        if self.get_stop_loss_order() is not None:
+            str_repr += " - stop loss leg   : {}\n".format(leg.id)
+        return str_repr
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def date(self):
+        return self._date
+
+    @date.setter
+    def date(self, val):
+        self._date = val
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, val):
+        self._status = val
+
+    @property
+    def side(self):
+        return self._side
+
+    @side.setter
+    def side(self, val):
+        self._side = val
+
+    @property
+    def symbol(self):
+        return self._symbol
+
+    @symbol.setter
+    def symbol(self, val):
+        self._symbol = val
+
+    @property
+    def limit_price(self):
+        return self._limit_price
+
+    @limit_price.setter
+    def limit_price(self, val):
+        self._limit_price = val
+
+    @property
+    def stop_price(self):
+        return self._stop_price
+
+    @stop_price.setter
+    def stop_price(self, val):
+        self._stop_price = val
+
+    @property
+    def quantity(self):
+        return self._quantity
+
+    @quantity.setter
+    def quantity(self, val):
+        self._quantity = val
+
+    @property
+    def flavor(self):
+        return self._flavor
+
+    @flavor.setter
+    def flavor(self, val):
+        self._flavor = val
+
+    @property
+    def take_profit_price(self):
+        return self._take_profit_price
+
+    @take_profit_price.setter
+    def take_profit_price(self, val):
+        self._take_profit_price = val
+
+    @property
+    def stop_loss_price(self):
+        return self._stop_loss_price
+
+    @stop_loss_price.setter
+    def stop_loss_price(self, val):
+        self._stop_loss_price = val
+
+    @property
+    def replaces(self):
+        return self._replaces
+
+    @replaces.setter
+    def replaces(self, val):
+        self._replaces = val
+
+    @property
+    def replaced_by(self):
+        return self._replaced_by
+
+    @replaced_by.setter
+    def replaced_by(self, val):
+        self._replaced_by = val
+
+    def execute(self, price: float = None, execution_time: datetime = datetime.datetime.now()):
+        if self.status != 'new':
+            raise ValueError("Cannot execute a order in status other than new \n{}".format(self))
+        self.status = 'executed'
+
+        leg = self.get_take_profit_order()
+        limit = None
+        if leg is not None:
+            limit = leg.execute()
+
+        stop = None
+        leg = self.get_stop_loss_order()
+        if leg is not None:
+            stop = leg.execute()
+
+        if self.flavor == 'take_profit':
+            log.debug("Executing take profit order {}".format(self.id))
+            limit = Order(
+                symbol=self.symbol,
+                quantity=self.quantity,
+                side=self.side,
+                flavor='limit',
+                limit_price=self.take_profit_price,
+                date=execution_time
+            )
+            self.replaced_by = limit.id
+            limit.replaces = self.id
+            return limit
+
+        if self.flavor == 'stop_loss':
+            log.debug("Executing stop loss order {}".format(self.id))
+            stop = Order(
+                symbol=self.symbol,
+                quantity=self.quantity,
+                side=self.side,
+                flavor='stop',
+                limit_price=self._stop_loss_price,
+                date=execution_time
+            )
+            self.replaced_by = stop.id
+            stop.replaces = self.id
+            return stop
+
+        trade = Trade(
+            self.symbol,
+            self.quantity,
+            price,
+            self.side,
+            execution_time
+        )
+
+        return trade, limit, stop
+
+    def cancel(self, time: datetime = datetime.datetime.now()):
+        self.status = 'cancelled'

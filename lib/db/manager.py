@@ -1,8 +1,11 @@
 import os
 import sqlite3
 import pandas as pd
+import lib.db.queries as query
+
 from sqlite3 import Error
 from datetime import datetime
+from datetime import timedelta
 from lib.util.logger import log
 
 
@@ -67,18 +70,51 @@ class DBManager():
         query += "WHERE symbol='{}' AND (time BETWEEN '{}' AND '{}')".format(
             symbol,
             start_date.strftime("%Y-%m-%d"),
-            end_date.strftime("%Y-%m-%d")
+            (end_date + timedelta(days=1)).strftime("%Y-%m-%d")
         )
         log.debug(query)
         df = pd.read_sql(query, self.conn, index_col='datetime')
         df.index = pd.to_datetime(df.index, format='%Y-%m-%d %H:%M', exact=False)
         return df
 
+    def get_filtered_watchlist(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT symbol FROM filtered_watchlist")
+        return cur.fetchall()
+
+    def get_filtered_watchlist_sortedby_marketcap(self):
+        cur = self.conn.cursor()
+        cur.execute(query.sql_get_watchlist_by_market_cap)
+        return cur.fetchall()
+
+    def get_diff_dataframe(self, symbol: str, dataframe_to_store: pd.DataFrame):
+        start_datetime = pd.to_datetime(dataframe_to_store.iloc[[0]].index[0])
+        end_datetime = pd.to_datetime(dataframe_to_store.iloc[[-1]].index[0])
+        dataframe_in_db = self.minute_candles_to_dataframe(
+            symbol,
+            start_datetime,
+            end_datetime
+        )
+        # log.warning("----------------------> Dataframe to store\n{}".format(dataframe_to_store))
+
+        # log.warning("Dataframe in DB\n{}".format(dataframe_in_db))
+        if len(dataframe_in_db) > 0:
+            # Unfortunately we need both reset_index() and set_index('datetime') to keep
+            # the datetime index in the resulting db
+            result_df = dataframe_to_store.reset_index().merge(
+                dataframe_in_db,
+                how='outer',
+                indicator=True).loc[lambda x: x['_merge'] == 'left_only'].set_index('datetime')
+            result_df.drop(columns=['_merge'], inplace=True)
+            # log.warning("Dataframe to merge\n{}".format(result_df))
+            return result_df
+        return dataframe_to_store
+
     def dataframe_to_minute_candles(self, symbol: str, dataframe: pd.DataFrame):
         dataframe['symbol'] = symbol
-        # print(dataframe)
+        diff_dataframe_to_store = self.get_diff_dataframe(symbol, dataframe)
 
-        dataframe.to_sql(
+        diff_dataframe_to_store.to_sql(
             "minute_bars",
             self.conn,
             if_exists='append',
