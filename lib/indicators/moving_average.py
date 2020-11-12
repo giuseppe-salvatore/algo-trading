@@ -1,3 +1,4 @@
+import pandas as pd
 from lib.indicators.base_indicator import Indicator
 
 default_params = {
@@ -33,6 +34,21 @@ class MovingAverage(Indicator):
             self.params["mean_period"],
             self.params["source"]
         )
+
+    def calculate(self, data):
+        source = data[self.params["source"]]
+
+        if self.params["mean_type"] == "SMA":
+            mean = source.copy().ewm(span=self.params["mean_period"], adjust=False).mean()
+        else:
+            mean = source.copy().rolling(window=self.params["mean_period"]).mean()
+
+        self.data = pd.DataFrame({"{} {}".format(
+            self.params["mean_type"],
+            self.params["mean_period"]
+        ): mean})
+        print(self.data)
+        return self.data
 
     @property
     def indicator_type(self):

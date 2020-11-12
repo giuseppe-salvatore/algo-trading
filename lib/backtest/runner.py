@@ -32,9 +32,14 @@ if __name__ == "__main__":
         "Market Data Provider": "Finnhub"
     }
     # backtester.run(api, strategy_class, parallel_process)
+    # backtest.run_simulation(
+    #     ["AAPL", "TSLA", "CSCO", "MSFT", "INTC", "SPCE", "NVDA", "AMD", "GM", "FCAU", "ZM", "JPM",
+    #         "XOM", "QQQ", "SPY", "V", "WORK", "AXP", "MA", "LLY", "NDAQ", "MRNA", "GOOGL"],
+    #     params,
+    #     parallel_process
+    # )
     backtest.run_simulation(
-        ["AAPL", "TSLA", "CSCO", "MSFT", "INTC", "SPCE", "NVDA", "AMD", "GM", "FCAU", "ZM", "JPM",
-            "XOM", "QQQ", "SPY", "V", "WORK", "AXP", "MA", "LLY", "NDAQ", "MRNA"],
+        ["V", "AAPL", "TSLA"],
         params,
         parallel_process
     )

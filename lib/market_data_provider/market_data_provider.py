@@ -2,6 +2,7 @@ import pandas as pd
 import requests as req
 import pandas_market_calendars as mcal
 
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 
@@ -131,6 +132,14 @@ class MarketDataUtils():
     @staticmethod
     def get_market_days_in_range(start_date, end_date, exchange: str = "NYSE") -> (int):
 
+        return MarketDataUtils.get_market_days_and_time_in_range(
+            start_date,
+            end_date,
+            exchange).index.date
+
+    @staticmethod
+    def get_market_days_and_time_in_range(start_date, end_date, exchange: str = "NYSE") -> (int):
+
         exchange = mcal.get_calendar(exchange)
 
         start_date = MarketDataUtils.from_string_to_datetime(start_date)
@@ -141,7 +150,31 @@ class MarketDataUtils():
             end_date=end_date.strftime("%Y-%m-%d")
         )
 
-        return exchange_dates.index.date
+        return exchange_dates
+
+    @staticmethod
+    def get_market_open_time(start_date):
+        if type(start_date) is str:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        yr = start_date.year
+        start_legal_date = datetime(yr, 10, 25)
+        start_solar_date = datetime(yr, 3, 27)
+        if start_solar_date < start_date < start_legal_date:
+            return "14:30", "20:59"
+        return "13:30", "19:59"
+
+    @staticmethod
+    def get_market_open_time_as_datetime(start_date):
+        if type(start_date) is str:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M")
+        yr = start_date.year
+        mnt = start_date.month
+        day = start_date.day
+        start_legal_date = date(yr, 10, 25)
+        start_solar_date = date(yr, 3, 27)
+        if start_solar_date < start_date < start_legal_date:
+            return datetime(yr, mnt, day, 14, 30), datetime(yr, mnt, day, 20, 59)
+        return datetime(yr, mnt, day, 13, 30), datetime(yr, mnt, day, 19, 59)
 
     @staticmethod
     def check_candles_in_timeframe(df: pd.DataFrame,
@@ -186,7 +219,7 @@ class MarketDataUtils():
                 filtered_df = df.loc[tmp_start: tmp_end]
                 filtered_by_time = filtered_df.between_time("14:30", "21:00")
                 # print(filtered_by_time)
-                if len(filtered_by_time.index) < 385:
+                if len(filtered_by_time.index) < 330:
                     log.warning("Candles for {} -> {} are {}".format(
                         tmp_start,
                         tmp_end,

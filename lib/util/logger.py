@@ -10,7 +10,7 @@ except ImportError:
 
 def setup_logging(name):
     root = logging.getLogger(name)
-    root.setLevel(logging.INFO)
+    root.setLevel(logging.DEBUG)
     # following includes the module name
     # format = '%(asctime)s - %(name)-12s - %(levelname)-8s - %(message)s'
     format = '%(asctime)s - %(levelname)-8s - %(message)s'

@@ -1,4 +1,5 @@
 import unittest
+import pandas as pd
 from datetime import datetime
 
 # Project specific imports from lib
@@ -24,7 +25,7 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
             start_date="2020-10-07",
             end_date="2020-10-09",
             force_provider_fetch=True,
-            store_fetched_data=True)
+            store_fetched_data=False)
         self.assertTrue(len(df.index) > 100)
 
     def test_minute_candle_content_on_single_day(self):
@@ -32,10 +33,27 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         df = provider.get_minute_candles(
             symbol="TSLA",
             start_date="2020-10-07",
+            end_date="2020-10-08",
+            force_provider_fetch=True,
+            store_fetched_data=False)
+        self.assertTrue(len(df.index) > 100)
+
+    def test_minute_candle_range(self):
+        provider = MarketDataProviderUtils.get_provider("Finnhub")
+        df = provider.get_minute_candles(
+            symbol="TSLA",
+            start_date="2020-10-07",
             end_date="2020-10-09",
             force_provider_fetch=True,
-            store_fetched_data=True)
-        self.assertIsNotNone(df)
+            store_fetched_data=False)
+        indexes = df.index.values
+        self.assertTrue(pd.to_datetime("2020-10-06") not in indexes)
+        self.assertTrue(pd.to_datetime("2020-10-10") not in indexes)
+        self.assertTrue(pd.to_datetime("2020-10-11") not in indexes)
+        self.assertTrue(pd.to_datetime("2020-10-12") not in indexes)
+        self.assertTrue(pd.to_datetime("2020-10-07 15:00") in indexes)
+        self.assertTrue(pd.to_datetime("2020-10-08 15:00") in indexes)
+        self.assertTrue(pd.to_datetime("2020-10-09 15:00") in indexes)
 
 class PolygonMarketDataProviderTest(unittest.TestCase):
 

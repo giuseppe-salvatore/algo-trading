@@ -53,7 +53,7 @@ class MACD(Indicator):
         macd = short_mean - long_mean
 
         # Calcualte the signal line
-        signal = macd.ewm(span=self.params["signal_mean_period"], adjust=False).mean()
+        signal = macd.ewm(span=self.params["signal_smooth"], adjust=False).mean()
 
         self.data = pd.DataFrame({"signal": signal, "macd": macd, "histogram": macd - signal})
         return self.data

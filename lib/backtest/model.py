@@ -1,5 +1,7 @@
+import traceback
 from datetime import datetime
 from lib.util.logger import log
+from lib.trading.generic import TradeSession
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 # from lib.market_data_provider.market_data_provider import MarketDataUtils
 
@@ -132,9 +134,10 @@ class BacktestParams():
 class BacktestResult():
     def __init__(self):
         self._total_profit = None
-        self._session = None
+        self._trading_session = TradeSession()
         self._success_ratio = None
         self._total_trades = None
+        self._market_data = None
 
     @property
     def total_profit(self):
@@ -151,12 +154,12 @@ class BacktestResult():
         self._total_profit = val
 
     @property
-    def session(self):
-        return self._session
+    def trading_session(self):
+        return self._trading_session
 
-    @session.setter
-    def session(self, val):
-        self._session = val
+    @trading_session.setter
+    def trading_session(self, val):
+        self._trading_session = val
 
     @property
     def success_ratio(self):
@@ -174,6 +177,14 @@ class BacktestResult():
     def total_trades(self, val):
         self._total_trades = val
 
+    @property
+    def market_data(self):
+        return self._market_data
+
+    @market_data.setter
+    def market_data(self, val):
+        self._market_data = val
+
 
 class BacktestSimulation():
 
@@ -186,8 +197,8 @@ class BacktestSimulation():
         self._trading_style = None
         self._trading_mgt_class = None
         self._market_data_provider = None
-        self._trading_session = None
-        self._results = None
+        self._trading_session = TradeSession()
+        self._results = BacktestResult()
 
     def execute(self):
 
@@ -195,39 +206,35 @@ class BacktestSimulation():
         # end_date = MarketDataUtils.from_string_to_datetime(self.end_date)
         # market_dates = MarketDataUtils.get_market_days_in_range(start_date, end_date)
 
+        self._results = BacktestResult()
+
         if self._symbols is None:
-            self._results = BacktestResult()
-            return
+            return self
 
         for symbol in self.symbols:
-            log.info("Start executing of {} simulation for symbol {}".format(
-                self.strategy_class.get_name(),
-                symbol
-            ))
-            strategy = self.strategy_class()
-            strategy.trade_session = self.trading_session
-            strategy.simulate(
-                symbol,
-                self.start_date,
-                self.end_date,
-                self.market_data_provider)
-            log.info("Completed executing of {} simulation for symbol {}".format(
-                self.strategy_class.get_name(),
-                symbol
-            ))
+            try:
+                log.info("Start executing of {} simulation for symbol {}".format(
+                    self.strategy_class.get_name(),
+                    symbol
+                ))
+                strategy = self.strategy_class()
+                strategy.trade_session = self._results.trading_session
+                strategy.simulate(
+                    symbol,
+                    self.start_date,
+                    self.end_date,
+                    self.market_data_provider)
+                log.info("Completed executing of {} simulation for symbol {}".format(
+                    self.strategy_class.get_name(),
+                    symbol
+                ))
+                self._results.market_data = strategy.market_data
+            except Exception as e:
+                log.critical("Running simulation for {}".format(symbol))
+                log.critical("{}".format(e))
+                traceback.print_tb(e.__traceback__)
 
         return self
-
-    def collect_results(self):
-        return
-
-    @property
-    def trading_session(self):
-        return self._trading_session
-
-    @trading_session.setter
-    def trading_session(self, val):
-        self._trading_session = val
 
     @property
     def symbols(self):
