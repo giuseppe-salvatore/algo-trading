@@ -388,6 +388,15 @@ class Order():
                  stop_price: float = None,
                  take_profit_price: float = None,
                  stop_loss_price: float = None):
+
+        # Sanity checks
+        if flavor == 'market' and (limit_price is not None or stop_price is not None):
+            raise ValueError("Market orders can't have limit/stop price specified")
+        if flavor == 'limit' and limit_price is None:
+            raise ValueError("Limit orders must have limit price specified")
+        if flavor == 'stop' and stop_price is None:
+            raise ValueError("Stop orders must have stop price specified")
+
         self._id = "{:032x}".format(random.getrandbits(128))
         self._symbol = symbol
         self._quantity = quantity
@@ -594,7 +603,7 @@ class Order():
                 quantity=self.quantity,
                 side=self.side,
                 flavor='limit',
-                limit_price=self.take_profit_price,
+                limit_price=self.limit_price,
                 date=execution_time
             )
             self.replaced_by = limit.id
@@ -608,7 +617,7 @@ class Order():
                 quantity=self.quantity,
                 side=self.side,
                 flavor='stop',
-                limit_price=self._stop_loss_price,
+                stop_price=self.stop_price,
                 date=execution_time
             )
             self.replaced_by = stop.id

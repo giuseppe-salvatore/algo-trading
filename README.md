@@ -1,3 +1,6 @@
+![Unit Tests](https://bitbucket.org/gr4ce/algo-trading/downloads/unit_test_count.svg)
+![Pass Rate](https://bitbucket.org/gr4ce/algo-trading/downloads/pass_rate.svg)
+
 # Algorithmic Trading Bot #
 
 ### Reason for this project ###

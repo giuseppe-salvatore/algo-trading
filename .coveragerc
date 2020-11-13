@@ -1,0 +1,9 @@
+[run]
+source = lib
+omit = 
+	*__init__.py
+	lib/strategies/gap_at_open.py
+	lib/strategies/macd.py
+	lib/strategies/macrossover.py
+	lib/strategies/mapeaks.py
+

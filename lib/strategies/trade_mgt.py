@@ -35,4 +35,4 @@ class RiskRewardRatioTradeMgt(TradeMgt):
         super().__init__()
         self.entry_level
         self.set_stop_loss(stop_loss)
-        self.set_take_target(entry_level + (abs(entry_level-stop_loss)*risk_reward_ratio)
+        self.set_take_target(entry_level + (abs(entry_level-stop_loss)*risk_reward_ratio))

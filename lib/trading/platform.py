@@ -100,7 +100,7 @@ class SimulationPlatform(TradingPlatform):
     def _execute_order(self, order_id):
         if order_id not in self.active_orders:
             raise ValueError("Cannot execute orders not in active order lists")
-        order = self.active_orders[order_id]
+        order: Order = self.active_orders[order_id]
         log.debug("Executing order\n{}".format(order))
 
         results = order.execute(self.estimate_current_price_for(order.symbol), order.date)

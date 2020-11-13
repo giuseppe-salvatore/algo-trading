@@ -10,3 +10,11 @@
 conf/secret.py
 notebooks/.ipynb_checkpoints/
 test-reports/
+data/.matplotlib-cache/
+badge.svg pass_rate.svg unit_test_count.svg unit_tests.svg
+*.svg
+.coverage
+data/simulations/**
+report.html
+htmlcov/*
+notebooks/data/

@@ -4,30 +4,53 @@
 #  The workflow allows running tests and code linting on the default branch.
 
 image: python:3.8
+script:
+  - 
 
 pipelines:
   default:
     - parallel:
       - step:
-          name: Test
+          name: Unit Test
           caches:
             - pip
           script:
             - apt-get -y update
-            - apt-get -y install sqlite3
+            - apt-get -y install sqlite3 xmlstarlet
             - python -m venv .venv/
             - source .venv/bin/activate
-            - python -m pip install --upgrade pip
-            - ls -l
-            - ls -la tests/data
-            - pwd
-            - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-            - pip install pytest
-            - SQLITE_DB_FILE="$(pwd)/tests/data/test_data.db"
-            - pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
+            - python -m pip install --upgrade pip            
+            - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi          
+            - bash ci/scripts/run_unit_tests.sh
+            - pipe: atlassian/bitbucket-upload-file:0.1.2
+              variables:
+                BITBUCKET_USERNAME: $BITBUCKET_USERNAME
+                BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
+                FILENAME: 'unit_test_count.svg'
+            - pipe: atlassian/bitbucket-upload-file:0.1.2
+              variables:
+                BITBUCKET_USERNAME: $BITBUCKET_USERNAME
+                BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
+                FILENAME: 'pass_rate.svg'
       - step:
-          name: Lint code
+          name: Lint Code
           script:
             # Enforce style consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
             - pip install flake8
             - flake8 . --extend-exclude=dist,build --show-source --statistics
+      - step:
+          name: Code Coverage Analysis
+          caches:
+            - pip
+          script:
+            - apt-get -y update
+            - apt-get -y install sqlite3 xmlstarlet
+            - python -m venv .venv/
+            - source .venv/bin/activate
+            - python -m pip install --upgrade pip
+            - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            - coverage run -m pytest -s -v tests/*_test.py --html=report.html --self-contained-html
+            # Threshold is low as I started to run this a bit late but will increase it over time
+            - MIN_COVERAGE_THRESHOLD=40
+            - bash ci/scripts/verify_coverage_analysis.sh
+            
