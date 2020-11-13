@@ -1,3 +1,4 @@
+import os
 import traceback
 from datetime import datetime
 from lib.util.logger import log
@@ -137,7 +138,7 @@ class BacktestResult():
         self._trading_session = TradeSession()
         self._success_ratio = None
         self._total_trades = None
-        self._market_data = None
+        self._market_data = {}
 
     @property
     def total_profit(self):
@@ -199,6 +200,7 @@ class BacktestSimulation():
         self._market_data_provider = None
         self._trading_session = TradeSession()
         self._results = BacktestResult()
+        self._result_folder = None
 
     def execute(self):
 
@@ -208,7 +210,7 @@ class BacktestSimulation():
 
         self._results = BacktestResult()
 
-        if self._symbols is None:
+        if self.symbols is None or len(self.symbols) == 0:
             return self
 
         for symbol in self.symbols:
@@ -228,7 +230,7 @@ class BacktestSimulation():
                     self.strategy_class.get_name(),
                     symbol
                 ))
-                self._results.market_data = strategy.market_data
+                self._results.market_data[symbol] = strategy.market_data
             except Exception as e:
                 log.critical("Running simulation for {}".format(symbol))
                 log.critical("{}".format(e))
@@ -299,3 +301,12 @@ class BacktestSimulation():
     @indicator_list.setter
     def indicator_list(self, val):
         self._indicator_list = val
+
+    @property
+    def result_folder(self):
+        if self._result_folder is None:
+            date = datetime.now()
+            self._result_folder = "data/simulations/" + date.strftime("%Y-%m-%d_%h-%M-%s")
+            os.makedirs(self._result_folder)
+
+        return self._result_folder

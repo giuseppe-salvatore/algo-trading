@@ -1,7 +1,6 @@
 # import traceback
 import itertools
 
-from lib.indicators.macd import MACD
 from lib.indicators.moving_average import MovingAverage
 from lib.trading.generic import Trade
 from lib.strategies.base import StockMarketStrategy
@@ -13,15 +12,14 @@ from lib.util.logger import log
 # logger.setup_logging("BaseStrategy")
 # log = logger.logging.getLogger("BaseStrategy")
 
-class MACDStrategy(StockMarketStrategy):
+class MACrossoverStrategy(StockMarketStrategy):
 
     def __init__(self):
         super().__init__()
         self.params = None
         self.name = 'macd'
-        self.long_name = "Moving Average Convergence Divergence"
+        self.long_name = "Moving Average Crossover"
 
-        self.result_folder = "strategies/" + self.name + "/backtesting/"
         self.start_capital = 25000.0
         self.current_capital = self.start_capital
         self.market_data = dict()
@@ -35,6 +33,14 @@ class MACDStrategy(StockMarketStrategy):
 
     def generate_strategy_signal(self, i):
         return
+
+    def get_moving_average_data(self, data, period, mean_type):
+        ma = MovingAverage({
+            "mean_period": period,
+            "mean_type": mean_type,
+            "source": "close"
+        })
+        return ma.calculate(data)
 
     def simulate(self,
                  symbol,
@@ -52,19 +58,22 @@ class MACDStrategy(StockMarketStrategy):
             store_fetched_data=True)
         self.market_data[symbol] = data
 
-        macd_indicator = MACD()
-        mean_period = 120
-        moving_average_indicator = MovingAverage({
-            "mean_period": mean_period,
-            "mean_type": "SMA",
-            "source": "close"
-        })
-        macd = macd_indicator.calculate(data)
-        ma_200 = moving_average_indicator.calculate(data)
+        # We need to calculate the fast and the slow moving averages to get the crossover
+        slow_period = 50
+        slow_mean = "SMA"
+        fast_period = 20
+        fast_mean = "SMA"
+        fast_ma = self.get_moving_average_data(data, fast_period, fast_mean)
+        slow_ma = self.get_moving_average_data(data, slow_period, slow_mean)
+        data["crossover"] = (fast_ma["{} {}".format(fast_mean, fast_period)] -
+                             slow_ma["{} {}".format(slow_mean, slow_period)])
+        data["variance"] = data["close"].rolling(window=5).std()
+        data["{} {}".format(fast_mean, fast_period)] = fast_ma
+        data["{} {}".format(slow_mean, slow_period)] = slow_ma
 
         shares = 0
-        prev_macd = None
-        curr_macd = None
+        prev_crossover = None
+        curr_crossover = None
 
         # Only trade during market hours but use the rest of the market data for
         # indicators
@@ -75,15 +84,15 @@ class MACDStrategy(StockMarketStrategy):
         filtered_data = data.between_time(market_open_time_str, market_close_time_str)
         close_price = 0.0
         manage_trade = True
-        entry_filter = False
+        buy_straight = False
+        sell_straight = False
 
         for idx, row in filtered_data.iterrows():
 
-            ohcl_4 = row["ohlc/4"]
             close_price = row["close"]
-            curr_macd = macd.loc[idx, :]["histogram"]
-            if prev_macd is None:
-                prev_macd = curr_macd
+            curr_crossover = row['crossover']
+            if prev_crossover is None:
+                prev_crossover = curr_crossover
                 shares = round(4000 / row["open"])
                 continue
 
@@ -96,11 +105,25 @@ class MACDStrategy(StockMarketStrategy):
                         curr_profit
                     ))
                 self.trade_session.liquidate(symbol, close_price, idx)
+                prev_crossover = curr_crossover
+                buy_straight = False
+                sell_straight = False
+                continue
+
+            if buy_straight is True:
+                self.trade_session.add_trade(Trade(symbol, shares, row["open"], "buy", idx))
+                buy_straight = False
+                prev_crossover = curr_crossover
+                continue
+            elif sell_straight is True:
+                self.trade_session.add_trade(Trade(symbol, shares, row["open"], "sell", idx))
+                sell_straight = False
+                prev_crossover = curr_crossover
                 continue
 
             if manage_trade and curr_position is not None:
                 curr_profit = curr_position.get_current_profit(close_price)
-                stop_loss = -10
+                stop_loss = -40
                 # if curr_profit > 0:
                 #     stop_loss = max(stop_loss, curr_profit - 3)
                 if curr_profit < stop_loss:
@@ -108,41 +131,37 @@ class MACDStrategy(StockMarketStrategy):
                         curr_profit,
                         stop_loss))
                     self.trade_session.liquidate(symbol, close_price, idx)
-                    prev_macd = curr_macd
+                    prev_crossover = curr_crossover
                     continue
 
-            ma200_val = ma_200.loc[idx]["SMA " + str(mean_period)]
-            # log.debug("Position = {}, MA200 = {}, OHCL/4 = {}".format(
-            #     curr_position is not None,
-            #     ma200_val,
-            #     ohcl_4
-            # ))
-            if prev_macd > 0 and curr_macd < 0:
-                if curr_position is None and entry_filter is True:
-                    if ma200_val is not None and close_price < ma200_val:
-                        self.trade_session.add_trade(
-                            Trade(symbol, shares, close_price, "sell", idx))
-                    else:
-                        log.debug("Above 200 SMA rule: oclh_4={:.2f} ma_200={:.2f}".format(
-                            ohcl_4,
-                            ma200_val))
+            # ma200_val = ma_200.loc[idx]["SMA " + str(mean_period)]
+
+            if prev_crossover > 0 and curr_crossover < 0:
+                # if row["variance"] < 0.1:
+                #     log.info("Low variance rule: {}".format(row["variance"]))
+                #     prev_crossover = curr_crossover
+                #     continue
+                if curr_position is not None:
+                    self.trade_session.add_trade(
+                        Trade(symbol, shares, close_price, "sell", idx))
+                    sell_straight = True
                 else:
                     self.trade_session.add_trade(
                         Trade(symbol, shares, close_price, "sell", idx))
-            elif prev_macd < 0 and curr_macd > 0:
-                if curr_position is None and entry_filter is True:
-                    if ma200_val is not None and close_price > ma200_val:
-                        self.trade_session.add_trade(
-                            Trade(symbol, shares, close_price, "buy", idx))
-                    else:
-                        log.debug("Below 200 SMA rule: oclh_4={:.2f} ma_200={:.2f}".format(
-                            ohcl_4,
-                            ma200_val))
+            elif prev_crossover < 0 and curr_crossover > 0:
+                # if row["variance"] < 0.1:
+                #     log.info("Low variance rule: {}".format(row["variance"]))
+                #     prev_crossover = curr_crossover
+                #     continue
+                if curr_position is not None:
+                    self.trade_session.add_trade(
+                        Trade(symbol, shares, close_price, "buy", idx))
+                    buy_straight = True
                 else:
                     self.trade_session.add_trade(
                         Trade(symbol, shares, close_price, "buy", idx))
 
-            prev_macd = curr_macd
+            prev_crossover = curr_crossover
 
     def set_generated_param(self, params):
         return

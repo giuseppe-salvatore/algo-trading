@@ -37,17 +37,22 @@ class MovingAverage(Indicator):
 
     def calculate(self, data):
         source = data[self.params["source"]]
+        mean_period = self.params["mean_period"]
 
         if self.params["mean_type"] == "SMA":
-            mean = source.copy().ewm(span=self.params["mean_period"], adjust=False).mean()
+            mean = source.copy().ewm(span=mean_period, adjust=False).mean()
+        elif self.params["mean_type"] == "EMA":
+            mean = source.copy().rolling(window=mean_period).mean()
+        elif self.params["mean_type"] == "SMMA":
+            mean = (source.copy().ewm(span=mean_period, adjust=False).mean() * 2) - 1
         else:
-            mean = source.copy().rolling(window=self.params["mean_period"]).mean()
+            raise ValueError("Unknown mean type")
 
         self.data = pd.DataFrame({"{} {}".format(
             self.params["mean_type"],
             self.params["mean_period"]
         ): mean})
-        print(self.data)
+
         return self.data
 
     @property
@@ -56,5 +61,7 @@ class MovingAverage(Indicator):
             return "Simple Moving Average"
         elif self.params["mean_type"] == "EMA":
             return "Exponential Moving Average"
+        elif self.params["mean_type"] == "SMMA":
+            return "Smoothed Moving Average"
         else:
             raise ValueError("Unknown mean type")

@@ -74,6 +74,8 @@ def get_filtered_watchlist(conn):
     cur.execute("SELECT * FROM filtered_watchlist;")
     return cur.fetchall()
 
+def get_filtered_watchlist_sortedby_marketcap()
+
 def update_asset_with_company_info(conn, symbol, params):
     sql = ''' UPDATE tradable_assets
               SET market_cap = ? ,
