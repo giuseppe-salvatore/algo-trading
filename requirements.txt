@@ -17,3 +17,4 @@ xmlrunner
 coverage
 pybadges
 pytest
+pytest-html

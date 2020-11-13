@@ -4,8 +4,6 @@
 #  The workflow allows running tests and code linting on the default branch.
 
 image: python:3.8
-script:
-  - 
 
 pipelines:
   default:
@@ -42,15 +40,21 @@ pipelines:
           name: Code Coverage Analysis
           caches:
             - pip
-          script:
+          script:               
             - apt-get -y update
             - apt-get -y install sqlite3 xmlstarlet
             - python -m venv .venv/
             - source .venv/bin/activate
             - python -m pip install --upgrade pip
             - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            - SQLITE_DB_FILE="$(pwd)/tests/data/test_data.db"
             - coverage run -m pytest -s -v tests/*_test.py --html=report.html --self-contained-html
             # Threshold is low as I started to run this a bit late but will increase it over time
-            - MIN_COVERAGE_THRESHOLD=40
+            - export GREEN_COVERAGE_THRESHOLD=90
+            - export YELLOW_COVERAGE_THRESHOLD=40
             - bash ci/scripts/verify_coverage_analysis.sh
-            
+            - pipe: atlassian/bitbucket-upload-file:0.1.2
+              variables:
+                BITBUCKET_USERNAME: $BITBUCKET_USERNAME
+                BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
+                FILENAME: 'code_coverage.svg'

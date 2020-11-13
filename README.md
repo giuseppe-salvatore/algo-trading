@@ -1,5 +1,6 @@
 ![Unit Tests](https://bitbucket.org/gr4ce/algo-trading/downloads/unit_test_count.svg)
 ![Pass Rate](https://bitbucket.org/gr4ce/algo-trading/downloads/pass_rate.svg)
+![Code Coverage](https://bitbucket.org/gr4ce/algo-trading/downloads/code_coverage.svg)
 
 # Algorithmic Trading Bot #
 
