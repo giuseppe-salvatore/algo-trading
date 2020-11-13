@@ -16,3 +16,4 @@ colorlog
 xmlrunner
 coverage
 pybadges
+pytest
