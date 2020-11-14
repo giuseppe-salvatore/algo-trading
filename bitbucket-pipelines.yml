@@ -9,6 +9,23 @@ pipelines:
   default:
     - parallel:
       - step:
+          name: BDD
+          caches:
+            - pip
+          script:
+            - apt-get -y update
+            - apt-get -y install sqlite3 xmlstarlet
+            - python -m venv .venv/
+            - source .venv/bin/activate
+            - python -m pip install --upgrade pip            
+            - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi          
+            - bash ci/scripts/run_bdd.sh
+            - pipe: atlassian/bitbucket-upload-file:0.1.2
+              variables:
+                BITBUCKET_USERNAME: $BITBUCKET_USERNAME
+                BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
+                FILENAME: 'bdd_pass_rate.svg'
+      - step:
           name: Unit Test
           caches:
             - pip
