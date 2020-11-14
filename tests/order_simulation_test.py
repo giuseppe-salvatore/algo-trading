@@ -131,7 +131,7 @@ class LimitOrderTest(unittest.TestCase):
 
     def test_exception_if_missing_limit_price(self):
         '''
-        Testing the fields is correctly set and accessible
+        Testing exception when no limit price is provided on limit orders
         '''
         date = datetime.datetime.now()
         symbol = "SPY"
