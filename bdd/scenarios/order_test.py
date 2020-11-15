@@ -51,4 +51,3 @@ def check_stop_loss_order():
     stop_order: Order = trading_platform.get_order(stop_loss_order.replaced_by)
     assert stop_order is not None
     assert stop_order.replaces == stop_loss_order.id
-

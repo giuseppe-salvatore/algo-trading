@@ -5,14 +5,13 @@ from lib.util.logger import log
 # from lib.trading.alpaca import AlpacaTrading
 from lib.strategies.base import BacktestStrategy
 
-parser = argparse.ArgumentParser()
-parser.add_argument("package")
-parser.add_argument("module")
-parser.add_argument("strategy_class")
-args = parser.parse_args()
-
-
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("package")
+    parser.add_argument("module")
+    parser.add_argument("strategy_class")
+    args = parser.parse_args()
 
     pd.set_option('mode.chained_assignment', None)
     parallel_process = 4

@@ -1,7 +1,9 @@
 import unittest
+import importlib
 from datetime import datetime
 # Project specific imports
 from lib.util.logger import log
+from lib.backtest.runner import BacktestStrategy
 from lib.backtest.model import BacktestParams
 from lib.strategies.dummy import DummyStrategy
 
@@ -257,3 +259,26 @@ class DummyStrategyScenarios(unittest.TestCase):
         dummy = DummyStrategy()
         trades = dummy.run_strategy()
         self.assertIsNotNone(trades)
+
+    def test_dummy_started_from_backtester(self):
+        parallel_process = 4
+        # api = AlpacaTrading()
+        backtest = BacktestStrategy()
+        # strategy = importlib.import_module('matplotlib.text')
+        strategy_module = __import__("lib.strategies.dummy", fromlist=["DummyStrategy"])
+        strategy_class = getattr(strategy_module, "DummyStrategy")
+        log.debug("Selected {} strategy".format(strategy_class.get_name()))
+        params = {
+            "Strategy": strategy_class,
+            "Parameter Size": "default",
+            "Indicator List": ["rsi"],
+            "Start Date": "2020-10-12",
+            "End Date": "2020-10-14",
+            "Trading Style": "intraday",
+            "Market Data Provider": "Finnhub"
+        }
+        backtest.run_simulation(
+            ["AAPL", ],
+            params,
+            parallel_process
+        )

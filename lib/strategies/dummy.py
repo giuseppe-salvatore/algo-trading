@@ -24,26 +24,25 @@ class DummyStrategy(StockMarketStrategy):
         self.profits = dict()
         self.current_positions = dict()
 
-    def calculate_rsi(self, dataframe):
-        return self.params.rsi_indicator.calculate(dataframe)
-
-    def generate_strategy_signal(self, i):
-        return
+    @staticmethod
+    def get_name():
+        return "DummyStrategy"
 
     def simulate(self, symbol):
         log.debug("Running simulation on " + symbol)
 
         if symbol == "AAPL":
-            t1 = Trade(symbol, 10, 10.0, "buy", datetime.datetime(2020, 10, 10, 10, 10, 0))
-            t2 = Trade(symbol, 15, 5.0, "buy", datetime.datetime(2020, 10, 10, 10, 20, 0))
-            t3 = Trade(symbol, 25, 10.0, "sell", datetime.datetime(2020, 10, 10, 10, 30, 0))
+            t1 = Trade(symbol, 10, 10.0, "buy", datetime.datetime(2020, 10, 12, 10, 10, 0))
+            t2 = Trade(symbol, 15, 5.0, "buy", datetime.datetime(2020, 10, 12, 10, 20, 0))
+            t3 = Trade(symbol, 25, 10.0, "sell", datetime.datetime(2020, 10, 12, 10, 30, 0))
 
-            p = Position(symbol, t1)
-            p.update_position(t2)
-            p.update_position(t3)
+            self.trade_session.add_trade(t1)
+            self.trade_session.add_trade(t2)
+            self.trade_session.add_trade(t3)
+
             time.sleep(0.7)
 
-            return [p]
+            # return [p]
 
         elif symbol == "BABA":
             t1 = Trade(symbol, 10, 110.0, "sell", datetime.datetime(2020, 10, 10, 11, 10, 0))

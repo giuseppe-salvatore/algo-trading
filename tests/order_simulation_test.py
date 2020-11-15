@@ -1,9 +1,9 @@
-import time
+# import time
 import unittest
 import datetime
 
 # Project specific imports from lib
-from lib.util.logger import log
+# from lib.util.logger import log
 from lib.trading.platform import SimulationPlatform, TradingPlatform
 from lib.trading.generic import Trade, Order, Position, TradeSession
 
