@@ -3,6 +3,7 @@ from datetime import datetime
 # Project specific imports
 from lib.util.logger import log
 from lib.backtest.model import BacktestParams
+from lib.strategies.dummy import DummyStrategy
 
 
 class StrategyBacktestParametersTest(unittest.TestCase):
@@ -247,3 +248,12 @@ class StrategyBacktestParametersTest(unittest.TestCase):
                               "End Date": "2020-05-111",
                               "Trading Style": "intraday"
                           })
+
+
+class DummyStrategyScenarios(unittest.TestCase):
+
+    def test_simple_dummy_strategy_run(self):
+
+        dummy = DummyStrategy()
+        trades = dummy.run_strategy()
+        self.assertIsNotNone(trades)

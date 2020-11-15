@@ -80,7 +80,7 @@ class SimulationPlatform(TradingPlatform):
 
         return order.id
 
-    def print_all_orders(self):
+    def print_all_orders(self):  # pragma: no cover
 
         print("Active Orders ---------------------")
         for element in self.active_orders:

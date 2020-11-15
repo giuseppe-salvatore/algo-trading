@@ -52,4 +52,3 @@ def check_stop_loss_order():
     assert stop_order is not None
     assert stop_order.replaces == stop_loss_order.id
 
-# scenarios('../features')
