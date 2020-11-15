@@ -1,9 +1,9 @@
-import time
+# import time
 import unittest
 import datetime
 
 # Project specific imports from lib
-from lib.util.logger import log
+# from lib.util.logger import log
 from lib.trading.platform import SimulationPlatform, TradingPlatform
 from lib.trading.generic import Trade, Order, Position, TradeSession
 
@@ -131,7 +131,7 @@ class LimitOrderTest(unittest.TestCase):
 
     def test_exception_if_missing_limit_price(self):
         '''
-        Testing the fields is correctly set and accessible
+        Testing exception when no limit price is provided on limit orders
         '''
         date = datetime.datetime.now()
         symbol = "SPY"
@@ -511,3 +511,50 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         self.assertRaises(ValueError,
                           platform._execute_order,
                           id)
+
+
+class TradingPlatformTest(unittest.TestCase):
+
+    def test_get_orders(self):
+        platform = SimulationPlatform()
+        id = platform.submit_order(
+            symbol="SPY",
+            quantity=10,
+            side="buy",
+            date=datetime.datetime.now(),
+            flavor='limit',
+            limit_price=10
+        )
+        active_order: Order = platform.get_order(id)
+        platform.cancel_order(id)
+        cancelled_order: Order = platform.get_order(id)
+        self.assertEqual(active_order, cancelled_order)
+
+    def test_get_not_submitted_order(self):
+        platform = SimulationPlatform()
+        order = Order(
+            symbol="SPY",
+            quantity=10,
+            side="buy",
+            date=datetime.datetime.now(),
+            flavor='limit',
+            limit_price=10
+        )
+        not_submitted_order: Order = platform.get_order(order.id)
+        self.assertIsNone(not_submitted_order)
+
+    def test_cancel_unexisting_order_throws_error(self):
+        platform = SimulationPlatform()
+        order = Order(
+            symbol="SPY",
+            quantity=10,
+            side="buy",
+            date=datetime.datetime.now(),
+            flavor='limit',
+            limit_price=10
+        )
+
+        self.assertRaises(
+            ValueError,
+            platform.cancel_order,
+            order.id)

@@ -596,6 +596,34 @@ class PositionTest(unittest.TestCase):
         excpected_profit = 20
         self.assertEqual(current_profit, excpected_profit)
 
+    def test_update_closed_position_triggers_error(self):
+        date = datetime.datetime.now()
+        price1 = 20
+        symbol = "SPY"
+        quantity1 = 10
+
+        trade1 = Trade(symbol, quantity1, price1, "buy", date)
+        trade2 = Trade(symbol, quantity1, price1, "sell", date)
+        pos = Position("SPY", trade1)
+        pos.update_position(trade2)
+        self.assertFalse(pos.is_open())
+        self.assertRaises(ValueError,
+                          pos.update_position,
+                          trade2)
+
+    def test_update_different_symbols_triggers_error(self):
+        date = datetime.datetime.now()
+        price1 = 20
+        quantity1 = 10
+
+        trade1 = Trade("SPY", quantity1, price1, "buy", date)
+        trade2 = Trade("QQQ", quantity1, price1, "sell", date)
+        pos = Position("SPY", trade1)
+
+        self.assertRaises(ValueError,
+                          pos.update_position,
+                          trade2)
+
 class TradeSessionTest(unittest.TestCase):
 
     def test_session_single_stock_single_position_session_profit(self):
@@ -732,4 +760,3 @@ class TradeSessionTest(unittest.TestCase):
 
         self.assertEqual(session.get_total_profit(), 0)
         self.assertEqual(session.get_profit_for_symbol(spy), 0)
-
