@@ -25,6 +25,7 @@ class MACDStrategy(StockMarketStrategy):
         self.start_capital = 25000.0
         self.current_capital = self.start_capital
         self.market_data = dict()
+        self.platform = None
 
     @staticmethod
     def get_name():
@@ -84,7 +85,7 @@ class MACDStrategy(StockMarketStrategy):
             curr_macd = macd.loc[idx, :]["histogram"]
             if prev_macd is None:
                 prev_macd = curr_macd
-                shares = round(4000 / row["open"])
+                shares = round(2000 / row["open"])
                 continue
 
             curr_position = self.trade_session.get_current_position(symbol)

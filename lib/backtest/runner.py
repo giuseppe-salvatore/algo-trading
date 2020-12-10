@@ -25,8 +25,8 @@ if __name__ == "__main__":
         "Strategy": strategy_class,
         "Parameter Size": "default",
         "Indicator List": ["rsi"],
-        "Start Date": "2020-10-01",
-        "End Date": "2020-10-24",
+        "Start Date": "2020-08-01",
+        "End Date": "2020-10-30",
         "Trading Style": "intraday",
         "Market Data Provider": "Finnhub"
     }
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     #     parallel_process
     # )
     backtest.run_simulation(
-        ["V", "AAPL", "TSLA"],
+        ["MRNA"],
         params,
         parallel_process
     )

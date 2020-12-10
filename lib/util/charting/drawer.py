@@ -1,6 +1,7 @@
 # import os
 # import sys
 # import numpy as np
+import pytz
 import collections
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -52,7 +53,6 @@ class EquityChart():
         current_capital = self.starting_capital
         for elem in od:
             current_capital += od[elem]
-            # print("{} {}".format(elem, od[elem]))
             od[elem] = current_capital
 
         file_name = ""
@@ -100,10 +100,10 @@ class TradeChart():
         market_open, market_close = MarketDataUtils.get_market_open_time_as_datetime(date)
         end_date = datetime(date.year, date.month, date.day, 23, 59)
 
-        # md["SMA 20"] = md["close"].rolling(window=20).mean()
-        # md["SMA 50"] = md["close"].rolling(window=50).mean()
+        md["SMMA 20"] = (md["close"].ewm(span=20, adjust=False).mean() * 2 - 1) / 2
+        md["SMMA 50"] = (md["close"].ewm(span=50, adjust=False).mean() * 2 - 1) / 2
         datetime_mask = (md.index >= start_date) & (md.index <= end_date)
-        sub_df = md.loc[datetime_mask].between_time("14:00", "21:30")
+        sub_df = md.loc[datetime_mask].between_time("9:30", "16:00")
         # sub_df['close'].between_time("14:00", "21:30").plot(
         #     title=sym + "' candles", figsize=(26, 12))
 
@@ -132,13 +132,14 @@ class TradeChart():
 
         plt.axvline(pd.Timestamp(market_open), color='black', linestyle=':')
         plt.axvline(pd.Timestamp(market_close), color='black', linestyle=':')
-        sub_df["SMA 20"].plot()
-        sub_df["SMA 50"].plot()
+        sub_df["SMMA 20"].plot()
+        sub_df["SMMA 50"].plot()
+        ratio = 0 if total == 0 else success/total
         plt.title("{}'s candles on {}\nProfit: {:.2f}$, Ratio: {:.2f}%".format(
             symbol,
             date,
             day_profit,
-            success/total
+            ratio
         ))
 
         if save_pic:
@@ -174,8 +175,8 @@ class TradeChart():
                     self._position_to_rectangle(position)
                 )
                 day_profit += position.get_profit()
-            plt.axvline(pd.Timestamp('2020-10-09 14:30'), color='black', linestyle=':')
-            plt.axvline(pd.Timestamp('2020-10-09 21:00'), color='black', linestyle=':')
+            plt.axvline(pd.Timestamp(market_open), color='black', linestyle=':')
+            plt.axvline(pd.Timestamp(market_close), color='black', linestyle=':')
             plt.title(sym + "{}'s candles")
             plt.show()
 

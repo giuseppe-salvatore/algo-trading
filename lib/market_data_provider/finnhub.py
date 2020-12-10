@@ -1,4 +1,5 @@
 import os
+import pytz
 import time
 import pandas as pd
 import conf.secret as config
@@ -28,12 +29,17 @@ class FinnhubDataProvider(MarketDataProvider):
     def get_key_value(self):
         return self.api_key
 
-    def _transform_to_dataframe(self, json_res):
+    def _transform_to_dataframe(self, json_res, native_tz=False):
         result_list = []
         result_lengh = len(json_res["c"])
 
         for i in range(result_lengh):
-            date_time = datetime.fromtimestamp(int(json_res["t"][i]))
+            if native_tz:
+                date_time = datetime.fromtimestamp(
+                    int(json_res["t"][i]),
+                    pytz.timezone('America/New_York'))
+            else:
+                date_time = datetime.fromtimestamp(int(json_res["t"][i]))
 
             result_list.append({
                 "datetime": date_time.strftime("%Y-%m-%d %H:%M"),
@@ -101,6 +107,7 @@ class FinnhubDataProvider(MarketDataProvider):
             if MarketDataUtils.check_candles_in_timeframe(df, start_date, end_date):
                 db.close()
                 log.debug("Successfully fetched {} candles ".format(df.shape[0]))
+                df["ny_datetime"] = df.index - pd.DateOffset(hours=4)
                 return df
             else:
                 log.warning("No candles available in db, fetching from data provider")
@@ -129,7 +136,7 @@ class FinnhubDataProvider(MarketDataProvider):
             log.error(e)
             return None
 
-        df = self._transform_to_dataframe(json_res)
+        df = self._transform_to_dataframe(json_res, native_tz=True)
         df.drop(pd.Timestamp(end_date_filter), inplace=True, errors='ignore')
 
         if store_fetched_data is True:

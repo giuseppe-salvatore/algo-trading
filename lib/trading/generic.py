@@ -231,6 +231,15 @@ class Position():
     def get_leg_orders(self):
         return self.leg_orders
 
+    def get_leg(self, order_type: str):
+        return self.leg_orders[order_type]
+
+    def set_take_profit(self, order):
+        self.leg_orders["take_profit"] = order
+
+    def set_stop_loss(self, order):
+        self.leg_orders["stop_loss"] = order
+
     def get_average_entry_price(self):
         average_price = 0.0
         for batch in self.batches:
@@ -243,6 +252,15 @@ class Position():
     def get_trades(self):
         return self.trades
 
+    def __str__(self):
+        str_rep = ""
+        str_rep += "Position{\n"
+        str_rep += " symbol  = {}\n".format(self.symbol)
+        str_rep += " is_open = {}\n".format(self.is_open())
+        str_rep += " profit  = {:.2f}$\n".format(self.get_profit())
+        str_rep += "}\n"
+        return str_rep
+
     def liquidate(self, price: float, date: datetime):
         if self.is_open():
             side = "sell" if self.side == "long" else "buy"
@@ -254,15 +272,23 @@ class Position():
                 date.hour,
                 date.minute
             )
-
             self.update_position(
                 Trade(self.symbol, abs(self.get_total_shares()), price, side, close_date)
             )
-        log.debug("{}' position liquidated, profit = {:.2f}$".format(
-            self.symbol,
-            self.get_profit()
-        ))
+            log.debug("{}' position liquidated, profit = {:.2f}$".format(
+                self.symbol,
+                self.get_profit()
+            ))
 
+class Candle():
+
+    def __init__(self, idx, data):
+        self.date_time = idx
+        self.open = data["open"]
+        self.close = data["close"]
+        self.high = data["high"]
+        self.low = data["low"]
+        self.volume = data["volume"]
 
 class TradeSession():
 
@@ -283,6 +309,12 @@ class TradeSession():
             else:
                 self.positions[trade.symbol].append(Position(trade.symbol, trade))
 
+    def get_orders(self, symbol):
+        if symbol in self.orders:
+            return self.orders[symbol]
+        else:
+            return None
+
     def get_total_profit(self):
         total_profit = 0.0
         for symbol in self.positions.keys():
@@ -299,9 +331,12 @@ class TradeSession():
         return profit
 
     def liquidate(self, symbol: str, price: float, date: datetime):
-        pos = self.positions
-        if (symbol in pos and len(pos[symbol]) > 0 and pos[symbol][-1].is_open()):
-            pos[symbol][-1].liquidate(price, date)
+        pos = self.get_current_position(symbol)
+        if pos is not None:
+            pos.liquidate(price, date)
+
+        # if (symbol in pos and len(pos[symbol]) > 0 and pos[symbol][-1].is_open()):
+        #     pos[symbol][-1].liquidate(price, date)
 
     def get_positions(self, symbol: str):
         return self.positions[symbol]
@@ -348,6 +383,8 @@ class TradeSession():
     def get_max_session_profit_for_symbol(self, symbol):
         curr_profit = 0.0
         max_profit = -float("inf")
+        for pos in self.positions[symbol]:
+            print("Profit {:.2f}".format(pos.get_profit()))
         for pos in self.positions[symbol]:
             curr_profit += pos.get_profit()
             max_profit = max(max_profit, curr_profit)
@@ -414,6 +451,7 @@ class Order():
         self._status = "new"
         self._replaces = None
         self._replaced_by = None
+        self._linked_with = list()
         self._instrument_braket_order()
 
     def _check_side(self, side):
@@ -429,29 +467,57 @@ class Order():
         return flavor
 
     def _instrument_braket_order(self):
+        take_profit_order = None
+        stop_loss_order = None
+
         if self._take_profit_price is not None:
             log.debug("Creating take profit leg order")
-            leg_order = Order(
+            take_profit_order = Order(
                 self.symbol,
                 self.quantity,
                 "sell" if self.side == "buy" else "buy",
                 self.date,
                 flavor='take_profit',
                 limit_price=self._take_profit_price)
-            self._legs_by_id[leg_order.id] = leg_order
-            self._legs_by_type[leg_order.flavor] = leg_order
+            self._legs_by_id[take_profit_order.id] = take_profit_order
+            self._legs_by_type[take_profit_order.flavor] = take_profit_order
 
         if self._stop_loss_price is not None:
             log.debug("Creating stop loss leg order")
-            leg_order = Order(
+            stop_loss_order = Order(
                 self.symbol,
                 self.quantity,
                 "sell" if self.side == "buy" else "buy",
                 self.date,
                 flavor='stop_loss',
                 stop_price=self._stop_loss_price)
-            self._legs_by_id[leg_order.id] = leg_order
-            self._legs_by_type[leg_order.flavor] = leg_order
+            self._legs_by_id[stop_loss_order.id] = stop_loss_order
+            self._legs_by_type[stop_loss_order.flavor] = stop_loss_order
+
+        if take_profit_order is not None and stop_loss_order is not None:
+            log.debug("Linking take_profit and stop_loss orders")
+            take_profit_order._linked_with.append(stop_loss_order)
+            stop_loss_order._linked_with.append(take_profit_order)
+
+    def promote(self):
+        if self.flavor == 'take_profit':
+            log.debug("Converting {} {} to limit order".format(
+                self.symbol,
+                self.flavor
+            ))
+            self.flavor = 'limit'
+        elif self._flavor == 'stop_loss':
+            log.debug("Converting {} {} to stop order".format(
+                self.symbol,
+                self.flavor
+            ))
+            self.flavor = 'stop'
+        else:
+            raise ValueError("Can only promote {}/{} orders this is {}".format(
+                "take_profit",
+                "stop_loss",
+                self.flavor
+            ))
 
     def get_stop_loss_order(self):
         if 'stop_loss' in self._legs_by_type:
@@ -584,45 +650,29 @@ class Order():
     def execute(self, price: float = None, execution_time: datetime = datetime.datetime.now()):
         if self.status != 'new':
             raise ValueError("Cannot execute a order in status other than new \n{}".format(self))
-        self.status = 'executed'
 
+        # First we need to execute/convert the two leg orders
         leg = self.get_take_profit_order()
-        limit = None
         if leg is not None:
-            limit = leg.execute()
+            leg.execute()
 
-        stop = None
         leg = self.get_stop_loss_order()
         if leg is not None:
-            stop = leg.execute()
+            leg.execute()
 
-        if self.flavor == 'take_profit':
-            log.debug("Executing take profit order {}".format(self.id))
-            limit = Order(
-                symbol=self.symbol,
-                quantity=self.quantity,
-                side=self.side,
-                flavor='limit',
-                limit_price=self.limit_price,
-                date=execution_time
-            )
-            self.replaced_by = limit.id
-            limit.replaces = self.id
-            return limit
+        promotable_orders = ['take_profit', 'stop_loss']
+        if self.flavor in promotable_orders:
+            log.debug("Promoting {} order {}".format(
+                self.flavor,
+                self.id))
+            self.promote()
+            return None
 
-        if self.flavor == 'stop_loss':
-            log.debug("Executing stop loss order {}".format(self.id))
-            stop = Order(
-                symbol=self.symbol,
-                quantity=self.quantity,
-                side=self.side,
-                flavor='stop',
-                stop_price=self.stop_price,
-                date=execution_time
-            )
-            self.replaced_by = stop.id
-            stop.replaces = self.id
-            return stop
+        if self.flavor == 'limit':
+            price = self.limit_price
+        elif self.flavor == 'stop':
+            # TODO this is a best case scenario, we need to make it a bit more relistic
+            price = self.stop_price
 
         trade = Trade(
             self.symbol,
@@ -632,7 +682,9 @@ class Order():
             execution_time
         )
 
-        return trade, limit, stop
+        self.status = 'executed'
+
+        return trade
 
     def cancel(self, time: datetime = datetime.datetime.now()):
         self.status = 'cancelled'

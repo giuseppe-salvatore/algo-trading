@@ -5,7 +5,7 @@ import datetime
 # Project specific imports from lib
 # from lib.util.logger import log
 from lib.trading.platform import SimulationPlatform, TradingPlatform
-from lib.trading.generic import Trade, Order, Position, TradeSession
+from lib.trading.generic import Trade, Order, Position, TradeSession, Candle
 
 
 class MarketOrderTest(unittest.TestCase):
@@ -258,6 +258,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         quantity = 10
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(date, {
+                "high": 10,
+                "open": 10,
+                "close": 10,
+                "low": 10,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol=symbol,
             quantity=quantity,
@@ -277,6 +286,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         quantity = 10
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 7,
+                "open": 7,
+                "close": 7,
+                "low": 7,
+                "volume": 1000
+            }))
         platform.submit_order(
             symbol=symbol,
             quantity=quantity,
@@ -296,6 +314,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         stop_loss = 5.0
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(date, {
+                "high": 10,
+                "open": 10,
+                "close": 10,
+                "low": 10,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol=symbol,
             quantity=quantity,
@@ -323,6 +350,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         stop_loss = 5.0
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(date, {
+                "high": 10,
+                "open": 10,
+                "close": 10,
+                "low": 10,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol=symbol,
             quantity=quantity,
@@ -343,6 +379,33 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         self.assertTrue(stop_loss_order.id in platform.active_orders)
         self.assertEqual(platform.active_orders[take_profit_order.id].status, 'new')
 
+    def test_bracket_order_take_profit_leg_is_valid(self):
+        date = datetime.datetime.now()
+        symbol = "SPY"
+        side = "buy"
+        quantity = 10.0
+        take_profit_price = 9.0
+
+        platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(date, {
+                "high": 10,
+                "open": 10,
+                "close": 10,
+                "low": 10,
+                "volume": 1000
+            }))
+        self.assertRaises(ValueError,
+                          platform.submit_order,
+                          symbol=symbol,
+                          quantity=quantity,
+                          side=side,
+                          date=date,
+                          flavor='market',
+                          take_profit_price=take_profit_price
+                          )
+
     def test_limit_bracket_order_creation_and_execution(self):
         date = datetime.datetime.now()
         symbol = "SPY"
@@ -352,6 +415,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         stop_loss_price = 5.0
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(date, {
+                "high": 10,
+                "open": 10,
+                "close": 10,
+                "low": 10,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol=symbol,
             quantity=quantity,
@@ -439,6 +511,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         quantity = 10
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 7,
+                "open": 7,
+                "close": 7,
+                "low": 7,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol=symbol,
             quantity=quantity,
@@ -452,6 +533,63 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         self.assertTrue(id in platform.active_orders)
         self.assertEqual(platform.active_orders[id].status, 'new')
 
+    def test_buy_limit_order_triggers_on_high(self):
+        date = datetime.datetime.now()
+        symbol = "SPY"
+        side = "buy"
+        quantity = 10
+
+        platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 12,
+                "open": 12,
+                "close": 12,
+                "low": 12,
+                "volume": 1000
+            }))
+        id = platform.submit_order(
+            symbol=symbol,
+            quantity=quantity,
+            side=side,
+            date=date,
+            flavor='limit',
+            limit_price=10
+        )
+
+        self.assertTrue(id in platform.active_orders)
+        self.assertTrue(id not in platform.executed_orders)
+        self.assertEqual(platform.active_orders[id].status, 'new')
+
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 11,
+                "open": 11,
+                "close": 11,
+                "low": 11,
+                "volume": 1000
+            }))
+        self.assertTrue(id in platform.active_orders)
+        self.assertTrue(id not in platform.executed_orders)
+
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 10,
+                "open": 10,
+                "close": 10,
+                "low": 10,
+                "volume": 1000
+            }))
+
+        self.assertTrue(id not in platform.active_orders)
+        self.assertTrue(id in platform.executed_orders)
+        order = platform.get_order(id)
+        self.assertIsNotNone(order)
+        self.assertEqual(order.status, 'executed')
+
     def test_stop_order_activation(self):
         date = datetime.datetime.now()
         symbol = "SPY"
@@ -459,13 +597,22 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         quantity = 10
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 7,
+                "open": 7,
+                "close": 7,
+                "low": 7,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol=symbol,
             quantity=quantity,
             side=side,
             date=date,
             flavor='stop',
-            stop_price=10
+            stop_price=5
         )
 
         self.assertTrue(len(id) == 32)
@@ -479,6 +626,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
         quantity = 10
 
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 7,
+                "open": 7,
+                "close": 7,
+                "low": 7,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol=symbol,
             quantity=quantity,
@@ -499,6 +655,15 @@ class SimulationTradingPlatformTest(unittest.TestCase):
 
     def test_inactive_order_execution_raises_error(self):
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 7,
+                "open": 7,
+                "close": 7,
+                "low": 7,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol="SPY",
             quantity=10,
@@ -517,6 +682,15 @@ class TradingPlatformTest(unittest.TestCase):
 
     def test_get_orders(self):
         platform = SimulationPlatform()
+        platform.tick(
+            "SPY",
+            Candle(datetime.datetime.now(), {
+                "high": 7,
+                "open": 7,
+                "close": 7,
+                "low": 7,
+                "volume": 1000
+            }))
         id = platform.submit_order(
             symbol="SPY",
             quantity=10,
@@ -529,6 +703,19 @@ class TradingPlatformTest(unittest.TestCase):
         platform.cancel_order(id)
         cancelled_order: Order = platform.get_order(id)
         self.assertEqual(active_order, cancelled_order)
+
+    def test_get_not_submitted_order(self):
+        platform = SimulationPlatform()
+        order = Order(
+            symbol="SPY",
+            quantity=10,
+            side="buy",
+            date=datetime.datetime.now(),
+            flavor='limit',
+            limit_price=10
+        )
+        not_submitted_order: Order = platform.get_order(order.id)
+        self.assertIsNone(not_submitted_order)
 
     def test_get_not_submitted_order(self):
         platform = SimulationPlatform()

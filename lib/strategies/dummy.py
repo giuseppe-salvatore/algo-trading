@@ -2,8 +2,13 @@ import time
 import datetime
 import traceback
 
-from lib.trading.generic import Trade, Position
+from lib.trading.generic import Candle
+from lib.indicators.macd import MACD
+from lib.indicators.moving_average import MovingAverage
+from lib.trading.platform import TradingPlatform
 from lib.strategies.base import StockMarketStrategy
+from lib.market_data_provider.market_data_provider import MarketDataUtils
+from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 
 from lib.util.logger import log
 # import lib.util.logger as logger
@@ -18,66 +23,192 @@ class DummyStrategy(StockMarketStrategy):
         self.name = 'dummy'
         self.long_name = "Dummy Strategy"
 
-        self.result_folder = "strategies/" + self.name + "/backtesting/"
-        self.start_capital = 25000.0
-        self.current_capital = self.start_capital
-        self.profits = dict()
-        self.current_positions = dict()
+        self.market_data = dict()
+        # self.trade_session = self.platform.trading_session
+        self.trade_session = None
+        self.platform = None
 
     @staticmethod
     def get_name():
         return "DummyStrategy"
 
-    def simulate(self, symbol):
-        log.debug("Running simulation on " + symbol)
+    def get_data(self,
+                 symbol,
+                 start_date,
+                 end_date,
+                 provider):
+        data_provider = MarketDataProviderUtils.get_provider(provider)
+        self.market_data[symbol] = data_provider.get_minute_candles(
+            symbol,
+            start_date,
+            end_date,
+            force_provider_fetch=False,
+            store_fetched_data=False)
 
-        if symbol == "AAPL":
-            t1 = Trade(symbol, 10, 10.0, "buy", datetime.datetime(2020, 10, 12, 10, 10, 0))
-            t2 = Trade(symbol, 15, 5.0, "buy", datetime.datetime(2020, 10, 12, 10, 20, 0))
-            t3 = Trade(symbol, 25, 10.0, "sell", datetime.datetime(2020, 10, 12, 10, 30, 0))
+    def simulate(self,
+                 symbol,
+                 start_date,
+                 end_date,
+                 provider):
 
-            self.trade_session.add_trade(t1)
-            self.trade_session.add_trade(t2)
-            self.trade_session.add_trade(t3)
+        log.debug("Start feeding data on " + symbol)
 
-            time.sleep(0.7)
+        self.get_data(symbol, "2020-08-03", "2020-08-31", "Finnhub")
+        df = self.market_data[symbol]
 
-            # return [p]
+        macd_indicator = MACD()
+        macd = macd_indicator.calculate(df)
 
-        elif symbol == "BABA":
-            t1 = Trade(symbol, 10, 110.0, "sell", datetime.datetime(2020, 10, 10, 11, 10, 0))
-            t2 = Trade(symbol, 15, 50.0, "sell", datetime.datetime(2020, 10, 10, 11, 20, 0))
-            t3 = Trade(symbol, 25, 70.0, "buy", datetime.datetime(2020, 10, 10, 11, 30, 0))
+        mean_period = 120
+        moving_average_indicator = MovingAverage({
+            "mean_period": mean_period,
+            "mean_type": "SMA",
+            "source": "close"
+        })
+        ma_200 = moving_average_indicator.calculate(df)
 
-            p = Position(symbol, t1)
-            p.update_position(t2)
-            p.update_position(t3)
-            time.sleep(1.2)
+        shares = 0
+        prev_macd = None
+        curr_macd = None
 
-            return [p]
-        else:
-            t1 = Trade(symbol, 10, 125.0, "buy", datetime.datetime(2020, 10, 10, 12, 10, 0))
-            t2 = Trade(symbol, 15, 100.0, "buy", datetime.datetime(2020, 10, 10, 12, 20, 0))
-            t3 = Trade(symbol, 25, 120.0, "sell", datetime.datetime(2020, 10, 10, 12, 30, 0))
-            time.sleep(1)
+        df["ohlc/4"] = (df["open"] + df["close"] + df["high"] + df["low"]) / 4
+        market_open_time_str, market_close_time_str = MarketDataUtils.get_market_open_time(
+            start_date)
 
-            p = Position(symbol, t1)
-            p.update_position(t2)
-            p.update_position(t3)
+        filtered_data = df.between_time(market_open_time_str, market_close_time_str)
+        close_price = 0.0
+        entry_filter = True
+        manage_trade = True
+        stop_increase_threshold = 5
 
-            return [p]
+        counter = 0
+        for idx, row in filtered_data.iterrows():
 
-    def run_strategy(self):
-        trades = {}
+            if counter > 50000:
+                log.debug("Reached the end ---------------------------------------------")
+                self.platform.print_all_orders()
+                log.debug("Total trades = {}".format(
+                    self.platform.trading_session.get_total_trades()))
+                for pos in self.platform.trading_session.get_positions("AAPL"):
+                    log.debug("{}".format(pos))
+                break
 
-        try:
-            for s in ["AAPL", "BABA", "TSLA"]:
-                trades[s] = self.simulate(s)
-        except Exception as e:
-            log.error("Got exception " + str(e))
-            traceback.print_tb(e.__traceback__)
+            close_price = row["close"]
+            self.platform.tick(symbol, Candle(idx, row))
+            curr_macd = macd.loc[idx, :]["histogram"]
+            if prev_macd is None:
+                prev_macd = curr_macd
+                shares = round(2000 / row["open"])
+                continue
 
-        return trades
+            curr_position = self.trade_session.get_current_position(symbol)
+            if idx.hour == 20 and idx.minute == 58:
+                if self.trading_style is None or self.trading_style == 'intraday':
+                    if curr_position is not None:
+                        curr_profit = curr_position.get_current_profit(close_price)
+                        log.info("Close at EOD rule: profit={:.2f}".format(
+                            curr_profit
+                        ))
+                        self.trade_session.liquidate(symbol, close_price, idx)
+                        self.platform.cancel_order(curr_position.get_leg('take_profit').id, idx)
+                        self.platform.cancel_order(curr_position.get_leg('stop_loss').id, idx)
+                    prev_macd = curr_macd
+                    counter += 1
+                    continue
+
+            if manage_trade:
+                if curr_position is not None:
+                    curr_profit = curr_position.get_current_profit(close_price)
+                    if curr_profit >= stop_increase_threshold:
+                        log.error("Increasing threshold to {}".format(
+                            stop_increase_threshold
+                        ))
+                        # time.sleep(1)
+                        if curr_position.side == 'buy':
+                            curr_position.get_leg('stop_loss').stop_price += 0.5
+                            curr_position.get_leg('take_profit').limit_price += 0.5
+                        if curr_position.side == 'sell':
+                            curr_position.get_leg('stop_loss').stop_price -= 0.5
+                            curr_position.get_leg('take_profit').limit_price -= 0.5
+                        stop_increase_threshold += 5
+                else:
+                    stop_increase_threshold = 5
+
+            ma200_val = ma_200.loc[idx]["SMA " + str(mean_period)]
+            log.debug("Position = {}, MA200 = {}, OHCL/4 = {}".format(
+                curr_position is not None,
+                ma200_val,
+                close_price
+            ))
+
+            if curr_position is None:
+                if prev_macd < 0 and curr_macd > 0:
+                    if entry_filter is True:
+                        if ma200_val is not None and close_price > ma200_val:
+                            self.platform.submit_order(
+                                symbol=symbol,
+                                quantity=shares,
+                                side="buy",
+                                date=idx,
+                                flavor='market',
+                                take_profit_price=close_price + 1.50,
+                                stop_loss_price=close_price - 0.50
+                            )
+                    else:
+                        self.platform.submit_order(
+                            symbol=symbol,
+                            quantity=shares,
+                            side="buy",
+                            date=idx,
+                            flavor='market',
+                            take_profit_price=close_price + 1.50,
+                            stop_loss_price=close_price - 0.50
+                        )
+                elif prev_macd > 0 and curr_macd < 0:
+                    if entry_filter is True:
+                        if ma200_val is not None and close_price < ma200_val:
+                            self.platform.submit_order(
+                                symbol=symbol,
+                                quantity=shares,
+                                side="sell",
+                                date=idx,
+                                flavor='market',
+                                take_profit_price=close_price - 1.5,
+                                stop_loss_price=close_price + 0.50
+                            )
+                    else:
+                        self.platform.submit_order(
+                            symbol=symbol,
+                            quantity=shares,
+                            side="sell",
+                            date=idx,
+                            flavor='market',
+                            take_profit_price=close_price - 1.5,
+                            stop_loss_price=close_price + 0.50
+                        )
+            prev_macd = curr_macd
+            counter += 1
+
+        log.debug("Stop feeding data on " + symbol)
+
+        curr_pos = self.platform.trading_session.get_current_position(symbol)
+        if curr_pos is not None and curr_pos.is_open():
+            self.trade_session.liquidate(symbol, close_price, idx)
+
+        # For each row in dataframe
+        # Create a candle object
+        # if candle within maker hours
+        # if candle within strategy trading hours
+        # if last candle
+        # cancel pending orders
+        # if strategy is daytrading
+        # close pending positions
+        # else
+        # check if active candles have been triggered and generate trades to open/close positions
+        # execute strategy actions
+        # if in position
+        # update braket orders
+        # submit orders
 
     def set_generated_param(self, params):
         return

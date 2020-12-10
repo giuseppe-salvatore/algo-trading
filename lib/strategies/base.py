@@ -295,6 +295,9 @@ class BacktestStrategy():
                 #             log.info("{}".format(trade))
                 won_trades += trading_session.get_won_trades()
             log.info("-----------------------------")
+        if total_trades == 0:
+            log.warning("No trades performed")
+            return
         log.info("Overall profit : {:.2f}$".format(
             total_profit
         ))
@@ -307,7 +310,7 @@ class BacktestStrategy():
 
         self.generate_equity_charts(simulations, save_pic=True, print_dates=True)
         self.generate_equity_charts(simulations, save_pic=True, print_dates=False)
-        # self.generate_trading_charts(simulations, save_pic=True)
+        self.generate_trading_charts(simulations, save_pic=True)
 
     def generate_equity_charts(self,
                                simulations: BacktestSimulation,
