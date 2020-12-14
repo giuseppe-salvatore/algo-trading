@@ -254,12 +254,6 @@ class StrategyBacktestParametersTest(unittest.TestCase):
 
 class DummyStrategyScenarios(unittest.TestCase):
 
-    def test_simple_dummy_strategy_run(self):
-
-        dummy = DummyStrategy()
-        trades = dummy.run_strategy()
-        self.assertIsNotNone(trades)
-
     def test_dummy_started_from_backtester(self):
         parallel_process = 4
         # api = AlpacaTrading()
