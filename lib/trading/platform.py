@@ -256,8 +256,10 @@ class SimulationPlatform(TradingPlatform):
             for linked in order._linked_with:
                 self.cancel_order(linked.id, trade.date)
 
-    def cancel_order(self, order_id: str, date):
+    def cancel_order(self, order_id: str, date = datetime.now()):
         order: Order = self.get_order(order_id)
+        if order is None:
+            raise ValueError("Cannot find order {}".format(order_id))
         if order_id not in self.active_orders:
             raise ValueError("Expected {} {} {} order to be active ({})".format(
                 order.symbol,
