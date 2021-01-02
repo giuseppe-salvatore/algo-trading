@@ -57,9 +57,4 @@ class PriceDrivenPolicy():
         self.rr_ratio = ratio
 
     def get_reward_price(self, pull_back_price, last_price, side):
-        if side == 'buy':
-            if pull_back_price >= last_price - or
-                return abs(last_price - pull_back_price) * self.rr_ratio
-
-        if side == 'sell':
-            return abs(last_price - pull_back_price) * self.rr_ratio
+        pass

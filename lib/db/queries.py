@@ -46,6 +46,19 @@ sql_create_minute_bars_table = """CREATE TABLE IF NOT EXISTS minute_bars (
                                     UNIQUE (symbol, time)
                                 );"""
 
+sql_create_second_bars_table = """CREATE TABLE IF NOT EXISTS second_bars (
+                                    id      INTEGER PRIMARY KEY,
+                                    symbol  VARCHAR(6),
+                                    start_time    DATETIME NOT NULL,
+                                    end_time    DATETIME NOT NULL,
+                                    open    REAL NOT NULL,
+                                    close   REAL NOT NULL,
+                                    high    REAL NOT NULL,
+                                    low     REAL NOT NULL,
+                                    volume  REAL NOT NULL,
+                                    UNIQUE (symbol, start_time)
+                                );"""
+
 sql_create_data_provider_table = """CREATE TABLE IF NOT EXISTS market_data_providers (
                                     id      INTEGER      PRIMARY KEY,
                                     name    VARCHAR (15) UNIQUE NOT NULL,

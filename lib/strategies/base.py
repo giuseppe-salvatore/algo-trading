@@ -308,16 +308,17 @@ class BacktestStrategy():
             won_trades / float(total_trades) * 100
         ))
 
-        self.generate_equity_charts(simulations, save_pic=True, print_dates=True)
-        self.generate_equity_charts(simulations, save_pic=True, print_dates=False)
-        self.generate_trading_charts(simulations, save_pic=True)
+        if param_set["Draw Charts"]:
+            self.generate_equity_charts(simulations, save_pic=True, print_dates=True)
+            self.generate_equity_charts(simulations, save_pic=True, print_dates=False)
+            self.generate_trading_charts(simulations, save_pic=True, dispaly_pic=False)
 
     def generate_equity_charts(self,
-                               simulations: BacktestSimulation,
+                               sims: BacktestSimulation,
                                save_pic=True,
                                print_dates=True):
 
-        for sim in simulations:
+        for sim in sims:
 
             if sim.results.trading_session is None:
                 log.critical("sim.results.trading_session is None")
@@ -326,11 +327,12 @@ class BacktestStrategy():
             chart.starting_capital = 50000
             chart.trading_session = sim.results.trading_session
             chart.result_folder = sim.result_folder
-            chart.draw_all(save_pic, print_dates)
+            chart.draw(sim.results.market_data["SPY"]["SPY"])
 
     def generate_trading_charts(self,
                                 simulations: BacktestSimulation,
-                                save_pic=True):
+                                save_pic=True,
+                                dispaly_pic=False):
         for sim in simulations:
 
             if sim.results.trading_session is None:
@@ -349,7 +351,10 @@ class BacktestStrategy():
                     chart.market_data = sim.results.market_data[symbol]
                     chart.trading_session = sim.results.trading_session
                     chart.result_folder = sim.result_folder
-                    chart.draw_date(symbol, date, save_pic)
+                    chart.add_extra_subchart("volume", "volume", "bar")
+                    chart.add_extra_subchart("variance", "variance", "line")
+                    # chart.draw_indicator("vwap")
+                    chart.draw_date(symbol, date, save_pic, dispaly_pic)
 
     def generate_stats(self, base_dir):
         pass
@@ -373,6 +378,7 @@ class StockMarketStrategy():
         self.trade_scaled = 0
         self.main_df = None
         self.trade_session = None
+        self.splits = list()
 
         self.indicators = list()
 
@@ -392,3 +398,31 @@ class StockMarketStrategy():
 
     def get_symbols(self):
         return ['AAPL', 'INTC']
+
+    def get_shares(self, capital: float, close_price: float):
+        shares = capital / close_price
+        rem = shares - int(shares)
+        shares = int(shares)
+        if rem > .5:
+            shares = int(shares) + 1
+
+        log.debug("Buying {} shares".format(shares))
+        return shares
+
+    def get_splits(self):
+        return self.splits
+
+    def set_splits(self, splits):
+        self.splits = splits
+
+    def apply_split(self, date, position):
+        if len(self.splits) > 0 and position is not None:
+            next_split = self.splits[0]
+            if next_split["date"] == str(date):
+                for batch in position.batches:
+                    batch["quantity"] *= next_split["toFactor"]
+                log.info("Split occurred when position open, factor {} to {}".format(
+                    next_split["fromFactor"],
+                    next_split["toFactor"]
+                ))
+                self.splits.pop(0)

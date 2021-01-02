@@ -236,7 +236,7 @@ class BacktestSimulation():
                     symbol
                 ))
                 self._results.market_data[symbol] = strategy.market_data
-                self._results.trading_session = strategy.trading_session
+                self._results.trading_session = strategy.trade_session
             except Exception as e:
                 log.critical(str(e))
                 log.critical("Running simulation for {}".format(symbol))

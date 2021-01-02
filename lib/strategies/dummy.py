@@ -1,11 +1,6 @@
-import time
-import datetime
-import traceback
-
 from lib.trading.generic import Candle
 from lib.indicators.macd import MACD
 from lib.indicators.moving_average import MovingAverage
-from lib.trading.platform import TradingPlatform
 from lib.strategies.base import StockMarketStrategy
 from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
@@ -53,7 +48,7 @@ class DummyStrategy(StockMarketStrategy):
 
         log.debug("Start feeding data on " + symbol)
 
-        self.get_data(symbol, "2020-08-03", "2020-08-31", "Finnhub")
+        self.get_data(symbol, start_date, end_date, "Finnhub")
         df = self.market_data[symbol]
 
         macd_indicator = MACD()

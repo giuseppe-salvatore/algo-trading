@@ -1,4 +1,5 @@
 import os
+import re
 import sqlite3
 import pandas as pd
 import lib.db.queries as query
@@ -13,7 +14,13 @@ class DBManager():
 
     def __init__(self):
         db_file = os.environ.get("SQLITE_DB_FILE")
-        log.debug("Working directory: " + os.getcwd())
+        cwd = os.getcwd()
+        log.debug("Working directory: " + cwd)
+        if not cwd.endswith("algo-trading"):
+            log.info(re.sub("algo-trading.*", "algo-trading", cwd))
+            os.chdir(re.sub("algo-trading.*", "algo-trading", cwd))
+            log.debug("Changing Current Working directory to: " + os.getcwd())
+
         if db_file is None:
             log.warning("Expected SQLITE_DB_FILE varialbe to be set pointing to the db file to use")
             db_file = "data/stock_prices.db"
@@ -80,6 +87,16 @@ class DBManager():
     def get_filtered_watchlist(self):
         cur = self.conn.cursor()
         cur.execute("SELECT symbol FROM filtered_watchlist")
+        return cur.fetchall()
+
+    def get_all_symbols(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT DISTINCT symbol FROM minute_bars")
+        return cur.fetchall()
+
+    def get_all_tables(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%'")
         return cur.fetchall()
 
     def get_filtered_watchlist_sortedby_marketcap(self):

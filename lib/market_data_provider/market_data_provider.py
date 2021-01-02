@@ -2,7 +2,6 @@ import pandas as pd
 import requests as req
 import pandas_market_calendars as mcal
 
-from datetime import date
 from datetime import datetime
 from datetime import timedelta
 
@@ -35,8 +34,8 @@ class MarketDataProvider():
     def get_base_url(self):
         return self.base_url
 
-    def datetime_to_string(self, datetime: datetime) -> (str):
-        return datetime.strftime("%Y-%m-%d")
+    def datetime_to_string(self, dt: datetime) -> (str):
+        return dt.strftime("%Y-%m-%d")
 
     def append_params(self, url: str, params: dict = None):
         url += "?" + self.get_key_name() + "=" + self.get_key_value()
@@ -138,7 +137,7 @@ class MarketDataUtils():
             exchange).index.date
 
     @staticmethod
-    def get_market_days_and_time_in_range(start_date, end_date, exchange: str = "NYSE") -> (int):
+    def get_market_days_and_time_in_range(start_date, end_date, exchange: str = "NYSE") -> (pd.DataFrame):
 
         exchange = mcal.get_calendar(exchange)
 
@@ -150,7 +149,22 @@ class MarketDataUtils():
             end_date=end_date.strftime("%Y-%m-%d")
         )
 
+        exchange_dates["market_open"] = exchange_dates["market_open"].dt.tz_convert(
+            "America/New_York")
+        exchange_dates["market_close"] = exchange_dates["market_close"].dt.tz_convert(
+            "America/New_York")
+
         return exchange_dates
+
+    @staticmethod
+    def get_merket_open_time_on_date(exchange_dataframe, date):
+        open_close = exchange_dataframe.loc[str(date), :]
+        return open_close.loc["market_open"]
+
+    @staticmethod
+    def get_merket_close_time_on_date(exchange_dataframe, date):
+        open_close = exchange_dataframe.loc[str(date), :]
+        return open_close.loc["market_close"]
 
     @staticmethod
     def get_market_open_time(start_date):
@@ -200,23 +214,23 @@ class MarketDataUtils():
         for i in range(delta_days.days):
 
             # We check if the day we are interested is actually in a market day
-            print(tmp_start.date())
             if tmp_start.date() in exchange_dates.index.date:
 
+                log.debug("Checking candles in date {}".format(tmp_start.date()))
                 # Creating a mask to filter between start date and end date, considering
                 # tmp end is always tmp start plus one day and that start date will start
                 # from same date as passed by paramenter but forcing time at 00:00
-
-                # print(df)
                 tmp_end = tmp_start + timedelta(days=1)
                 filtered_df = df.loc[tmp_start: tmp_end]
                 filtered_by_time = filtered_df.between_time("9:30", "16:00")
-                # print(filtered_by_time)
-                if len(filtered_by_time.index) < 330:
-                    log.warning("Candles for {} -> {} are {}".format(
+
+                expected_min_candles = 200
+                if len(filtered_by_time.index) < expected_min_candles:
+                    log.warning("Candles for {} -> {} are {}, expected {}".format(
                         tmp_start,
                         tmp_end,
-                        len(filtered_by_time.index)
+                        len(filtered_by_time.index),
+                        expected_min_candles
                     ))
                     return False
                 tmp_start = tmp_end

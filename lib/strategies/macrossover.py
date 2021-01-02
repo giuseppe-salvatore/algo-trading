@@ -1,7 +1,5 @@
 import itertools
-import pandas as pd
-import matplotlib.pyplot as plt
-
+from lib.indicators.vwap import VWAP
 from lib.trading.generic import Candle, Position
 from lib.strategies.base import StockMarketStrategy
 from lib.indicators.moving_average import MovingAverage
@@ -27,10 +25,11 @@ class MACrossoverStrategy(StockMarketStrategy):
         # self.trade_session = self.platform.trading_session
         self.trade_session = None
         self.platform = None
+        self.trading_style = None
 
     @staticmethod
     def get_name():
-        return 'macd'
+        return 'moving average crossover'
 
     def calculate_rsi(self, dataframe):
         return self.params.rsi_indicator.calculate(dataframe)
@@ -61,9 +60,6 @@ class MACrossoverStrategy(StockMarketStrategy):
             force_provider_fetch=False,
             store_fetched_data=True)
 
-        #data['datetime_ny'] = data.index.tz_localize('UTC').tz_convert('America/New_York')
-        #data.set_index('datetime_ny', inplace=True)
-
         self.market_data[symbol] = data
 
         # We need to calculate the fast and the slow moving averages to get the crossover
@@ -89,6 +85,13 @@ class MACrossoverStrategy(StockMarketStrategy):
         })
         ma_200 = moving_average_indicator.calculate(data)
 
+        vwap_indicator = VWAP({
+            "source": "close"
+        })
+        vwap = vwap_indicator.calculate(data)
+        data["vwap"] = vwap.values
+        print(data)
+
         shares = 0
         prev_crossover = None
         curr_crossover = None
@@ -102,10 +105,7 @@ class MACrossoverStrategy(StockMarketStrategy):
         filtered_data = data.between_time("9:30", "15:59")
         close_price = 0.0
         manage_trade = True
-        scale_trades = False
         entry_filter = False
-        buy_straight = False
-        sell_straight = False
         stop_increase_threshold = 3
         curr_stop_increase_threshold = stop_increase_threshold
         take_profit_value = 1.5
@@ -145,8 +145,6 @@ class MACrossoverStrategy(StockMarketStrategy):
                         self.platform.cancel_order(curr_position.get_leg('take_profit').id, idx)
                         self.platform.cancel_order(curr_position.get_leg('stop_loss').id, idx)
                     prev_crossover = curr_crossover
-                    buy_straight = False
-                    sell_straight = False
                     equity.append(equity[-1])
                     continue
 
@@ -292,16 +290,6 @@ class MACrossoverStrategy(StockMarketStrategy):
         curr_pos = self.platform.trading_session.get_current_position(symbol)
         if curr_pos is not None and curr_pos.is_open():
             self.trade_session.liquidate(symbol, close_price, idx)
-
-        # eqdf = pd.DataFrame({
-        #     "dates": dates,
-        #     "equity": equity
-        # })
-        # eqdf.set_index("dates", inplace=True)
-        # eqdf.index = pd.to_datetime(eqdf.index, format='%Y-%m-%d %H:%M', exact=False)
-        # eqdf.plot.scatter(x='dates', y='equity')
-        # plt.grid()
-        # plt.show()
 
     def set_generated_param(self, params):
         return

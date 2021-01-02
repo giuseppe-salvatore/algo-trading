@@ -10,21 +10,21 @@ from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 
 class MarketDataDatabaseTest(unittest.TestCase):
 
-    # def test_store_market_data_in_db(self):
+    def test_store_market_data_in_db(self):
 
-    #     db = DBManager()
-    #     fh = MarketDataProviderUtils.get_provider("Finnhub")
-    #     db.delete_rows_from("minute_bars", "symbol='TSLA'")
-    #     dataframe = fh.get_minute_candles(
-    #         'TSLA',
-    #         datetime(2020, 10, 6),
-    #         datetime(2020, 10, 10),
-    #         force_provider_fetch=True,
-    #         store_fetched_data=False)
-    #     log.debug("\n{}".format(dataframe))
+        db = DBManager()
+        fh = MarketDataProviderUtils.get_provider("Finnhub")
+        db.delete_rows_from("minute_bars", "symbol='TSLA'")
+        dataframe = fh.get_minute_candles(
+            'TSLA',
+            datetime(2020, 10, 6),
+            datetime(2020, 10, 10),
+            force_provider_fetch=True,
+            store_fetched_data=False)
+        log.debug("\n{}".format(dataframe))
 
-    #     db.dataframe_to_minute_candles('TSLA', dataframe)
-    #     db.close()
+        db.dataframe_to_minute_candles('TSLA', dataframe)
+        db.close()
 
     # def test_store_market_data_in_db_with_diffs(self):
 
@@ -152,32 +152,32 @@ class MarketDataDatabaseTest(unittest.TestCase):
 
     #     log.debug("\n{}".format(dataframe1))
 
-    def test_store_market_data_in_db_in_long_range(self):
+    # def test_store_market_data_in_db_in_long_range(self):
 
-        db = DBManager()
-        fh = MarketDataProviderUtils.get_provider("Finnhub")
-        db.delete_rows_from("minute_bars", "symbol='AAPL'")
-        start = datetime(2020, 8, 1)
-        end = datetime(2020, 9, 30)
-        dataframe = fh.get_minute_candles(
-            'AAPL',
-            start,
-            end,
-            force_provider_fetch=True,
-            store_fetched_data=True)
-        log.debug("\n{}".format(dataframe))
+    #     db = DBManager()
+    #     fh = MarketDataProviderUtils.get_provider("Finnhub")
+    #     db.delete_rows_from("minute_bars", "symbol='AAPL'")
+    #     start = datetime(2020, 8, 1)
+    #     end = datetime(2020, 9, 30)
+    #     dataframe = fh.get_minute_candles(
+    #         'AAPL',
+    #         start,
+    #         end,
+    #         force_provider_fetch=True,
+    #         store_fetched_data=True)
+    #     log.debug("\n{}".format(dataframe))
 
-        dataframe = fh.get_minute_candles(
-            'AAPL',
-            datetime(2020, 7, 15),
-            datetime(2020, 8, 15),
-            force_provider_fetch=False,
-            store_fetched_data=True)
-        res = MarketDataUtils.check_candles_in_timeframe(
-            dataframe,
-            datetime(2020, 7, 15),
-            datetime(2020, 8, 15))
-        self.assertTrue(res)
+    #     dataframe = fh.get_minute_candles(
+    #         'AAPL',
+    #         datetime(2020, 7, 15),
+    #         datetime(2020, 8, 15),
+    #         force_provider_fetch=False,
+    #         store_fetched_data=True)
+    #     res = MarketDataUtils.check_candles_in_timeframe(
+    #         dataframe,
+    #         datetime(2020, 7, 15),
+    #         datetime(2020, 8, 15))
+    #     self.assertTrue(res)
 
-        # db.dataframe_to_minute_candles('AAPL', dataframe)
-        db.close()
+    #     # db.dataframe_to_minute_candles('AAPL', dataframe)
+    #     db.close()

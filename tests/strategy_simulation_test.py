@@ -269,7 +269,8 @@ class DummyStrategyScenarios(unittest.TestCase):
             "Start Date": "2020-10-12",
             "End Date": "2020-10-14",
             "Trading Style": "intraday",
-            "Market Data Provider": "Finnhub"
+            "Market Data Provider": "Finnhub",
+            "Draw Charts": False
         }
         backtest.run_simulation(
             ["AAPL", ],
