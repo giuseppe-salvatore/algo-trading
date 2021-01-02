@@ -2,7 +2,6 @@ import pandas as pd
 import requests as req
 import pandas_market_calendars as mcal
 
-from datetime import date
 from datetime import datetime
 from datetime import timedelta
 
@@ -35,8 +34,8 @@ class MarketDataProvider():
     def get_base_url(self):
         return self.base_url
 
-    def datetime_to_string(self, datetime: datetime) -> (str):
-        return datetime.strftime("%Y-%m-%d")
+    def datetime_to_string(self, dt: datetime) -> (str):
+        return dt.strftime("%Y-%m-%d")
 
     def append_params(self, url: str, params: dict = None):
         url += "?" + self.get_key_name() + "=" + self.get_key_value()
@@ -138,7 +137,7 @@ class MarketDataUtils():
             exchange).index.date
 
     @staticmethod
-    def get_market_days_and_time_in_range(start_date, end_date, exchange: str = "NYSE") -> (int):
+    def get_market_days_and_time_in_range(start_date, end_date, exchange: str = "NYSE") -> (pd.DataFrame):
 
         exchange = mcal.get_calendar(exchange)
 
@@ -150,18 +149,26 @@ class MarketDataUtils():
             end_date=end_date.strftime("%Y-%m-%d")
         )
 
+        exchange_dates["market_open"] = exchange_dates["market_open"].dt.tz_convert(
+            "America/New_York")
+        exchange_dates["market_close"] = exchange_dates["market_close"].dt.tz_convert(
+            "America/New_York")
+
         return exchange_dates
 
     @staticmethod
+    def get_merket_open_time_on_date(exchange_dataframe, date):
+        open_close = exchange_dataframe.loc[str(date), :]
+        return open_close.loc["market_open"]
+
+    @staticmethod
+    def get_merket_close_time_on_date(exchange_dataframe, date):
+        open_close = exchange_dataframe.loc[str(date), :]
+        return open_close.loc["market_close"]
+
+    @staticmethod
     def get_market_open_time(start_date):
-        if type(start_date) is str:
-            start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        yr = start_date.year
-        start_legal_date = datetime(yr, 10, 25)
-        start_solar_date = datetime(yr, 3, 27)
-        if start_solar_date < start_date < start_legal_date:
-            return "14:30", "20:59"
-        return "13:30", "19:59"
+        return "9:30", "15:59"
 
     @staticmethod
     def get_market_open_time_as_datetime(start_date):
@@ -170,11 +177,7 @@ class MarketDataUtils():
         yr = start_date.year
         mnt = start_date.month
         day = start_date.day
-        start_legal_date = date(yr, 10, 25)
-        start_solar_date = date(yr, 3, 27)
-        if start_solar_date < start_date < start_legal_date:
-            return datetime(yr, mnt, day, 14, 30), datetime(yr, mnt, day, 20, 59)
-        return datetime(yr, mnt, day, 13, 30), datetime(yr, mnt, day, 19, 59)
+        return datetime(yr, mnt, day, 9, 30), datetime(yr, mnt, day, 16, 00)
 
     @staticmethod
     def check_candles_in_timeframe(df: pd.DataFrame,
@@ -205,27 +208,34 @@ class MarketDataUtils():
         log.debug("Days in range: {}".format(delta_days.days))
         log.debug("Trading days in range: {}".format(len(exchange_dates.index.date)))
 
+        print(exchange_dates.index.date)
+        print("--------------------------")
+
         for i in range(delta_days.days):
 
             # We check if the day we are interested is actually in a market day
             if tmp_start.date() in exchange_dates.index.date:
 
+                log.debug("Checking candles in date {}".format(tmp_start.date()))
                 # Creating a mask to filter between start date and end date, considering
                 # tmp end is always tmp start plus one day and that start date will start
                 # from same date as passed by paramenter but forcing time at 00:00
-
-                # print(df)
                 tmp_end = tmp_start + timedelta(days=1)
                 filtered_df = df.loc[tmp_start: tmp_end]
-                filtered_by_time = filtered_df.between_time("14:30", "21:00")
-                # print(filtered_by_time)
-                if len(filtered_by_time.index) < 330:
-                    log.warning("Candles for {} -> {} are {}".format(
+                filtered_by_time = filtered_df.between_time("9:30", "16:00")
+
+                expected_min_candles = 200
+                if len(filtered_by_time.index) < expected_min_candles:
+                    log.warning("Candles for {} -> {} are {}, expected {}".format(
                         tmp_start,
                         tmp_end,
-                        len(filtered_by_time.index)
+                        len(filtered_by_time.index),
+                        expected_min_candles
                     ))
                     return False
+                tmp_start = tmp_end
+            else:
+                tmp_end = tmp_start + timedelta(days=1)
                 tmp_start = tmp_end
 
         return True

@@ -89,3 +89,4 @@ In this package we will provide a few market data provider and will analyse pros
 * __EODHistoricalData__: 
 * __IQ Feed__: 
 * __Active Tick__: 
+* __MBoum__: https://mboum.com/api/welcome

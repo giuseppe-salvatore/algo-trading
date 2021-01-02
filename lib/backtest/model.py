@@ -3,6 +3,7 @@ import traceback
 from datetime import datetime
 from lib.util.logger import log
 from lib.trading.generic import TradeSession
+from lib.trading.platform import TradingPlatform
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 # from lib.market_data_provider.market_data_provider import MarketDataUtils
 
@@ -201,6 +202,7 @@ class BacktestSimulation():
         self._trading_session = TradeSession()
         self._results = BacktestResult()
         self._result_folder = None
+        self._platform = TradingPlatform.get_trading_platform("simulation")
 
     def execute(self):
 
@@ -221,6 +223,9 @@ class BacktestSimulation():
                 ))
                 strategy = self.strategy_class()
                 strategy.trade_session = self._results.trading_session
+                strategy.platform = self._platform
+                strategy.platform.trading_session = strategy.trade_session
+                strategy.trading_style = self._trading_style
                 strategy.simulate(
                     symbol,
                     self.start_date,
@@ -231,9 +236,10 @@ class BacktestSimulation():
                     symbol
                 ))
                 self._results.market_data[symbol] = strategy.market_data
+                self._results.trading_session = strategy.trade_session
             except Exception as e:
+                log.critical(str(e))
                 log.critical("Running simulation for {}".format(symbol))
-                log.critical("{}".format(e))
                 traceback.print_tb(e.__traceback__)
 
         return self

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+coverage report
 COVERAGE_PERC=$(coverage report|tail -1|awk -F " " '{print $4}'|rev|cut -c2-|rev)
 echo "COVERAGE_PERC=${COVERAGE_PERC}"
 echo "GREEN_COVERAGE_THRESHOLD=${GREEN_COVERAGE_THRESHOLD}"

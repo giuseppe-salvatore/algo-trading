@@ -19,3 +19,4 @@ pybadges
 pytest
 pytest-bdd
 pytest-html
+flake8

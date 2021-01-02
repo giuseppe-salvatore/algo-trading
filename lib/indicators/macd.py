@@ -1,5 +1,5 @@
+import itertools
 import pandas as pd
-import itertools as itl
 from lib.indicators.base_indicator import Indicator
 
 default_params = {
@@ -74,7 +74,7 @@ class MACD(Indicator):
             mean_type = ["SMA"]
             source = ["close"]
 
-        param_product = itl.product(
+        param_product = itertools.product(
             long_mean_period,
             short_mean_period,
             mean_type,
