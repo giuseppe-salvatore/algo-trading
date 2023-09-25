@@ -38,7 +38,5 @@ run :
 
 .PHONY: clean
 clean :
-	rm -rf package.json package-lock.json node_modules/ \
-		features/ babel.config.js tsconfig.json wdio.conf.* \
-		yarn.lock
+	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache
 

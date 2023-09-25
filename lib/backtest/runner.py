@@ -25,8 +25,8 @@ if __name__ == "__main__":
         "Strategy": strategy_class,
         "Parameter Size": "default",
         "Indicator List": ["rsi"],
-        "Start Date": "2020-05-05",
-        "End Date": "2020-11-30",
+        "Start Date": "2023-05-05",
+        "End Date": "2023-08-30",
         "Trading Style": "multiday",
         "Market Data Provider": "Finnhub"
     }
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     #     parallel_process
     # )
     backtest.run_simulation(
-        ["WORK"],
+        ["SPY"],
         params,
         parallel_process
     )
