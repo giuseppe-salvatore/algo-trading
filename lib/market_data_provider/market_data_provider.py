@@ -98,7 +98,7 @@ class MarketDataUtils():
 
     @staticmethod
     def from_string_to_datetime(date):
-        if type(date) == str:
+        if isinstance(date, str):
             return datetime.strptime(date, "%Y-%m-%d")
         return date
 

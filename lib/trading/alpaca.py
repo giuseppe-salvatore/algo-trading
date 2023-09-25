@@ -53,7 +53,7 @@ class AlpacaTrading():
             alpaca_secret = config.ALPACA_PAPER_SECRET
             alpaca_api_endpoint = config.ALPACA_PAPER_TRADING_REST_ENDPOINT
         else:
-            assert(self.account_type == 'paper2')
+            assert (self.account_type == 'paper2')
             alpaca_api_key = config.ALPACA_PAPER_API_KEY_2
             alpaca_secret = config.ALPACA_PAPER_SECRET_2
             alpaca_api_endpoint = config.ALPACA_PAPER_TRADING_REST_ENDPOINT
