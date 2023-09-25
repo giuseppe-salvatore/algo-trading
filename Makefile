@@ -24,18 +24,12 @@ coverage : install
 unit-test : install
 	source .venv/bin/activate && \
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
-<<<<<<< HEAD
 		python -m pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
-=======
-		pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
->>>>>>> 3dcb8ffd3097c003ce9f58f4ea912592693fd602
-
 
 acceptance-test : install
 	source .venv/bin/activate && \
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 		python -m pytest -v bdd/ --junitxml=${REPORT_FILE}
-
 
 run : 
 	@echo "Run"
