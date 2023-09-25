@@ -22,8 +22,8 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
             symbol="TSLA",
-            start_date="2020-10-07",
-            end_date="2020-10-09",
+            start_date="2023-08-07", # TODO: replace me with a dynamic version of data otherwise will fail in future
+            end_date="2023-08-19", # TODO: replace me with a dynamic version of data otherwise will fail in future
             force_provider_fetch=True,
             store_fetched_data=False)
         self.assertTrue(len(df.index) > 100)
@@ -32,8 +32,8 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
             symbol="TSLA",
-            start_date="2020-10-07",
-            end_date="2020-10-08",
+            start_date="2023-08-07",  # TODO: replace me with a dynamic version of data otherwise will fail in future
+            end_date="2023-08-08",  # TODO: replace me with a dynamic version of data otherwise will fail in future
             force_provider_fetch=True,
             store_fetched_data=False)
         self.assertTrue(len(df.index) > 100)
@@ -42,18 +42,18 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
             symbol="TSLA",
-            start_date="2020-10-07",
-            end_date="2020-10-09",
+            start_date="2023-08-07", # TODO: replace me with a dynamic version of data otherwise will fail in future
+            end_date="2023-08-09", # TODO: replace me with a dynamic version of data otherwise will fail in future
             force_provider_fetch=True,
             store_fetched_data=False)
         indexes = df.index.values
-        self.assertTrue(pd.to_datetime("2020-10-06") not in indexes)
-        self.assertTrue(pd.to_datetime("2020-10-10") not in indexes)
-        self.assertTrue(pd.to_datetime("2020-10-11") not in indexes)
-        self.assertTrue(pd.to_datetime("2020-10-12") not in indexes)
-        self.assertTrue(pd.to_datetime("2020-10-07 15:00") in indexes)
-        self.assertTrue(pd.to_datetime("2020-10-08 15:00") in indexes)
-        self.assertTrue(pd.to_datetime("2020-10-09 15:00") in indexes)
+        self.assertTrue(pd.to_datetime("2023-08-06") not in indexes) # TODO: these should be generated based on the above
+        self.assertTrue(pd.to_datetime("2023-08-10") not in indexes) # TODO: these should be generated based on the above
+        self.assertTrue(pd.to_datetime("2023-08-11") not in indexes) # TODO: these should be generated based on the above
+        self.assertTrue(pd.to_datetime("2023-08-12") not in indexes) # TODO: these should be generated based on the above
+        self.assertTrue(pd.to_datetime("2023-08-07 15:00") in indexes) # TODO: these should be generated based on the above
+        self.assertTrue(pd.to_datetime("2023-08-08 15:00") in indexes) # TODO: these should be generated based on the above
+        self.assertTrue(pd.to_datetime("2023-08-09 15:00") in indexes) # TODO: these should be generated based on the above
 
 class PolygonMarketDataProviderTest(unittest.TestCase):
 
@@ -73,8 +73,8 @@ class GenericFailureMarketDataProviderTest(unittest.TestCase):
         self.assertRaises(ValueError,
                           MarketDataUtils.check_candles_in_timeframe,
                           None,
-                          datetime(2020, 10, 7),
-                          datetime(2020, 10, 8))
+                          datetime(2023, 8, 7),
+                          datetime(2023, 8, 8))
 
     def test_minute_candles_checker_reverse_dates(self):
         self.assertRaises(ValueError,
@@ -92,11 +92,11 @@ class GenericFailureMarketDataProviderTest(unittest.TestCase):
 
     def test_minute_candles_checker_multiple_days(self):
         db = DBManager()
-        df = db.minute_candles_to_dataframe('TSLA', datetime(2020, 10, 7), datetime(2020, 10, 9))
+        df = db.minute_candles_to_dataframe('AAPL', datetime(2020, 9, 7), datetime(2020, 9, 9))
         res = MarketDataUtils.check_candles_in_timeframe(
             df,
-            datetime(2020, 10, 7),
-            datetime(2020, 10, 9))
+            datetime(2020, 9, 6),
+            datetime(2020, 9, 10))
         self.assertTrue(res)
 
     def test_date_is_maket_day(self):

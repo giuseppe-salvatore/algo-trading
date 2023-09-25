@@ -1,5 +1,6 @@
 import unittest
 from datetime import datetime
+from dateutil.relativedelta import relativedelta, MO, FR
 
 # Project specific imports
 from lib.util.logger import log
@@ -17,13 +18,14 @@ class MarketDataDatabaseTest(unittest.TestCase):
         db.delete_rows_from("minute_bars", "symbol='TSLA'")
         dataframe = fh.get_minute_candles(
             'TSLA',
-            datetime(2020, 10, 6),
-            datetime(2020, 10, 10),
+            datetime(2023, 8, 9), # TODO: replace this with a dynamic version of the data
+            datetime(2023, 8, 20), # TODO: replace this with a dynamic version of the data
             force_provider_fetch=True,
             store_fetched_data=False)
         log.debug("\n{}".format(dataframe))
 
         db.dataframe_to_minute_candles('TSLA', dataframe)
+        db.delete_rows_from("minute_bars", "symbol='TSLA'")
         db.close()
 
     # def test_store_market_data_in_db_with_diffs(self):

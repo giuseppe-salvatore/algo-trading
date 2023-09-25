@@ -19,11 +19,19 @@ verify : install
 coverage : install
 	source .venv/bin/activate && \
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
-		echo $$SQLITE_DB_FILE && \
 		coverage run -m pytest -s -v tests/*_test.py --html=report.html --self-contained-html
 
-test : 
-	@echo "Test"
+unit-test : install
+	source .venv/bin/activate && \
+		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+		pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
+
+
+acceptance-test : install
+	source .venv/bin/activate && \
+		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+		python -m pytest -v bdd/ --junitxml=${REPORT_FILE}
+
 
 run : 
 	@echo "Run"
