@@ -24,21 +24,17 @@ coverage : install
 unit-test : install
 	source .venv/bin/activate && \
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
-		pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
-
+		python -m pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
 
 acceptance-test : install
 	source .venv/bin/activate && \
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 		python -m pytest -v bdd/ --junitxml=${REPORT_FILE}
 
-
 run : 
 	@echo "Run"
 
 .PHONY: clean
 clean :
-	rm -rf package.json package-lock.json node_modules/ \
-		features/ babel.config.js tsconfig.json wdio.conf.* \
-		yarn.lock
+	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache
 
