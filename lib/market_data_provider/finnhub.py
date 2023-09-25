@@ -25,9 +25,9 @@ class FinnhubDataProvider(MarketDataProvider):
         self.set_provider_name("Finnhub")
         self.set_provider_url("https://finnhub.io")
         self.set_base_url("https://finnhub.io/api")
-        self.api_key = os.environ.get('FINNHUB_API_KEY_01')
+        self.api_key = os.environ.get('FINNHUB_API_KEY')
         if self.api_key is None:
-            self.api_key = config.FINNHUB_API_KEY_01
+            self.api_key = config.FINNHUB_API_KEY
 
     def get_key_name(self):
         return "token"

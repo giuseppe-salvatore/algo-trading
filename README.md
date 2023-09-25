@@ -16,6 +16,11 @@
 * Alpaca Trading and Alpaca Stock Data API are used https://alpaca.markets/
 * The stock API uses REST but soon it's going to transition to websocket
 
+### Getting Started ###
+
+The project uses a Makefile to run some basic targets. For more complex executions you will
+have to run individual scripts and passing parameters based on your needs
+
 ### Run strategies ###
 
 Here is an example on how to run a strategy 

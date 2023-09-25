@@ -210,7 +210,7 @@ class RSIStrategy(StockMarketStrategy):
                 "Unexpected entry signal parameter: " + self.params.entry_signal)
 
         if buy_signal == sell_signal:
-            assert(buy_signal is False)
+            assert (buy_signal is False)
 
         if buy_signal:
             df['long'][i] = df['Perc Var'][i]
