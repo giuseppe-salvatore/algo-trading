@@ -185,7 +185,7 @@ class MarketDataUtils():
                                    end_date: datetime,
                                    expected_candles_per_day: int = 385):
         if df is None:
-            raise ValueError("Dataframe is empty")
+            raise ValueError("Dataframe is None")
 
         if end_date < start_date:
             raise ValueError("Start date should be earlier than stop date")

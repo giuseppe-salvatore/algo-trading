@@ -234,7 +234,7 @@ class StrategyBacktestParametersTest(unittest.TestCase):
                               "Strategy": "a strategy",
                               "Parameter Size": "small",
                               "Indicator List": "rsi",
-                              "Start Date": "2020-05-111",
+                              "Start Date": "2023-05-111",
                               "End Date": datetime.now(),
                               "Trading Style": "intraday"
                           })
@@ -266,8 +266,8 @@ class DummyStrategyScenarios(unittest.TestCase):
             "Strategy": strategy_class,
             "Parameter Size": "default",
             "Indicator List": ["rsi"],
-            "Start Date": "2020-10-12",
-            "End Date": "2020-10-14",
+            "Start Date": "2023-08-12",
+            "End Date": "2023-08-14",
             "Trading Style": "intraday",
             "Market Data Provider": "Finnhub",
             "Draw Charts": False
