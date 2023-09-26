@@ -23,11 +23,11 @@ coverage : install
 
 format : install
 	source .venv/bin/activate && \
-		for target in `find  -name *.py -not -path "./.venv/*" -not -path "./.venv-old/*"`; do yapf $$target; done
+		for target in `find  -name *.py -not -path "./.venv/*" -not -path "./.venv-old/*"`; do autopep8 $$target; done
 
 unit-test : install
 	source .venv/bin/activate && \
-		source .env.test && \
+		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 		python -m pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
 
 acceptance-test : install
@@ -42,5 +42,5 @@ run :
 
 .PHONY: clean
 clean :
-	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache
+	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache/
 

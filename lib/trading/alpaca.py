@@ -33,8 +33,9 @@ class AlpacaTrading():
         insead of conf.secret.ALPACA_PAPER_TRADING_REST_ENDPOINT
         '''
 
-        if not (self.account_type == 'paper' or self.account_type == 'paper2'
-                or self.account_type == 'live'):
+        if not (self.account_type == 'paper' or
+                self.account_type == 'paper2' or
+                self.account_type == 'live'):
             msg = "Account type should be either 'paper', 'paper2' or 'live': {}".format(
                 self.account_type)
             msg += " provided instead"

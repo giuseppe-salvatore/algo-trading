@@ -417,8 +417,8 @@ class Order():
                  stop_loss_price: float = None):
 
         # Sanity checks
-        if flavor == 'market' and (limit_price is not None
-                                   or stop_price is not None):
+        if flavor == 'market' and (limit_price is not None or
+                                   stop_price is not None):
             raise ValueError(
                 "Market orders can't have limit/stop price specified")
         if flavor == 'limit' and limit_price is None:

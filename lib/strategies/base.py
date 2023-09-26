@@ -117,9 +117,10 @@ class BacktestStrategy():
             for symbol in result:
                 for position in result[symbol]:
                     for trade in position.get_trades():
-                        if (position.side == "long" and trade.side == "buy"
-                                or position.side == "short"
-                                and trade.side == "sell"):
+                        if (position.side == "long" and
+                            trade.side == "buy" or
+                            position.side == "short" and
+                                trade.side == "sell"):
                             traded_capital = -abs(trade.quantity * trade.price)
                         else:
                             traded_capital = abs(trade.quantity * trade.price)

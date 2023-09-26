@@ -112,9 +112,8 @@ class BacktestParams():
 
         # Verifying the market data provider
         param = "Market Data Provider"
-        if params[
-                param] not in MarketDataProviderUtils.get_available_providers(
-                ):
+        available_providers = MarketDataProviderUtils.get_available_providers()
+        if params[param] not in available_providers:
             success = False
             msg += "{} can only be {} but {} provided instead".format(
                 param, MarketDataProviderUtils.get_available_providers(),
