@@ -91,11 +91,11 @@ if __name__ == "__main__":
             market_value = pos.market_value
             if pos.symbol in stock_peaks:
                 if pos.side == 'long':
-                    stock_peaks[pos.symbol] = max(
-                        stock_peaks[pos.symbol], market_value)
+                    stock_peaks[pos.symbol] = max(stock_peaks[pos.symbol],
+                                                  market_value)
                 else:
-                    stock_peaks[pos.symbol] = min(
-                        stock_peaks[pos.symbol], market_value)
+                    stock_peaks[pos.symbol] = min(stock_peaks[pos.symbol],
+                                                  market_value)
 
                 if stock_peaks[pos.symbol] == market_value:
                     print("Updating order for " + pos.symbol)

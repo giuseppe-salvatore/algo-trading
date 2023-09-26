@@ -1,15 +1,12 @@
 from lib.market_data_provider.finnhub import FinnhubDataProvider
 from lib.market_data_provider.polygon import PolygonDataProvider
 
+
 class MarketDataProviderUtils():
 
     @staticmethod
     def get_available_providers():
-        return [
-            "Finnhub",
-            "Polygon",
-            "Tiingo"
-        ]
+        return ["Finnhub", "Polygon", "Tiingo"]
 
     @staticmethod
     def get_provider(provider_name: str):
@@ -24,6 +21,5 @@ class MarketDataProviderUtils():
         elif provider_name == "Polygon":
             return PolygonDataProvider()
         else:
-            raise ValueError("No provider avaialbe named: {}".format(
-                provider_name
-            ))
+            raise ValueError(
+                "No provider avaialbe named: {}".format(provider_name))

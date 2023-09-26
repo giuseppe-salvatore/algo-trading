@@ -18,7 +18,8 @@ if __name__ == "__main__":
     # api = AlpacaTrading()
     backtest = BacktestStrategy()
     strategy = importlib.import_module('matplotlib.text')
-    strategy_module = __import__(args.package + "." + args.module, fromlist=[args.strategy_class])
+    strategy_module = __import__(args.package + "." + args.module,
+                                 fromlist=[args.strategy_class])
     strategy_class = getattr(strategy_module, args.strategy_class)
     log.debug("Selected {} strategy".format(strategy_class.get_name()))
     params = {
@@ -37,8 +38,4 @@ if __name__ == "__main__":
     #     params,
     #     parallel_process
     # )
-    backtest.run_simulation(
-        ["SPY"],
-        params,
-        parallel_process
-    )
+    backtest.run_simulation(["SPY"], params, parallel_process)

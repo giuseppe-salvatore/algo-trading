@@ -28,11 +28,7 @@ class MovingAverageTest(unittest.TestCase):
 
     def test_name_update(self):
         ma = MovingAverage()
-        ma.set_params({
-            "mean_period": 100,
-            "mean_type": "EMA",
-            "source": "hl"
-        })
+        ma.set_params({"mean_period": 100, "mean_type": "EMA", "source": "hl"})
         self.assertEqual(ma.name, "EMA 100 hl")
 
     def test_name_init(self):
@@ -42,6 +38,7 @@ class MovingAverageTest(unittest.TestCase):
             "source": "hl"
         })
         self.assertEqual(ma.name, "EMA 100 hl")
+
 
 class RelativeStrenghtIndexTest(unittest.TestCase):
 
@@ -81,6 +78,7 @@ class RelativeStrenghtIndexTest(unittest.TestCase):
             "source": "hcl"
         })
         self.assertEqual(rsi.name, "RSI 20 hcl")
+
 
 class MACDTest(unittest.TestCase):
 

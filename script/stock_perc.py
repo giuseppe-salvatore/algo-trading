@@ -22,7 +22,9 @@ def check_account(api):
     # Check how much money we can use to open new positions.
     print("\r", end="", flush=True)
     print('Equity is ${} balance change: ${:.2f}'.format(
-        account.equity, balance_change), end="", flush=True)
+        account.equity, balance_change),
+          end="",
+          flush=True)
 
     return account.equity
 
@@ -88,7 +90,8 @@ def append_to_market_value(api, gain):
                 float(pos.market_value) - float(pos.cost_basis))
         else:
             gain[pos.symbol] = [
-                float(pos.market_value) - float(pos.cost_basis)]
+                float(pos.market_value) - float(pos.cost_basis)
+            ]
 
 
 def main_loop(api):
@@ -119,8 +122,9 @@ def main_loop(api):
         date_index = pd.DatetimeIndex(np.array(time_array))
         dataframe = pd.DataFrame(None, date_index, None)
         dataframe["Equity"] = np.array(stock_array)
-        dataframe["Equity"].plot(
-            label="equity", figsize=(12, 8), title='Equity value')
+        dataframe["Equity"].plot(label="equity",
+                                 figsize=(12, 8),
+                                 title='Equity value')
         plt.legend()
         plt.draw()
         plt.pause(0.005)
@@ -129,10 +133,10 @@ def main_loop(api):
 def tick_within_market_hours(tick):
     day = "13"
     month = "07"
-    if (tick.day == int(day) and
-        tick.month == int(month) and
-        ((tick.hour == 9 and tick.minute >= 29) or
-            (tick.hour >= 10 and tick.hour < 16) or tick.hour == 16 and tick.minute == 0)):
+    if (tick.day == int(day) and tick.month == int(month)
+            and ((tick.hour == 9 and tick.minute >= 29) or
+                 (tick.hour >= 10 and tick.hour < 16)
+                 or tick.hour == 16 and tick.minute == 0)):
         return True
     return False
 
@@ -160,7 +164,6 @@ def build_dataframe(barset, symbols):
     closes = []
     # volumes = []
 
-
     close_prices = dict()
 
     for elem in barset:
@@ -182,13 +185,13 @@ def build_dataframe(barset, symbols):
                 # lows.append(float(bar.l))
                 # volumes.append(float(bar.v))
 
-        #print("len times " + str(len(times)))    
+        #print("len times " + str(len(times)))
         print("len closes " + str(len(closes)))
         #idx = 0
         #for t in times:
-        #    print(str(idx) + "\t" + str(t))  
-        #    idx+=1    
-        #  
+        #    print(str(idx) + "\t" + str(t))
+        #    idx+=1
+        #
         close_prices[elem] = pd.Series(closes)
 
     df = pd.DataFrame(None, pd.DatetimeIndex(times), None)
@@ -209,7 +212,7 @@ def main():
     for sym in get_symbols():
         print(sym + " " + str(raw_df_data[sym][0]))
 
-    idx = {}    
+    idx = {}
     legend = True
     fig_printed = False
     while True:
@@ -223,8 +226,9 @@ def main():
         for stock in gain:
             dataframe[stock] = np.array(gain[stock])
             # if not fig_printed:
-            dataframe[stock].plot(label=stock, figsize=(
-                12, 8), title='Gain per stock')
+            dataframe[stock].plot(label=stock,
+                                  figsize=(12, 8),
+                                  title='Gain per stock')
 
         plt.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
         plt.draw()

@@ -115,13 +115,12 @@ if __name__ == "__main__":
     for range_date in dates:
         start = range_date[0]
         end = range_date[1]
-        log.info("Fetching from {} to {}".format(
-            start,
-            end
-        ))
+        log.info("Fetching from {} to {}".format(start, end))
         for symbol in watchlist:
             if symbol in black_list:
-                log.warning("Skipping symbol as it's in the blacklist: {}".format(symbol))
+                log.warning(
+                    "Skipping symbol as it's in the blacklist: {}".format(
+                        symbol))
                 continue
             try:
                 dataframe = provider.get_minute_candles(

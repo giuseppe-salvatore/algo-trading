@@ -11,6 +11,7 @@ from lib.util.logger import log
 # logger.setup_logging("BaseStrategy")
 # log = logger.logging.getLogger("BaseStrategy")
 
+
 class MACrossoverStrategy(StockMarketStrategy):
 
     def __init__(self):
@@ -45,20 +46,16 @@ class MACrossoverStrategy(StockMarketStrategy):
         })
         return ma.calculate(data)
 
-    def simulate(self,
-                 symbol,
-                 start_date,
-                 end_date,
-                 market_data_provider):
+    def simulate(self, symbol, start_date, end_date, market_data_provider):
         log.debug("Running simulation on " + symbol)
 
-        data_provider = MarketDataProviderUtils.get_provider(market_data_provider)
-        data = data_provider.get_minute_candles(
-            symbol,
-            start_date,
-            end_date,
-            force_provider_fetch=False,
-            store_fetched_data=True)
+        data_provider = MarketDataProviderUtils.get_provider(
+            market_data_provider)
+        data = data_provider.get_minute_candles(symbol,
+                                                start_date,
+                                                end_date,
+                                                force_provider_fetch=False,
+                                                store_fetched_data=True)
 
         self.market_data[symbol] = data
 
@@ -85,9 +82,7 @@ class MACrossoverStrategy(StockMarketStrategy):
         })
         ma_200 = moving_average_indicator.calculate(data)
 
-        vwap_indicator = VWAP({
-            "source": "close"
-        })
+        vwap_indicator = VWAP({"source": "close"})
         vwap = vwap_indicator.calculate(data)
         data["vwap"] = vwap.values
         print(data)
@@ -98,7 +93,8 @@ class MACrossoverStrategy(StockMarketStrategy):
 
         # Only trade during market hours but use the rest of the market data for
         # indicators
-        data["ohlc/4"] = (data["open"] + data["close"] + data["high"] + data["low"]) / 4
+        data["ohlc/4"] = (data["open"] + data["close"] + data["high"] +
+                          data["low"]) / 4
         market_open_time_str, market_close_time_str = MarketDataUtils.get_market_open_time(
             start_date)
 
@@ -133,17 +129,20 @@ class MACrossoverStrategy(StockMarketStrategy):
                 equity.append(float(0))
                 continue
 
-            curr_position: Position = self.trade_session.get_current_position(symbol)
+            curr_position: Position = self.trade_session.get_current_position(
+                symbol)
             if idx.hour == 15 and idx.minute == 59:
                 if self.trading_style is None or self.trading_style == 'intraday':
                     if curr_position is not None:
-                        curr_profit = curr_position.get_current_profit(close_price)
+                        curr_profit = curr_position.get_current_profit(
+                            close_price)
                         log.info("Close at EOD rule: profit={:.2f}".format(
-                            curr_profit
-                        ))
+                            curr_profit))
                         self.trade_session.liquidate(symbol, close_price, idx)
-                        self.platform.cancel_order(curr_position.get_leg('take_profit').id, idx)
-                        self.platform.cancel_order(curr_position.get_leg('stop_loss').id, idx)
+                        self.platform.cancel_order(
+                            curr_position.get_leg('take_profit').id, idx)
+                        self.platform.cancel_order(
+                            curr_position.get_leg('stop_loss').id, idx)
                     prev_crossover = curr_crossover
                     equity.append(equity[-1])
                     continue
@@ -163,45 +162,51 @@ class MACrossoverStrategy(StockMarketStrategy):
                 if curr_position is not None:
                     curr_profit = curr_position.get_current_profit(close_price)
                     log.error("Close {:.2f} Curr Profit: {:.2f}".format(
-                        close_price,
-                        curr_profit))
+                        close_price, curr_profit))
                     if curr_profit >= curr_stop_increase_threshold and not scaled:
                         log.error("Increasing threshold to {}".format(
-                            curr_stop_increase_threshold
-                        ))
+                            curr_stop_increase_threshold))
                         # scaled = True
                         # time.sleep(1)
                         if curr_position.side == 'long':
-                            prev_stop = curr_position.get_leg('stop_loss').stop_price
-                            curr_position.get_leg('stop_loss').stop_price += 0.6
-                            curr_stop = curr_position.get_leg('stop_loss').stop_price
-                            log.warning("Updating stop ({:.2f}) -> ({:.2f})".format(
-                                prev_stop,
-                                curr_stop
-                            ))
-                            prev_profit = curr_position.get_leg('take_profit').limit_price
-                            curr_position.get_leg('take_profit').limit_price += 0.15
-                            curr_profit = curr_position.get_leg('take_profit').limit_price
-                            log.warning("Updating profit ({:.2f}) -> ({:.2f})".format(
-                                prev_profit,
-                                curr_profit
-                            ))
+                            prev_stop = curr_position.get_leg(
+                                'stop_loss').stop_price
+                            curr_position.get_leg(
+                                'stop_loss').stop_price += 0.6
+                            curr_stop = curr_position.get_leg(
+                                'stop_loss').stop_price
+                            log.warning(
+                                "Updating stop ({:.2f}) -> ({:.2f})".format(
+                                    prev_stop, curr_stop))
+                            prev_profit = curr_position.get_leg(
+                                'take_profit').limit_price
+                            curr_position.get_leg(
+                                'take_profit').limit_price += 0.15
+                            curr_profit = curr_position.get_leg(
+                                'take_profit').limit_price
+                            log.warning(
+                                "Updating profit ({:.2f}) -> ({:.2f})".format(
+                                    prev_profit, curr_profit))
                         if curr_position.side == 'short':
-                            prev_stop = curr_position.get_leg('stop_loss').stop_price
-                            curr_position.get_leg('stop_loss').stop_price -= 0.6
-                            curr_stop = curr_position.get_leg('stop_loss').stop_price
-                            log.warning("Updating stop ({:.2f}) -> ({:.2f})".format(
-                                prev_stop,
-                                curr_stop
-                            ))
+                            prev_stop = curr_position.get_leg(
+                                'stop_loss').stop_price
+                            curr_position.get_leg(
+                                'stop_loss').stop_price -= 0.6
+                            curr_stop = curr_position.get_leg(
+                                'stop_loss').stop_price
+                            log.warning(
+                                "Updating stop ({:.2f}) -> ({:.2f})".format(
+                                    prev_stop, curr_stop))
 
-                            prev_profit = curr_position.get_leg('take_profit').limit_price
-                            curr_position.get_leg('take_profit').limit_price -= 0.15
-                            curr_profit = curr_position.get_leg('take_profit').limit_price
-                            log.warning("Updating profit ({:.2f}) -> ({:.2f})".format(
-                                prev_profit,
-                                curr_profit
-                            ))
+                            prev_profit = curr_position.get_leg(
+                                'take_profit').limit_price
+                            curr_position.get_leg(
+                                'take_profit').limit_price -= 0.15
+                            curr_profit = curr_position.get_leg(
+                                'take_profit').limit_price
+                            log.warning(
+                                "Updating profit ({:.2f}) -> ({:.2f})".format(
+                                    prev_profit, curr_profit))
                         curr_stop_increase_threshold += stop_increase_threshold
                 else:
                     curr_stop_increase_threshold = stop_increase_threshold
@@ -230,9 +235,10 @@ class MACrossoverStrategy(StockMarketStrategy):
                                 side="buy",
                                 date=idx,
                                 flavor='market',
-                                take_profit_price=(close_price + take_profit_value),
-                                stop_loss_price=(close_price - stop_loss_value)
-                            )
+                                take_profit_price=(close_price +
+                                                   take_profit_value),
+                                stop_loss_price=(close_price -
+                                                 stop_loss_value))
                     else:
                         self.platform.submit_order(
                             symbol=symbol,
@@ -240,9 +246,9 @@ class MACrossoverStrategy(StockMarketStrategy):
                             side="buy",
                             date=idx,
                             flavor='market',
-                            take_profit_price=(close_price + take_profit_value),
-                            stop_loss_price=(close_price - stop_loss_value)
-                        )
+                            take_profit_price=(close_price +
+                                               take_profit_value),
+                            stop_loss_price=(close_price - stop_loss_value))
                 # elif prev_crossover > 0 and curr_crossover < 0:
                 elif curr_crossover < 0 and curr_speed < -0.05:
                     # if row["variance"] < 0.1:
@@ -258,9 +264,9 @@ class MACrossoverStrategy(StockMarketStrategy):
                                 side="sell",
                                 date=idx,
                                 flavor='market',
-                                take_profit_price=close_price - take_profit_value,
-                                stop_loss_price=close_price + stop_loss_value
-                            )
+                                take_profit_price=close_price -
+                                take_profit_value,
+                                stop_loss_price=close_price + stop_loss_value)
                     else:
                         self.platform.submit_order(
                             symbol=symbol,
@@ -269,17 +275,19 @@ class MACrossoverStrategy(StockMarketStrategy):
                             date=idx,
                             flavor='market',
                             take_profit_price=close_price - take_profit_value,
-                            stop_loss_price=close_price + stop_loss_value
-                        )
+                            stop_loss_price=close_price + stop_loss_value)
 
-            curr_position: Position = self.trade_session.get_current_position(symbol)
+            curr_position: Position = self.trade_session.get_current_position(
+                symbol)
 
             if curr_position is not None:
                 entry = curr_position.get_average_entry_price()
                 if curr_position.side == 'long':
-                    equity.append((close_price - entry) * curr_position.get_total_shares())
+                    equity.append((close_price - entry) *
+                                  curr_position.get_total_shares())
                 else:
-                    equity.append(-(close_price - entry) * curr_position.get_total_shares())
+                    equity.append(-(close_price - entry) *
+                                  curr_position.get_total_shares())
             else:
                 equity.append(equity[-1])
 
@@ -308,12 +316,8 @@ class MACrossoverStrategy(StockMarketStrategy):
             mean_type = ["SMA"]
             source = ["close"]
 
-        param_product = itertools.product(
-            long_mean_period,
-            short_mean_period,
-            mean_type,
-            source
-        )
+        param_product = itertools.product(long_mean_period, short_mean_period,
+                                          mean_type, source)
 
         for param in param_product:
             params.append({

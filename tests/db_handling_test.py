@@ -18,8 +18,12 @@ class MarketDataDatabaseTest(unittest.TestCase):
         db.delete_rows_from("minute_bars", "symbol='TSLA'")
         dataframe = fh.get_minute_candles(
             'TSLA',
-            datetime(2023, 8, 9), # TODO: replace this with a dynamic version of the data
-            datetime(2023, 8, 20), # TODO: replace this with a dynamic version of the data
+            datetime(
+                2023, 8,
+                9),  # TODO: replace this with a dynamic version of the data
+            datetime(
+                2023, 8,
+                20),  # TODO: replace this with a dynamic version of the data
             force_provider_fetch=True,
             store_fetched_data=False)
         log.debug("\n{}".format(dataframe))

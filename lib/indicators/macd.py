@@ -10,6 +10,7 @@ default_params = {
     "source": "close"
 }
 
+
 class MACD(Indicator):
 
     def __init__(self, params=default_params):
@@ -18,6 +19,7 @@ class MACD(Indicator):
         self.long_name = "Relative Strenght Index"
         self.description = "An inicator that goes between 0 and 100 that takes \
                             into accout the strenght of the price action"
+
         # Swith to use of dot notation:
         # https://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary/41274937#41274937
         self.set_params(params)
@@ -35,27 +37,32 @@ class MACD(Indicator):
         self._update_name()
 
     def _update_name(self):
-        self.name = "{} {} {} {} {}".format(
-            "MACD",
-            self.params["short_mean_period"],
-            self.params["long_mean_period"],
-            self.params["signal_smooth"],
-            self.params["source"]
-        )
+        self.name = "{} {} {} {} {}".format("MACD",
+                                            self.params["short_mean_period"],
+                                            self.params["long_mean_period"],
+                                            self.params["signal_smooth"],
+                                            self.params["source"])
 
     def calculate(self, data):
         source = data[self.params["source"]]
 
-        short_mean = source.copy().ewm(span=self.params["short_mean_period"], adjust=False).mean()
-        long_mean = source.copy().ewm(span=self.params["long_mean_period"], adjust=False).mean()
+        short_mean = source.copy().ewm(span=self.params["short_mean_period"],
+                                       adjust=False).mean()
+        long_mean = source.copy().ewm(span=self.params["long_mean_period"],
+                                      adjust=False).mean()
 
         # Calculate the Moving Average Convergence/Divergence (MACD)
         macd = short_mean - long_mean
 
         # Calcualte the signal line
-        signal = macd.ewm(span=self.params["signal_smooth"], adjust=False).mean()
+        signal = macd.ewm(span=self.params["signal_smooth"],
+                          adjust=False).mean()
 
-        self.data = pd.DataFrame({"signal": signal, "macd": macd, "histogram": macd - signal})
+        self.data = pd.DataFrame({
+            "signal": signal,
+            "macd": macd,
+            "histogram": macd - signal
+        })
         return self.data
 
     def generate_param_combination(self, size):
@@ -74,13 +81,9 @@ class MACD(Indicator):
             mean_type = ["SMA"]
             source = ["close"]
 
-        param_product = itertools.product(
-            long_mean_period,
-            short_mean_period,
-            mean_type,
-            source,
-            signal_mean_period
-        )
+        param_product = itertools.product(long_mean_period, short_mean_period,
+                                          mean_type, source,
+                                          signal_mean_period)
 
         for param in param_product:
             params.append({

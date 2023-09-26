@@ -12,6 +12,7 @@ ticker_type_endpoint = "/v2/reference/types"
 symbol_details_endpoint = "/v1/meta/symbols/"
 supported_tickers_endpoint = "/v2/reference/tickers"
 
+
 class PolygonDataProvider(MarketDataProvider):
 
     def __init__(self):
@@ -19,7 +20,8 @@ class PolygonDataProvider(MarketDataProvider):
         self.set_provider_url("https://polygon.io")
         self.set_base_url("https://api.polygon.io")
 
-    def get_minute_candles(self, symbol: str, start_date: datetime, end_date: datetime):
+    def get_minute_candles(self, symbol: str, start_date: datetime,
+                           end_date: datetime):
 
         print("Getting minute candles on " + self.get_provider_name() + " api")
         endpoint = "/aggs/ticker/" + symbol + "/range/1/minute/" + start_date + "/" + end_date
@@ -30,7 +32,8 @@ class PolygonDataProvider(MarketDataProvider):
         print(json.dumps(content, indent=4))
         count = 0
         for elem in content["results"]:
-            date_time = datetime.datetime.fromtimestamp(float(elem["t"])/1000)
+            date_time = datetime.datetime.fromtimestamp(
+                float(elem["t"]) / 1000)
 
             if date_time >= datetime.strptime(start_date + " 06:00", '%Y-%m-%d %H:%M') and \
                     date_time <= datetime.strptime(start_date + " 22:30", '%Y-%m-%d %H:%M'):
@@ -39,9 +42,7 @@ class PolygonDataProvider(MarketDataProvider):
 
         print("Count " + str(count))
 
-    def get_day_candles(self,
-                        symbol: str,
-                        start_date: datetime,
+    def get_day_candles(self, symbol: str, start_date: datetime,
                         end_date: datetime):
         pass
 
@@ -55,10 +56,7 @@ class PolygonDataProvider(MarketDataProvider):
         return self.get(symbol_details_endpoint + symbol + "/company")
 
     def get_financials(self, symbol):
-        response = self.get(
-            financials_endpoint + "/" + symbol,
-            {"limit": 1}
-        )
+        response = self.get(financials_endpoint + "/" + symbol, {"limit": 1})
 
         json_content = json.loads(response.content)
         if "results" not in json_content:
@@ -66,10 +64,13 @@ class PolygonDataProvider(MarketDataProvider):
             raise Exception(msg)
 
         if "status" not in json_content:
-            raise Exception("Error in json response: expected key 'status' but not present")
+            raise Exception(
+                "Error in json response: expected key 'status' but not present"
+            )
 
         if json_content["status"] != "OK":
-            raise Exception("Error in json response: expected 'status' to be 'OK'")
+            raise Exception(
+                "Error in json response: expected 'status' to be 'OK'")
 
         return json_content["results"]
 
@@ -85,9 +86,7 @@ class PolygonDataProvider(MarketDataProvider):
                 count = result["count"]
                 pages = int(count / 50) + 1
                 log.debug("Total count {} fetching {} pages".format(
-                    count,
-                    pages
-                ))
+                    count, pages))
                 results += result["tickers"]
                 first_call = False
             else:
@@ -96,10 +95,7 @@ class PolygonDataProvider(MarketDataProvider):
 
             page = result["page"]
             log.debug("Fetching page {}/{} result page = {}".fromat(
-                page,
-                pages,
-                result["page"]
-            ))
+                page, pages, result["page"]))
             page += 1
             for elem in result["tickers"]:
                 if "type" in elem:

@@ -1,15 +1,14 @@
 import pandas as pd
 from lib.indicators.base_indicator import Indicator
 
-default_params = {
-    "source": "close"
-}
+default_params = {"source": "close"}
 
 
 def _vwap(df):
     q = df["volume"].values
     p = df["close"].values
     return df.assign(vwap=(p * q).cumsum() / q.cumsum())
+
 
 class VWAP(Indicator):
 
@@ -33,10 +32,7 @@ class VWAP(Indicator):
         self._update_name()
 
     def _update_name(self):
-        self.name = "{} {}".format(
-            "VWAP",
-            self.params["source"]
-        )
+        self.name = "{} {}".format("VWAP", self.params["source"])
 
     def calculate(self, data):
         data = data.groupby(data.index, group_keys=False).apply(_vwap)

@@ -11,6 +11,7 @@ from lib.util.logger import log
 # logger.setup_logging("BaseStrategy")
 # log = logger.logging.getLogger("BaseStrategy")
 
+
 class BuyAndHold(StockMarketStrategy):
 
     def __init__(self):
@@ -28,12 +29,7 @@ class BuyAndHold(StockMarketStrategy):
     def get_name():
         return "Buy and Hold"
 
-    def get_data(self,
-                 symbol,
-                 start_date,
-                 end_date,
-                 time_frame,
-                 provider):
+    def get_data(self, symbol, start_date, end_date, time_frame, provider):
         data_provider = MarketDataProviderUtils.get_provider(provider)
         # self.market_data[symbol] = data_provider.get_minute_candles(
         #     symbol,
@@ -53,25 +49,13 @@ class BuyAndHold(StockMarketStrategy):
 
         self.set_splits(data_provider.get_splits(symbol, start_date, end_date))
 
-    def simulate(self,
-                 symbol,
-                 start_date,
-                 end_date,
-                 provider):
+    def simulate(self, symbol, start_date, end_date, provider):
 
         log.debug("Start feeding data on " + symbol)
 
         # First we get the market data in the range we are interested
-        timeframe = {
-            "multiplier": "30",
-            "timeframe": "Min"
-        }
-        self.get_data(
-            symbol,
-            start_date,
-            end_date,
-            timeframe,
-            "Finnhub")
+        timeframe = {"multiplier": "30", "timeframe": "Min"}
+        self.get_data(symbol, start_date, end_date, timeframe, "Finnhub")
         data = self.market_data[symbol]
         data["capital"] = 30000.0
         data["equity"] = 0.0
@@ -84,16 +68,11 @@ class BuyAndHold(StockMarketStrategy):
         # ...
 
         # Now we get all the trading days
-        dates = MarketDataUtils.get_market_days_in_range(
-            start_date,
-            end_date
-        )
+        dates = MarketDataUtils.get_market_days_in_range(start_date, end_date)
 
         # We get the exchange dataframe
         exchange_datetimes = MarketDataUtils.get_market_days_and_time_in_range(
-            start_date,
-            end_date
-        )
+            start_date, end_date)
 
         day_close_price = None
         close_price = 0.0
@@ -104,13 +83,9 @@ class BuyAndHold(StockMarketStrategy):
         for trading_date in dates:
             # We extract the open/close market time
             open_time = MarketDataUtils.get_merket_open_time_on_date(
-                exchange_datetimes,
-                trading_date
-            ).tz_localize(None)
+                exchange_datetimes, trading_date).tz_localize(None)
             close_time: ts.Timestamp = MarketDataUtils.get_merket_close_time_on_date(
-                exchange_datetimes,
-                trading_date
-            ).tz_localize(None)
+                exchange_datetimes, trading_date).tz_localize(None)
             # We need to get the close time of the last candle that is at
             # 15:59 (usually). We can't use the close time of the 16:00 candle
             # because that would be at 16:00:59
@@ -121,10 +96,11 @@ class BuyAndHold(StockMarketStrategy):
             df_filtered_by_date = data.loc[str(trading_date), :]
 
             # We store the day open/close price
-            day_close_price = data.loc[str(
-                close_time - timedelta(minutes=int(timeframe["multiplier"]))), "close"]
+            day_close_price = data.loc[str(close_time - timedelta(
+                minutes=int(timeframe["multiplier"]))), "close"]
 
-            curr_position = self.platform.trading_session.get_current_position(symbol)
+            curr_position = self.platform.trading_session.get_current_position(
+                symbol)
             self.apply_split(trading_date, curr_position)
 
             for idx, row in df_filtered_by_date.iterrows():
@@ -134,26 +110,27 @@ class BuyAndHold(StockMarketStrategy):
                 if shares is None:
                     shares = self.get_shares(20000, close_price)
 
-                curr_position = self.platform.trading_session.get_current_position(symbol)
+                curr_position = self.platform.trading_session.get_current_position(
+                    symbol)
 
                 if open_time <= idx <= close_time:
                     self.platform.tick(symbol, Candle(idx, row))
                     if idx == open_time and curr_position is None:
                         if self.trading_style == 'multiday':
-                            self.platform.submit_order(
-                                symbol=symbol,
-                                quantity=shares,
-                                side="buy",
-                                date=idx,
-                                flavor='market'
-                            )
+                            self.platform.submit_order(symbol=symbol,
+                                                       quantity=shares,
+                                                       side="buy",
+                                                       date=idx,
+                                                       flavor='market')
                             continue
 
                     if trading_date == dates[-1] and idx == close_time:
-                        self.platform.trading_session.liquidate(symbol, day_close_price, idx)
+                        self.platform.trading_session.liquidate(
+                            symbol, day_close_price, idx)
                         print("closing position")
 
-                curr_position = self.platform.trading_session.get_current_position(symbol)
+                curr_position = self.platform.trading_session.get_current_position(
+                    symbol)
                 if curr_position is not None:
                     idx_with_shares.append(idx)
 

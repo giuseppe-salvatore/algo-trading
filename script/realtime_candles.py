@@ -14,6 +14,7 @@ from lib.trading.alpaca import AlpacaTrading
 
 
 class Order():
+
     def __init__(self, order_json):
 
         if 'event' in order_json:
@@ -107,25 +108,22 @@ def parse_order_file(file_name):
         order_id = elem['order']['id']
         orders_in += 1
         if elem['event'] == 'new':
-            log.info("New order for {0} {1}".format(
-                elem['order']['symbol'],
-                elem['order']['id'][:10]))
+            log.info("New order for {0} {1}".format(elem['order']['symbol'],
+                                                    elem['order']['id'][:10]))
             orders['open'][order_id] = elem
             orders['all'].append(elem)
             orders_out += 1
             continue
         if elem['event'] == 'rejected':
             log.info("Rejected order for {0} {1}".format(
-                elem['order']['symbol'],
-                elem['order']['id'][:10]))
+                elem['order']['symbol'], elem['order']['id'][:10]))
             orders['canceled'][order_id] = elem
             orders['all'].append(elem)
             orders_out += 1
             continue
         if elem['event'] == 'canceled':
             log.info("Canceled order for {0} {1}".format(
-                elem['order']['symbol'],
-                elem['order']['id'][:10]))
+                elem['order']['symbol'], elem['order']['id'][:10]))
             if order_id in orders['open'].keys():
                 del orders['open'][order_id]
                 orders['canceled'][order_id] = elem
@@ -133,9 +131,8 @@ def parse_order_file(file_name):
                 orders_out += 1
             continue
         if elem['event'] == 'fill':
-            print("Filled order for {0} {1}".format(
-                elem['order']['symbol'],
-                elem['order']['id'][:10]))
+            print("Filled order for {0} {1}".format(elem['order']['symbol'],
+                                                    elem['order']['id'][:10]))
             if order_id in orders['open'].keys():
                 del orders['open'][order_id]
                 orders['filled'][order_id] = elem
@@ -144,8 +141,7 @@ def parse_order_file(file_name):
             continue
         if elem['event'] == 'replaced':
             log.info("Replaced order for {0} (replaced by: {1}) {2}".format(
-                elem['order']['symbol'],
-                elem['order']['replaced_by'][:10],
+                elem['order']['symbol'], elem['order']['replaced_by'][:10],
                 elem['order']['id'][:10]))
             orders['open'][elem['order']['replaced_by']] = elem
             orders['all'].append(elem)
@@ -169,12 +165,13 @@ def upsert_order(conn, order):
 
     try:
         order_tuple = (order.id, order.client_id, order.symbol, order.asset_id,
-                       order.asset_class, order.status, order.side, order.order_class,
-                       order.time_in_force, order.failed_at, order.filled_at, order.expired_at,
-                       order.canceled_at, order.submitted_at, order.qty, order.filled_qty,
+                       order.asset_class, order.status, order.side,
+                       order.order_class, order.time_in_force, order.failed_at,
+                       order.filled_at, order.expired_at, order.canceled_at,
+                       order.submitted_at, order.qty, order.filled_qty,
                        order.stop_price, order.limit_price, order.trail_price,
-                       order.trail_percent, order.filled_avg_price, order.replaces,
-                       order.replaced_by, order.replaced_at)
+                       order.trail_percent, order.filled_avg_price,
+                       order.replaces, order.replaced_by, order.replaced_at)
         cur.execute(queries.sql_upsert_into_order, order_tuple)
         if order.order_class == 'bracket' and order.legs is not None:
             for leg in order.legs:
@@ -260,6 +257,7 @@ def create_table(conn, create_table_sql):
 
 #     return conn
 
+
 def write_order(file, order):
     file.write(str(order) + "\n")
 
@@ -269,19 +267,14 @@ def parse_candle(candle):
     try:
         candle = json.loads(candle)
         start_date_time = datetime.fromtimestamp(
-            int(candle["start"]/1000),
+            int(candle["start"] / 1000),
             pytz.timezone('America/New_York')).strftime("%Y-%m-%d %H:%M:%S")
         end_date_time = datetime.fromtimestamp(
-            int(candle["end"]/1000),
+            int(candle["end"] / 1000),
             pytz.timezone('America/New_York')).strftime("%Y-%m-%d %H:%M:%S")
         parsed_candle = [
-            start_date_time,
-            end_date_time,
-            candle["open"],
-            candle["high"],
-            candle["low"],
-            candle["close"],
-            candle["volume"]
+            start_date_time, end_date_time, candle["open"], candle["high"],
+            candle["low"], candle["close"], candle["volume"]
         ]
         return candle["symbol"], parsed_candle
     except:
@@ -317,8 +310,11 @@ def parse_candle_file(file):
             time.append(candle[0])
             close.append(candle[5])
 
-        assert(len(time) == len(close))
-        df = pd.DataFrame({"time": [pd.to_datetime(d) for d in time], "close": close})
+        assert (len(time) == len(close))
+        df = pd.DataFrame({
+            "time": [pd.to_datetime(d) for d in time],
+            "close": close
+        })
         #plt.scatter([pd.to_datetime(d) for d in time], df["close"],s =2)
         #df.set_index("time", inplace=True)
 
@@ -326,16 +322,23 @@ def parse_candle_file(file):
         plt.grid(b=True)
         candle_ax = plt.subplot2grid((7, 1), (0, 0), rowspan=3, colspan=1)
         candle_ax.grid(b=True)
-        pct_ax = plt.subplot2grid((7, 1), (3, 0), rowspan=2, colspan=1, sharex=candle_ax)
-        pct_open = plt.subplot2grid((7, 1), (5, 0), rowspan=2, colspan=1, sharex=candle_ax)
+        pct_ax = plt.subplot2grid((7, 1), (3, 0),
+                                  rowspan=2,
+                                  colspan=1,
+                                  sharex=candle_ax)
+        pct_open = plt.subplot2grid((7, 1), (5, 0),
+                                    rowspan=2,
+                                    colspan=1,
+                                    sharex=candle_ax)
 
         pct_ax.grid(b=True)
 
         df["pct"] = df["close"].ewm(span=100).mean().diff(periods=10)
-        df["pct_from_open"] = ((df["close"] - df["close"][0]) / df["close"][0]) * 100
+        df["pct_from_open"] = (
+            (df["close"] - df["close"][0]) / df["close"][0]) * 100
         df["pct_from_open"].plot(ax=pct_open)
         df["pct_from_open"].rolling(window=50).mean().plot(ax=pct_open)
-        
+
         df["close"].plot(ax=candle_ax)
         df["close"].ewm(span=100).mean().plot(ax=candle_ax)
         #plt.bar([pd.to_datetime(d) for d in time], pct_change)
@@ -352,7 +355,7 @@ if __name__ == "__main__":
 
     parse_candle_file("second_candles3.txt")
 
-    assert(False)
+    assert (False)
 
     # order_file = "data/orders.json"
     # orders = parse_order_file(order_file)

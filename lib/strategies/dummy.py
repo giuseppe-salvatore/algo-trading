@@ -10,6 +10,7 @@ from lib.util.logger import log
 # logger.setup_logging("BaseStrategy")
 # log = logger.logging.getLogger("BaseStrategy")
 
+
 class DummyStrategy(StockMarketStrategy):
 
     def __init__(self):
@@ -27,11 +28,7 @@ class DummyStrategy(StockMarketStrategy):
     def get_name():
         return "DummyStrategy"
 
-    def get_data(self,
-                 symbol,
-                 start_date,
-                 end_date,
-                 provider):
+    def get_data(self, symbol, start_date, end_date, provider):
         data_provider = MarketDataProviderUtils.get_provider(provider)
         self.market_data[symbol] = data_provider.get_minute_candles(
             symbol,
@@ -40,11 +37,7 @@ class DummyStrategy(StockMarketStrategy):
             force_provider_fetch=False,
             store_fetched_data=False)
 
-    def simulate(self,
-                 symbol,
-                 start_date,
-                 end_date,
-                 provider):
+    def simulate(self, symbol, start_date, end_date, provider):
 
         log.debug("Start feeding data on " + symbol)
 
@@ -70,7 +63,8 @@ class DummyStrategy(StockMarketStrategy):
         market_open_time_str, market_close_time_str = MarketDataUtils.get_market_open_time(
             start_date)
 
-        filtered_data = df.between_time(market_open_time_str, market_close_time_str)
+        filtered_data = df.between_time(market_open_time_str,
+                                        market_close_time_str)
         close_price = 0.0
         entry_filter = True
         manage_trade = True
@@ -80,7 +74,9 @@ class DummyStrategy(StockMarketStrategy):
         for idx, row in filtered_data.iterrows():
 
             if counter > 50000:
-                log.debug("Reached the end ---------------------------------------------")
+                log.debug(
+                    "Reached the end ---------------------------------------------"
+                )
                 self.platform.print_all_orders()
                 log.debug("Total trades = {}".format(
                     self.platform.trading_session.get_total_trades()))
@@ -100,13 +96,15 @@ class DummyStrategy(StockMarketStrategy):
             if idx.hour == 20 and idx.minute == 58:
                 if self.trading_style is None or self.trading_style == 'intraday':
                     if curr_position is not None:
-                        curr_profit = curr_position.get_current_profit(close_price)
+                        curr_profit = curr_position.get_current_profit(
+                            close_price)
                         log.info("Close at EOD rule: profit={:.2f}".format(
-                            curr_profit
-                        ))
+                            curr_profit))
                         self.trade_session.liquidate(symbol, close_price, idx)
-                        self.platform.cancel_order(curr_position.get_leg('take_profit').id, idx)
-                        self.platform.cancel_order(curr_position.get_leg('stop_loss').id, idx)
+                        self.platform.cancel_order(
+                            curr_position.get_leg('take_profit').id, idx)
+                        self.platform.cancel_order(
+                            curr_position.get_leg('stop_loss').id, idx)
                     prev_macd = curr_macd
                     counter += 1
                     continue
@@ -116,25 +114,25 @@ class DummyStrategy(StockMarketStrategy):
                     curr_profit = curr_position.get_current_profit(close_price)
                     if curr_profit >= stop_increase_threshold:
                         log.error("Increasing threshold to {}".format(
-                            stop_increase_threshold
-                        ))
+                            stop_increase_threshold))
                         # time.sleep(1)
                         if curr_position.side == 'buy':
-                            curr_position.get_leg('stop_loss').stop_price += 0.5
-                            curr_position.get_leg('take_profit').limit_price += 0.5
+                            curr_position.get_leg(
+                                'stop_loss').stop_price += 0.5
+                            curr_position.get_leg(
+                                'take_profit').limit_price += 0.5
                         if curr_position.side == 'sell':
-                            curr_position.get_leg('stop_loss').stop_price -= 0.5
-                            curr_position.get_leg('take_profit').limit_price -= 0.5
+                            curr_position.get_leg(
+                                'stop_loss').stop_price -= 0.5
+                            curr_position.get_leg(
+                                'take_profit').limit_price -= 0.5
                         stop_increase_threshold += 5
                 else:
                     stop_increase_threshold = 5
 
             ma200_val = ma_200.loc[idx]["SMA " + str(mean_period)]
             log.debug("Position = {}, MA200 = {}, OHCL/4 = {}".format(
-                curr_position is not None,
-                ma200_val,
-                close_price
-            ))
+                curr_position is not None, ma200_val, close_price))
 
             if curr_position is None:
                 if prev_macd < 0 and curr_macd > 0:
@@ -147,8 +145,7 @@ class DummyStrategy(StockMarketStrategy):
                                 date=idx,
                                 flavor='market',
                                 take_profit_price=close_price + 1.50,
-                                stop_loss_price=close_price - 0.50
-                            )
+                                stop_loss_price=close_price - 0.50)
                     else:
                         self.platform.submit_order(
                             symbol=symbol,
@@ -157,8 +154,7 @@ class DummyStrategy(StockMarketStrategy):
                             date=idx,
                             flavor='market',
                             take_profit_price=close_price + 1.50,
-                            stop_loss_price=close_price - 0.50
-                        )
+                            stop_loss_price=close_price - 0.50)
                 elif prev_macd > 0 and curr_macd < 0:
                     if entry_filter is True:
                         if ma200_val is not None and close_price < ma200_val:
@@ -169,8 +165,7 @@ class DummyStrategy(StockMarketStrategy):
                                 date=idx,
                                 flavor='market',
                                 take_profit_price=close_price - 1.5,
-                                stop_loss_price=close_price + 0.50
-                            )
+                                stop_loss_price=close_price + 0.50)
                     else:
                         self.platform.submit_order(
                             symbol=symbol,
@@ -179,8 +174,7 @@ class DummyStrategy(StockMarketStrategy):
                             date=idx,
                             flavor='market',
                             take_profit_price=close_price - 1.5,
-                            stop_loss_price=close_price + 0.50
-                        )
+                            stop_loss_price=close_price + 0.50)
             prev_macd = curr_macd
             counter += 1
 

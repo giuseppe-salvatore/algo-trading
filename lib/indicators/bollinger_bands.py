@@ -5,6 +5,7 @@ from lib.indicators.base_indicator import Indicator
 # log = logging.getLogger(__name__)
 # log.setLevel('DEBUG')
 
+
 class BollingerBands(Indicator):
 
     def __init__(self):
@@ -13,6 +14,7 @@ class BollingerBands(Indicator):
         self.long_name = "Bollinger Bands"
         self.description = "Two bands which enclose the price action and  \
                             expand/contract based on that"
+
         self.params = {
             "stddev_factor": 2,
             "mean_period": 9,
@@ -34,11 +36,10 @@ class BollingerBands(Indicator):
         #     )
         # )
 
-        df = pd.DataFrame({
-            "bb_mean": bb_mean
-        })
+        df = pd.DataFrame({"bb_mean": bb_mean})
 
-        df["bb_up"] = df["bb_mean"] + stddev_factor * data[source].rolling(window=mean_period).std()
+        df["bb_up"] = df["bb_mean"] + stddev_factor * data[source].rolling(
+            window=mean_period).std()
         df["bb_down"] = df["bb_mean"] - stddev_factor * \
             data[source].rolling(window=mean_period).std()
         df["band_spread"] = df["bb_up"] - df["bb_down"]

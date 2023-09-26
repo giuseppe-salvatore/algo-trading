@@ -17,14 +17,15 @@ import alpaca_trade_api as tradeapi
 
 class Ticker():
 
-    def __init__(self, name:str, symbol:str, exchange: str, quote):
+    def __init__(self, name: str, symbol: str, exchange: str, quote):
         self.name = name
         self.symbol = symbol
         self.exchange = exchange
         self.last_quote = quote.askprice
-    
+
     def __str__(self):
-        return self.name + "(" + self.symbol + ")  -  " + str(self.last_quote) 
+        return self.name + "(" + self.symbol + ")  -  " + str(self.last_quote)
+
 
 def open_connection():
     '''
@@ -34,15 +35,14 @@ def open_connection():
     insead of config.ALPACA_PAPER_TRADING_REST_ENDPOINT
     '''
 
-    # Make sure you set your API key and secret in the config module     
-    api = tradeapi.REST(
-        config.ALPACA_API_KEY,
-        config.ALPACA_SECRET,
-        config.ALPACA_PAPER_TRADING_REST_ENDPOINT,
-        api_version='v2'
-    )
+    # Make sure you set your API key and secret in the config module
+    api = tradeapi.REST(config.ALPACA_API_KEY,
+                        config.ALPACA_SECRET,
+                        config.ALPACA_PAPER_TRADING_REST_ENDPOINT,
+                        api_version='v2')
 
     return api
+
 
 def check_account(api):
 
@@ -67,14 +67,15 @@ def get_portfolio_info(api):
     print(f'Today\'s portfolio balance change: ${balance_change}')
 
 
-def get_position(api,symbol):
+def get_position(api, symbol):
     # Check on our position
-    try: 
+    try:
         position = api.get_position(symbol)
         if int(position.qty) < 0:
             print(f'Short position open for {symbol}')
     except Exception as e:
         print(str(e))
+
 
 def get_positions(api):
     return api.list_positions()
@@ -96,7 +97,7 @@ def list_positions(api):
     print("")
 
 
-# Order structure 
+# Order structure
 # - Ticker: company's symbol
 # - Side: Buy, Sell
 # - Type: Market, Limit (with limit you need to specify a value)
@@ -106,8 +107,8 @@ FREQUENCY_SECS = 15
 
 
 def append_to_equity_file(date, tickers):
-    
-    f = open("data/stock_history.dat","a")
+
+    f = open("data/stock_history.dat", "a")
 
     f.write(str(date))
     for t in tickers:
@@ -116,8 +117,9 @@ def append_to_equity_file(date, tickers):
     f.flush()
     f.close()
 
+
 def print_header(tickers):
-    f = open("data/stock_history.dat","a")
+    f = open("data/stock_history.dat", "a")
 
     f.write("date")
     for t in tickers:
@@ -125,6 +127,7 @@ def print_header(tickers):
     f.write("\n")
     f.flush()
     f.close()
+
 
 def poll_watchlist(api):
 
@@ -140,10 +143,11 @@ def poll_watchlist(api):
 
     for asset in primary_watch_list.assets:
         quote = api.get_last_quote(asset["symbol"])
-        local_watch_list.append(Ticker(asset["name"], asset["symbol"], asset["exchange"], quote))
+        local_watch_list.append(
+            Ticker(asset["name"], asset["symbol"], asset["exchange"], quote))
 
     tickers = ['V', 'MA', 'JNJ', 'FB']
-    
+
     quotes = {}
     position_pl_perc = {}
 
@@ -171,16 +175,19 @@ def poll_watchlist(api):
                 if pos.symbol == symbol:
                     found = True
                     if pos.symbol in position_pl_perc:
-                        position_pl_perc[pos.symbol].append(float(pos.unrealized_plpc)*100.0)
+                        position_pl_perc[pos.symbol].append(
+                            float(pos.unrealized_plpc) * 100.0)
                     else:
-                        position_pl_perc[pos.symbol] = [float(pos.unrealized_plpc)*100.0]
+                        position_pl_perc[pos.symbol] = [
+                            float(pos.unrealized_plpc) * 100.0
+                        ]
                     break
             if not found:
                 if symbol in position_pl_perc:
                     position_pl_perc[symbol].append(np.nan)
                 else:
                     position_pl_perc[symbol] = [np.nan]
-        
+
         # quote = api.get_last_quote(quote_string)
         # print(quote)
         # ticker_values.append(quote.askprice)
@@ -190,7 +197,7 @@ def poll_watchlist(api):
         #     quotes[ticker] = [float(quote.askprice)]
 
         # append_to_equity_file(now, ticker_values)
-        
+
         date_index = pd.DatetimeIndex(position_pl_perc['time'])
         dataframe = pd.DataFrame(None, date_index, None)
         time.sleep(FREQUENCY_SECS)
@@ -198,12 +205,13 @@ def poll_watchlist(api):
         for ticker in initial_stocks_in_positions:
             dataframe[ticker] = np.array(position_pl_perc[ticker])
             dataframe[ticker + "_ma"] = dataframe[ticker].rolling(5).mean()
-            dataframe[ticker + "_ma"].plot(label=ticker, figsize=(12, 8), title='Stocks')
-        
+            dataframe[ticker + "_ma"].plot(label=ticker,
+                                           figsize=(12, 8),
+                                           title='Stocks')
+
         plt.legend()
         plt.draw()
         plt.pause(0.005)
-
 
 
 def main():
@@ -220,8 +228,6 @@ def main():
 
     # The security we'll be shorting (use can use a list here)
 
-    
-
     watch_lists = api.get_watchlists()
     print(watch_lists)
 
@@ -232,12 +238,13 @@ def main():
 
     for asset in primary_watch_list.assets:
         quote = api.get_last_quote(asset["symbol"])
-        local_watch_list.append(Ticker(asset["name"], asset["symbol"], asset["exchange"], quote))
+        local_watch_list.append(
+            Ticker(asset["name"], asset["symbol"], asset["exchange"], quote))
 
     for ticker in local_watch_list:
         print(str(ticker))
 
-    per_stock_budget = budget/len(local_watch_list)
+    per_stock_budget = budget / len(local_watch_list)
 
     print("Per stock budget = " + str(per_stock_budget))
 
@@ -254,17 +261,20 @@ def main():
                 sorted_local_watch_list.insert(i, ticker)
                 inserted = True
                 break
-        
+
         if not inserted:
             sorted_local_watch_list.append(ticker)
 
     left_budget = budget
     bought_shares = 0
     for ticker in sorted_local_watch_list:
-        per_stock_budget = left_budget/(len(sorted_local_watch_list) - bought_shares)
-        shares = per_stock_budget/float(ticker.last_quote)
+        per_stock_budget = left_budget / (len(sorted_local_watch_list) -
+                                          bought_shares)
+        shares = per_stock_budget / float(ticker.last_quote)
         rounded_down = math.floor(shares)
-        print("Will buy " + str("{:5.2f}".format(shares).strip()) + " shares of " + ticker.symbol + " for a total of " + "{:5.3f}".format(ticker.last_quote * shares))
+        print("Will buy " + str("{:5.2f}".format(shares).strip()) +
+              " shares of " + ticker.symbol + " for a total of " +
+              "{:5.3f}".format(ticker.last_quote * shares))
         print("Rounded is " + str(rounded_down))
 
         if rounded_down == 0:
@@ -319,13 +329,10 @@ def main():
             # print('Waiting...')
             # time.sleep(1)
 
-            get_position(api,symbol)
+            get_position(api, symbol)
     else:
         print("There are no positions open")
     # Submit a market order to open a short position of one share
-
-
-
 
 
 if __name__ == '__main__':

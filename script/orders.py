@@ -12,14 +12,15 @@ import alpaca_trade_api as tradeapi
 
 class Ticker():
 
-    def __init__(self, name:str, symbol:str, exchange: str, quote):
+    def __init__(self, name: str, symbol: str, exchange: str, quote):
         self.name = name
         self.symbol = symbol
         self.exchange = exchange
         self.last_quote = quote.askprice
-    
+
     def __str__(self):
-        return self.name + "(" + self.symbol + ")  -  " + str(self.last_quote) 
+        return self.name + "(" + self.symbol + ")  -  " + str(self.last_quote)
+
 
 def open_connection():
     '''
@@ -29,15 +30,14 @@ def open_connection():
     insead of config.ALPACA_PAPER_TRADING_REST_ENDPOINT
     '''
 
-    # Make sure you set your API key and secret in the config module     
-    api = tradeapi.REST(
-        config.ALPACA_API_KEY,
-        config.ALPACA_SECRET,
-        config.ALPACA_PAPER_TRADING_REST_ENDPOINT,
-        api_version='v2'
-    )
+    # Make sure you set your API key and secret in the config module
+    api = tradeapi.REST(config.ALPACA_API_KEY,
+                        config.ALPACA_SECRET,
+                        config.ALPACA_PAPER_TRADING_REST_ENDPOINT,
+                        api_version='v2')
 
     return api
+
 
 def check_account(api):
 
@@ -62,14 +62,15 @@ def get_portfolio_info(api):
     print(f'Today\'s portfolio balance change: ${balance_change}')
 
 
-def get_position(api,symbol):
+def get_position(api, symbol):
     # Check on our position
-    try: 
+    try:
         position = api.get_position(symbol)
         if int(position.qty) < 0:
             print(f'Short position open for {symbol}')
     except Exception as e:
         print(str(e))
+
 
 def get_positions(api):
     return api.list_positions()
@@ -91,7 +92,7 @@ def list_positions(api):
     print("")
 
 
-# Order structure 
+# Order structure
 # - Ticker: company's symbol
 # - Side: Buy, Sell
 # - Type: Market, Limit (with limit you need to specify a value)
@@ -101,8 +102,10 @@ def list_positions(api):
 def buy_at_market_price(api, symbol, shares):
     api.submit_order(symbol, shares, 'buy', 'market', 'day')
 
+
 def sell_at_market_price(api, symbol, shares):
     api.submit_order(symbol, shares, 'sell', 'market', 'day')
+
 
 def main():
 
@@ -128,12 +131,13 @@ def main():
 
     for asset in primary_watch_list.assets:
         quote = api.get_last_quote(asset["symbol"])
-        local_watch_list.append(Ticker(asset["name"], asset["symbol"], asset["exchange"], quote))
+        local_watch_list.append(
+            Ticker(asset["name"], asset["symbol"], asset["exchange"], quote))
 
     for ticker in local_watch_list:
         print(str(ticker))
 
-    per_stock_budget = budget/len(local_watch_list)
+    per_stock_budget = budget / len(local_watch_list)
 
     print("Per stock budget = " + str(per_stock_budget))
 
@@ -150,17 +154,20 @@ def main():
                 sorted_local_watch_list.insert(i, ticker)
                 inserted = True
                 break
-        
+
         if not inserted:
             sorted_local_watch_list.append(ticker)
 
     left_budget = budget
     bought_shares = 0
     for ticker in sorted_local_watch_list:
-        per_stock_budget = left_budget/(len(sorted_local_watch_list) - bought_shares)
-        shares = per_stock_budget/float(ticker.last_quote)
+        per_stock_budget = left_budget / (len(sorted_local_watch_list) -
+                                          bought_shares)
+        shares = per_stock_budget / float(ticker.last_quote)
         rounded_down = math.floor(shares)
-        print("Will buy " + str("{:5.2f}".format(shares).strip()) + " shares of " + ticker.symbol + " for a total of " + "{:5.3f}".format(ticker.last_quote * shares))
+        print("Will buy " + str("{:5.2f}".format(shares).strip()) +
+              " shares of " + ticker.symbol + " for a total of " +
+              "{:5.3f}".format(ticker.last_quote * shares))
         print("Rounded is " + str(rounded_down))
 
         if rounded_down == 0:
@@ -215,13 +222,10 @@ def main():
             # print('Waiting...')
             # time.sleep(1)
 
-            get_position(api,symbol)
+            get_position(api, symbol)
     else:
         print("There are no positions open")
     # Submit a market order to open a short position of one share
-
-
-
 
 
 if __name__ == '__main__':

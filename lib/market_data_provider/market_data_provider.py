@@ -52,7 +52,8 @@ class MarketDataProvider():
         if resp.status_code != 200:
             raise Exception("Error perfoming GET request to url: {} \n \
                              Status code: {} \n \
-                             Content : {}".format(url, resp.status_code, resp.text))
+                             Content : {}".format(url, resp.status_code,
+                                                  resp.text))
         return resp
 
     def get_key_name(self):
@@ -69,29 +70,32 @@ class MarketDataProvider():
                            store_fetched_data: bool = False):
         pass
 
-    def _fetch_minute_candles(self, symbol: str, start_date: datetime, end_date: datetime):
+    def _fetch_minute_candles(self, symbol: str, start_date: datetime,
+                              end_date: datetime):
         pass
 
-    def get_day_candles(self, symbol: str, start_date: datetime, end_date: datetime):
+    def get_day_candles(self, symbol: str, start_date: datetime,
+                        end_date: datetime):
         pass
 
     def get_news(self):
-        log.error("The get_news() API is not supported or not free on " + self.provider_name)
+        log.error("The get_news() API is not supported or not free on " +
+                  self.provider_name)
 
     def get_supported_symbols(self):
-        log.error("The get_supported_symbols() API is not supported or not free on {}".format(
-            self.provider_name
-        ))
+        log.error(
+            "The get_supported_symbols() API is not supported or not free on {}"
+            .format(self.provider_name))
 
     def get_symbol_details(self, symbol: str):
-        log.error("The get_symbol_details() API is not supported or not free on {}".format(
-            self.provider_name
-        ))
+        log.error(
+            "The get_symbol_details() API is not supported or not free on {}".
+            format(self.provider_name))
 
     def get_financials(self, symbol: str):
-        log.error("The get_financials() API is not supported or not free on {}".format(
-            self.provider_name
-        ))
+        log.error(
+            "The get_financials() API is not supported or not free on {}".
+            format(self.provider_name))
 
 
 class MarketDataUtils():
@@ -113,31 +117,28 @@ class MarketDataUtils():
 
         nsye_dates = exchange.schedule(
             start_date=start_date.strftime("%Y-%m-%d"),
-            end_date=end_date.strftime("%Y-%m-%d")
-        )
+            end_date=end_date.strftime("%Y-%m-%d"))
 
-        log.debug("{0} < day = {1} < {2}".format(
-            start_date,
-            day,
-            end_date
-        ))
+        log.debug("{0} < day = {1} < {2}".format(start_date, day, end_date))
 
         log.debug("Market days in a range of +/- 2 days: {}".format(
-            nsye_dates.index.date
-        ))
+            nsye_dates.index.date))
 
         return True if day.date() in nsye_dates.index.date else False
 
     @staticmethod
-    def get_market_days_in_range(start_date, end_date, exchange: str = "NYSE") -> (int):
+    def get_market_days_in_range(start_date,
+                                 end_date,
+                                 exchange: str = "NYSE") -> (int):
 
         return MarketDataUtils.get_market_days_and_time_in_range(
-            start_date,
-            end_date,
-            exchange).index.date
+            start_date, end_date, exchange).index.date
 
     @staticmethod
-    def get_market_days_and_time_in_range(start_date, end_date, exchange: str = "NYSE") -> (pd.DataFrame):
+    def get_market_days_and_time_in_range(start_date,
+                                          end_date,
+                                          exchange: str = "NYSE"
+                                          ) -> (pd.DataFrame):
 
         exchange = mcal.get_calendar(exchange)
 
@@ -146,13 +147,12 @@ class MarketDataUtils():
 
         exchange_dates = exchange.schedule(
             start_date=start_date.strftime("%Y-%m-%d"),
-            end_date=end_date.strftime("%Y-%m-%d")
-        )
+            end_date=end_date.strftime("%Y-%m-%d"))
 
-        exchange_dates["market_open"] = exchange_dates["market_open"].dt.tz_convert(
-            "America/New_York")
-        exchange_dates["market_close"] = exchange_dates["market_close"].dt.tz_convert(
-            "America/New_York")
+        exchange_dates["market_open"] = exchange_dates[
+            "market_open"].dt.tz_convert("America/New_York")
+        exchange_dates["market_close"] = exchange_dates[
+            "market_close"].dt.tz_convert("America/New_York")
 
         return exchange_dates
 
@@ -193,20 +193,22 @@ class MarketDataUtils():
         delta_days = end_date - start_date
 
         if delta_days.days == 0:
-            raise ValueError("There should be at least one day delta in time frame")
+            raise ValueError(
+                "There should be at least one day delta in time frame")
 
-        tmp_start = datetime(start_date.year, start_date.month, start_date.day, 0, 0)
+        tmp_start = datetime(start_date.year, start_date.month, start_date.day,
+                             0, 0)
         tmp_end = None
 
         exchange = mcal.get_calendar('NYSE')
 
         exchange_dates = exchange.schedule(
             start_date=start_date.strftime("%Y-%m-%d"),
-            end_date=end_date.strftime("%Y-%m-%d")
-        )
+            end_date=end_date.strftime("%Y-%m-%d"))
 
         log.debug("Days in range: {}".format(delta_days.days))
-        log.debug("Trading days in range: {}".format(len(exchange_dates.index.date)))
+        log.debug("Trading days in range: {}".format(
+            len(exchange_dates.index.date)))
 
         print(exchange_dates.index.date)
         print("--------------------------")
@@ -216,22 +218,21 @@ class MarketDataUtils():
             # We check if the day we are interested is actually in a market day
             if tmp_start.date() in exchange_dates.index.date:
 
-                log.debug("Checking candles in date {}".format(tmp_start.date()))
+                log.debug("Checking candles in date {}".format(
+                    tmp_start.date()))
                 # Creating a mask to filter between start date and end date, considering
                 # tmp end is always tmp start plus one day and that start date will start
                 # from same date as passed by paramenter but forcing time at 00:00
                 tmp_end = tmp_start + timedelta(days=1)
-                filtered_df = df.loc[tmp_start: tmp_end]
+                filtered_df = df.loc[tmp_start:tmp_end]
                 filtered_by_time = filtered_df.between_time("9:30", "16:00")
 
                 expected_min_candles = 200
                 if len(filtered_by_time.index) < expected_min_candles:
-                    log.warning("Candles for {} -> {} are {}, expected {}".format(
-                        tmp_start,
-                        tmp_end,
-                        len(filtered_by_time.index),
-                        expected_min_candles
-                    ))
+                    log.warning(
+                        "Candles for {} -> {} are {}, expected {}".format(
+                            tmp_start, tmp_end, len(filtered_by_time.index),
+                            expected_min_candles))
                     return False
                 tmp_start = tmp_end
             else:

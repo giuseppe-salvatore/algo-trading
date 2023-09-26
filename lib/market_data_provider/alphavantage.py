@@ -1,4 +1,3 @@
-
 import csv
 import requests
 import conf.secret as config
@@ -34,12 +33,13 @@ def append_params(url: str, params):
 
 def get_minute_bars(symbol: str, time_from: str, time_to: str):
     url = alphavantage_base_api_url + intraday_function_ext
-    url = append_params(url, {
-        "symbol": "AAPL",
-        "apikey": config.ALPHAVANTAGE_FREE_API_KEY,
-        "interval": "1min",
-        "slice": "year1month1"
-    })
+    url = append_params(
+        url, {
+            "symbol": "AAPL",
+            "apikey": config.ALPHAVANTAGE_FREE_API_KEY,
+            "interval": "1min",
+            "slice": "year1month1"
+        })
     with requests.Session() as s:
         download = s.get(url)
 

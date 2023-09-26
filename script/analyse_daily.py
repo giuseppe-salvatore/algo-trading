@@ -22,22 +22,35 @@ def analyse_daily_charts(date):
         plt.style.use('default')
 
         headers = ['date', 'open', 'close', 'high', 'low', 'volume']
-        dtypes = {'date': 'str', 'open': 'float', 'high': 'float', 'low': 'float',
-                  'close': 'float', 'volume': 'int'}
+        dtypes = {
+            'date': 'str',
+            'open': 'float',
+            'high': 'float',
+            'low': 'float',
+            'close': 'float',
+            'volume': 'int'
+        }
         # df = pd.read_csv(file, index_col='date', parse_dates=[
         #  'date'], dtype=dtypes, sep=',', header=1, names=headers)
-        df = pd.read_csv(file, index_col=0, parse_dates=True,
-                         dtype=dtypes, sep=',', header=1, names=headers)
+        df = pd.read_csv(file,
+                         index_col=0,
+                         parse_dates=True,
+                         dtype=dtypes,
+                         sep=',',
+                         header=1,
+                         names=headers)
         print(df)
         df['date'] = df.index
         df['date'] = [mdates.date2num(d) for d in df['date']]
-        quotes = [tuple(x)
-                  for x in df[['date', 'open', 'high', 'low', 'close']].values]
+        quotes = [
+            tuple(x)
+            for x in df[['date', 'open', 'high', 'low', 'close']].values
+        ]
         print(df)
         max = float('-inf')
         min = float('+inf')
         open = df['open'][0]
-        close = df['close'][len(df)-1]
+        close = df['close'][len(df) - 1]
 
         for elem in df['high']:
             if elem > max:
@@ -75,15 +88,23 @@ def analyse_daily_charts(date):
             "source": "close"
         })
         bollinger_bands.calculate(df)
-        bollinger_bands.bands_dataframe['upper band'].plot(
-            label='Upper band', ax=ax, color='green')
-        bollinger_bands.bands_dataframe['lower band'].plot(
-            label='Lower band', ax=ax, color='green')
-        bollinger_bands.bands_dataframe['mean'].plot(
-            label='Mean band', ax=ax, color='orange')
+        bollinger_bands.bands_dataframe['upper band'].plot(label='Upper band',
+                                                           ax=ax,
+                                                           color='green')
+        bollinger_bands.bands_dataframe['lower band'].plot(label='Lower band',
+                                                           ax=ax,
+                                                           color='green')
+        bollinger_bands.bands_dataframe['mean'].plot(label='Mean band',
+                                                     ax=ax,
+                                                     color='orange')
         # candlestick_ohlc(ax, quotes, width=0.5/(24*60), colorup='green',
         # colordown='red', alpha=0.8)
-        candlestick_ohlc(ax, quotes, width=0.7/(24*60), colorup='green', colordown='red', alpha=0.8)
+        candlestick_ohlc(ax,
+                         quotes,
+                         width=0.7 / (24 * 60),
+                         colorup='green',
+                         colordown='red',
+                         alpha=0.8)
         ax.xaxis_date()
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
         # ax.xaxis.set_major_locator(ticker.MaxNLocator(10))

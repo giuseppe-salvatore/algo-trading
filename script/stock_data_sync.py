@@ -23,10 +23,12 @@ stocks_list = invst.get_portfolio_stocks()
 
 header_printed = False
 
+
 class Bar():
 
     def __init__(self, object):
         self.object = object
+
 
 def print_header():
 
@@ -42,6 +44,7 @@ def print_header():
     print("|{:7s}".format("TOTAL"), end="")
     print("|", flush=True)
 
+
 def print_gains(time_updated):
     try:
         print("", end="\r", flush=True)
@@ -50,7 +53,8 @@ def print_gains(time_updated):
             if stock in values:
                 print("|({:5.1f}) {:6.1f}".format(
                     values[stock][-1][1],
-                    invst.get_capital_gain_for(stock, values[stock][-1][1])), end="")
+                    invst.get_capital_gain_for(stock, values[stock][-1][1])),
+                      end="")
             else:
                 print("|({:5s}) {:6s}".format("----", "----"), end="")
         print("|{:7.2f}".format(invst.get_total_capital_gain()), end="")
@@ -123,12 +127,7 @@ def on_open(ws):
         # streams.append("Q." + stock)
         streams.append("AM." + stock)
 
-    message = {
-        "action": "listen",
-        "data": {
-            "streams": streams
-        }
-    }
+    message = {"action": "listen", "data": {"streams": streams}}
     print("Sending subscription message \n" + json.dumps(message))
     ws.send(json.dumps(message))
 
@@ -191,19 +190,29 @@ def on_close(ws):
 def on_error(ws, error):
     print(error)
 
-def rest_init():
-    headers = {"APCA-API-KEY-ID": config.ALPACA_API_KEY,
-               "APCA-API-SECRET-KEY": config.ALPACA_SECRET}
 
-    stocks_price = {'BA': [], 'TSLA': [], 'AAL': [],
-                    'AMD': [], 'INTC': [], 'NVDA': []}
+def rest_init():
+    headers = {
+        "APCA-API-KEY-ID": config.ALPACA_API_KEY,
+        "APCA-API-SECRET-KEY": config.ALPACA_SECRET
+    }
+
+    stocks_price = {
+        'BA': [],
+        'TSLA': [],
+        'AAL': [],
+        'AMD': [],
+        'INTC': [],
+        'NVDA': []
+    }
 
     dt_index = None
     timing = []
 
     def fetch_data(stock_name):
-        response = requests.get(
-            config.ALPACA_DATA_REST_ENDPOINT + "/v1/last/stocks/" + stock_name, headers=headers)
+        response = requests.get(config.ALPACA_DATA_REST_ENDPOINT +
+                                "/v1/last/stocks/" + stock_name,
+                                headers=headers)
         status = response.json().get('status')
         if status == 'success':
             # latest_timestamp = response.json().get('last').get('timestamp')
@@ -240,8 +249,9 @@ def rest_init():
             for stock in stocks_list:
                 fetch_data(stock)
                 time.sleep(0.5)
-                print("|{:7.2f}".format(
-                    stocks_price[stock][-1]), end="", flush=True)
+                print("|{:7.2f}".format(stocks_price[stock][-1]),
+                      end="",
+                      flush=True)
                 f.write(",{:.2f}".format(stocks_price[stock][-1]))
 
             print("")
@@ -272,12 +282,11 @@ def main():
 
     while True:
         try:
-            ws = websocket.WebSocketApp(
-                config.ALPACA_WEBSOCKET_ENDPOINT,
-                on_open=on_open,
-                on_message=on_message,
-                on_close=on_close,
-                on_error=on_error)
+            ws = websocket.WebSocketApp(config.ALPACA_WEBSOCKET_ENDPOINT,
+                                        on_open=on_open,
+                                        on_message=on_message,
+                                        on_close=on_close,
+                                        on_error=on_error)
             ws.run_forever()
             print("Received error")
             time.sleep(2)
