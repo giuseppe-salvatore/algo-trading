@@ -55,9 +55,8 @@ class MarketOrderTest(unittest.TestCase):
         symbol = "SPY"
         quantity = 10
 
-        self.assertRaises(ValueError,
-                          Order,
-                          symbol, quantity, "beep boop", date)
+        self.assertRaises(ValueError, Order, symbol, quantity, "beep boop",
+                          date)
 
     def test_explicit_market_order(self):
         '''
@@ -97,21 +96,37 @@ class MarketOrderTest(unittest.TestCase):
         now = datetime.datetime.now()
         self.assertRaises(ValueError,
                           Order,
-                          symbol="TEST", quantity=1, side="buy", date=now, limit_price=10)
+                          symbol="TEST",
+                          quantity=1,
+                          side="buy",
+                          date=now,
+                          limit_price=10)
 
         self.assertRaises(ValueError,
                           Order,
-                          symbol="TEST", quantity=1, side="sell", date=now, limit_price=10)
+                          symbol="TEST",
+                          quantity=1,
+                          side="sell",
+                          date=now,
+                          limit_price=10)
 
         self.assertRaises(ValueError,
                           Order,
-                          symbol="TEST", quantity=1, flavor='market',
-                          side="buy", date=now, stop_price=10)
+                          symbol="TEST",
+                          quantity=1,
+                          flavor='market',
+                          side="buy",
+                          date=now,
+                          stop_price=10)
 
         self.assertRaises(ValueError,
                           Order,
-                          symbol="TEST", quantity=1, flavor='market',
-                          side="sell", date=now, stop_price=10)
+                          symbol="TEST",
+                          quantity=1,
+                          flavor='market',
+                          side="sell",
+                          date=now,
+                          stop_price=10)
 
 
 class LimitOrderTest(unittest.TestCase):
@@ -124,9 +139,19 @@ class LimitOrderTest(unittest.TestCase):
         symbol = "SPY"
         quantity = 10
 
-        order = Order(symbol, quantity, "buy", date, flavor='limit', limit_price=10)
+        order = Order(symbol,
+                      quantity,
+                      "buy",
+                      date,
+                      flavor='limit',
+                      limit_price=10)
         self.assertEqual(order.flavor, 'limit')
-        order = Order(symbol, quantity, "sell", date, flavor='limit', limit_price=10)
+        order = Order(symbol,
+                      quantity,
+                      "sell",
+                      date,
+                      flavor='limit',
+                      limit_price=10)
         self.assertEqual(order.flavor, 'limit')
 
     def test_exception_if_missing_limit_price(self):
@@ -139,11 +164,19 @@ class LimitOrderTest(unittest.TestCase):
 
         self.assertRaises(ValueError,
                           Order,
-                          symbol, quantity, "buy", date, flavor='limit')
+                          symbol,
+                          quantity,
+                          "buy",
+                          date,
+                          flavor='limit')
 
         self.assertRaises(ValueError,
                           Order,
-                          symbol, quantity, "sell", date, flavor='limit')
+                          symbol,
+                          quantity,
+                          "sell",
+                          date,
+                          flavor='limit')
 
     def test_buy_market_braket_creates_order_with_both_legs(self):
 
@@ -152,15 +185,13 @@ class LimitOrderTest(unittest.TestCase):
         side = "buy"
         quantity = 10
 
-        order = Order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='market',
-            take_profit_price=20.0,
-            stop_loss_price=5.0
-        )
+        order = Order(symbol=symbol,
+                      quantity=quantity,
+                      side=side,
+                      date=date,
+                      flavor='market',
+                      take_profit_price=20.0,
+                      stop_loss_price=5.0)
         print(len(order._legs_by_id))
         print(len(order._legs_by_type))
         self.assertTrue(len(order._legs_by_id) == 2)
@@ -197,12 +228,7 @@ class LimitOrderTest(unittest.TestCase):
         side = "buy"
         quantity = 10
 
-        order = Order(
-            symbol,
-            quantity,
-            side,
-            date,
-            flavor='market')
+        order = Order(symbol, quantity, side, date, flavor='market')
 
         # The execution of a simple market order will return a trade
         # so we are going to check the content and status of the trade
@@ -220,12 +246,7 @@ class LimitOrderTest(unittest.TestCase):
         side = "sell"
         quantity = 10
 
-        order = Order(
-            symbol,
-            quantity,
-            side,
-            date,
-            flavor='market')
+        order = Order(symbol, quantity, side, date, flavor='market')
 
         result = order.execute(15)
         self.assertIsNotNone(result)
@@ -239,13 +260,13 @@ class LimitOrderTest(unittest.TestCase):
 class SimulationTradingPlatformTest(unittest.TestCase):
 
     def test_trading_platorm_get(self):
-        platform: SimulationPlatform = TradingPlatform.get_trading_platform("simulation")
+        platform: SimulationPlatform = TradingPlatform.get_trading_platform(
+            "simulation")
         self.assertTrue(platform is not None)
         self.assertEqual(type(platform), SimulationPlatform)
 
     def test_trading_platorm_get_error(self):
-        self.assertRaises(ValueError,
-                          TradingPlatform.get_trading_platform,
+        self.assertRaises(ValueError, TradingPlatform.get_trading_platform,
                           "unknown")
 
     def test_market_order_creation_and_execution(self):
@@ -264,13 +285,11 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 10,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='market'
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='market')
 
         self.assertTrue(len(id) == 32)
         self.assertTrue(id in platform.executed_orders)
@@ -292,15 +311,14 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 7,
                 "volume": 1000
             }))
-        platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='market'
-        )
+        platform.submit_order(symbol=symbol,
+                              quantity=quantity,
+                              side=side,
+                              date=date,
+                              flavor='market')
 
-        self.assertTrue(platform.trading_session.get_current_position("SPY").is_open())
+        self.assertTrue(
+            platform.trading_session.get_current_position("SPY").is_open())
 
     def test_submit_bracket_limit_order_adds_legs_to_active_orders(self):
         date = datetime.datetime.now()
@@ -320,16 +338,14 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 10,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='limit',
-            limit_price=10.0,
-            take_profit_price=take_profit,
-            stop_loss_price=stop_loss
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='limit',
+                                   limit_price=10.0,
+                                   take_profit_price=take_profit,
+                                   stop_loss_price=stop_loss)
 
         bracket_order: Order = platform.active_orders[id]
         take_profit_order = bracket_order.get_take_profit_order()
@@ -356,25 +372,25 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 10,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='stop',
-            stop_price=10.0,
-            take_profit_price=take_profit,
-            stop_loss_price=stop_loss
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='stop',
+                                   stop_price=10.0,
+                                   take_profit_price=take_profit,
+                                   stop_loss_price=stop_loss)
 
         bracket_order: Order = platform.active_orders[id]
         take_profit_order = bracket_order.get_take_profit_order()
         stop_loss_order = bracket_order.get_stop_loss_order()
 
         self.assertTrue(take_profit_order.id in platform.active_orders)
-        self.assertEqual(platform.active_orders[take_profit_order.id].status, 'new')
+        self.assertEqual(platform.active_orders[take_profit_order.id].status,
+                         'new')
         self.assertTrue(stop_loss_order.id in platform.active_orders)
-        self.assertEqual(platform.active_orders[take_profit_order.id].status, 'new')
+        self.assertEqual(platform.active_orders[take_profit_order.id].status,
+                         'new')
 
     def test_bracket_order_take_profit_leg_is_valid(self):
         date = datetime.datetime.now()
@@ -400,8 +416,7 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                           side=side,
                           date=date,
                           flavor='market',
-                          take_profit_price=take_profit_price
-                          )
+                          take_profit_price=take_profit_price)
 
     def test_limit_bracket_order_creation_and_execution(self):
         date = datetime.datetime.now()
@@ -421,16 +436,14 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 10,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='limit',
-            limit_price=10.0,
-            take_profit_price=take_profit_price,
-            stop_loss_price=stop_loss_price
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='limit',
+                                   limit_price=10.0,
+                                   take_profit_price=take_profit_price,
+                                   stop_loss_price=stop_loss_price)
 
         # After submitting a limit/stop order with legs we want to make sure that
         # also the leg orders are active, they will be triggered/executed (which means converted)
@@ -515,14 +528,12 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 7,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='limit',
-            limit_price=10
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='limit',
+                                   limit_price=10)
 
         self.assertTrue(len(id) == 32)
         self.assertTrue(id in platform.active_orders)
@@ -544,14 +555,12 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 12,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='limit',
-            limit_price=10
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='limit',
+                                   limit_price=10)
 
         self.assertTrue(id in platform.active_orders)
         self.assertTrue(id not in platform.executed_orders)
@@ -601,14 +610,12 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 7,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='stop',
-            stop_price=5
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='stop',
+                                   stop_price=5)
 
         self.assertTrue(len(id) == 32)
         self.assertTrue(id in platform.active_orders)
@@ -630,14 +637,12 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 7,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol=symbol,
-            quantity=quantity,
-            side=side,
-            date=date,
-            flavor='limit',
-            limit_price=10
-        )
+        id = platform.submit_order(symbol=symbol,
+                                   quantity=quantity,
+                                   side=side,
+                                   date=date,
+                                   flavor='limit',
+                                   limit_price=10)
 
         self.assertTrue(len(id) == 32)
         self.assertTrue(id in platform.active_orders)
@@ -659,18 +664,14 @@ class SimulationTradingPlatformTest(unittest.TestCase):
                 "low": 7,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol="SPY",
-            quantity=10,
-            side="buy",
-            date=datetime.datetime.now(),
-            flavor='limit',
-            limit_price=10
-        )
+        id = platform.submit_order(symbol="SPY",
+                                   quantity=10,
+                                   side="buy",
+                                   date=datetime.datetime.now(),
+                                   flavor='limit',
+                                   limit_price=10)
         platform.cancel_order(id)
-        self.assertRaises(ValueError,
-                          platform._execute_order,
-                          id)
+        self.assertRaises(ValueError, platform._execute_order, id)
 
 
 class TradingPlatformTest(unittest.TestCase):
@@ -686,14 +687,12 @@ class TradingPlatformTest(unittest.TestCase):
                 "low": 7,
                 "volume": 1000
             }))
-        id = platform.submit_order(
-            symbol="SPY",
-            quantity=10,
-            side="buy",
-            date=datetime.datetime.now(),
-            flavor='limit',
-            limit_price=10
-        )
+        id = platform.submit_order(symbol="SPY",
+                                   quantity=10,
+                                   side="buy",
+                                   date=datetime.datetime.now(),
+                                   flavor='limit',
+                                   limit_price=10)
         active_order: Order = platform.get_order(id)
         platform.cancel_order(id)
         cancelled_order: Order = platform.get_order(id)
@@ -701,42 +700,33 @@ class TradingPlatformTest(unittest.TestCase):
 
     def test_get_not_submitted_order(self):
         platform = SimulationPlatform()
-        order = Order(
-            symbol="SPY",
-            quantity=10,
-            side="buy",
-            date=datetime.datetime.now(),
-            flavor='limit',
-            limit_price=10
-        )
+        order = Order(symbol="SPY",
+                      quantity=10,
+                      side="buy",
+                      date=datetime.datetime.now(),
+                      flavor='limit',
+                      limit_price=10)
         not_submitted_order: Order = platform.get_order(order.id)
         self.assertIsNone(not_submitted_order)
 
     def test_get_not_submitted_order(self):
         platform = SimulationPlatform()
-        order = Order(
-            symbol="SPY",
-            quantity=10,
-            side="buy",
-            date=datetime.datetime.now(),
-            flavor='limit',
-            limit_price=10
-        )
+        order = Order(symbol="SPY",
+                      quantity=10,
+                      side="buy",
+                      date=datetime.datetime.now(),
+                      flavor='limit',
+                      limit_price=10)
         not_submitted_order: Order = platform.get_order(order.id)
         self.assertIsNone(not_submitted_order)
 
     def test_cancel_unexisting_order_throws_error(self):
         platform = SimulationPlatform()
-        order = Order(
-            symbol="SPY",
-            quantity=10,
-            side="buy",
-            date=datetime.datetime.now(),
-            flavor='limit',
-            limit_price=10
-        )
+        order = Order(symbol="SPY",
+                      quantity=10,
+                      side="buy",
+                      date=datetime.datetime.now(),
+                      flavor='limit',
+                      limit_price=10)
 
-        self.assertRaises(
-            ValueError,
-            platform.cancel_order,
-            order.id)
+        self.assertRaises(ValueError, platform.cancel_order, order.id)

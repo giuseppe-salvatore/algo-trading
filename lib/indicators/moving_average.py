@@ -1,11 +1,8 @@
 import pandas as pd
 from lib.indicators.base_indicator import Indicator
 
-default_params = {
-    "mean_period": 200,
-    "mean_type": "SMA",
-    "source": "close"
-}
+default_params = {"mean_period": 200, "mean_type": "SMA", "source": "close"}
+
 
 class MovingAverage(Indicator):
 
@@ -14,6 +11,7 @@ class MovingAverage(Indicator):
         self.short_name = "MA"
         self.description = "An inicator that goes between 0 and 100 that takes \
                             into accout the strenght of the price action"
+
         self.set_params(params)
 
     @staticmethod
@@ -29,11 +27,9 @@ class MovingAverage(Indicator):
         self._update_name()
 
     def _update_name(self):
-        self.name = "{} {} {}".format(
-            self.params["mean_type"],
-            self.params["mean_period"],
-            self.params["source"]
-        )
+        self.name = "{} {} {}".format(self.params["mean_type"],
+                                      self.params["mean_period"],
+                                      self.params["source"])
 
     def calculate(self, data):
         source = data[self.params["source"]]
@@ -44,14 +40,15 @@ class MovingAverage(Indicator):
         elif self.params["mean_type"] == "EMA":
             mean = source.copy().rolling(window=mean_period).mean()
         elif self.params["mean_type"] == "SMMA":
-            mean = (source.copy().ewm(span=mean_period, adjust=False).mean() * 2) - 1
+            mean = (source.copy().ewm(span=mean_period, adjust=False).mean() *
+                    2) - 1
         else:
             raise ValueError("Unknown mean type")
 
-        self.data = pd.DataFrame({"{} {}".format(
-            self.params["mean_type"],
-            self.params["mean_period"]
-        ): mean})
+        self.data = pd.DataFrame({
+            "{} {}".format(self.params["mean_type"], self.params["mean_period"]):
+            mean
+        })
 
         return self.data
 

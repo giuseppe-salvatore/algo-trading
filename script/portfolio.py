@@ -95,8 +95,8 @@ def main_print_loop():
         times.append(now)
 
         for stock in p.get_assets_invested():
-            close_price = paper_account.get_limit_minute_barset(stock, limit=2)[
-                stock][-1].c
+            close_price = paper_account.get_limit_minute_barset(
+                stock, limit=2)[stock][-1].c
             if stock not in latest_quotes:
                 latest_quotes[stock] = [close_price]
             else:
@@ -116,8 +116,9 @@ def main_print_loop():
         dataframe = pd.DataFrame(None, pd.DatetimeIndex(times), None)
         for stock in p.get_assets_invested():
             dataframe[stock] = np.array(perc_diff[stock])
-            dataframe[stock].plot(
-                label=stock, figsize=(15, 10), title='Return')
+            dataframe[stock].plot(label=stock,
+                                  figsize=(15, 10),
+                                  title='Return')
 
         plt.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
         plt.grid()
@@ -136,16 +137,31 @@ def main_print_loop():
 
 def get_polling_rate_sec(now):
 
-    market_open = datetime.datetime(
-        year=now.year, month=now.month, day=now.day, hour=14, minute=30)
-    half_hour_before_market_open = datetime.datetime(
-        year=now.year, month=now.month, day=now.day, hour=14, minute=00)
-    hour_after_market_open = datetime.datetime(
-        year=now.year, month=now.month, day=now.day, hour=15, minute=30)
-    hour_before_market_closes = datetime.datetime(
-        year=now.year, month=now.month, day=now.day, hour=20, minute=00)
-    market_closed = datetime.datetime(
-        year=now.year, month=now.month, day=now.day, hour=21, minute=00)
+    market_open = datetime.datetime(year=now.year,
+                                    month=now.month,
+                                    day=now.day,
+                                    hour=14,
+                                    minute=30)
+    half_hour_before_market_open = datetime.datetime(year=now.year,
+                                                     month=now.month,
+                                                     day=now.day,
+                                                     hour=14,
+                                                     minute=00)
+    hour_after_market_open = datetime.datetime(year=now.year,
+                                               month=now.month,
+                                               day=now.day,
+                                               hour=15,
+                                               minute=30)
+    hour_before_market_closes = datetime.datetime(year=now.year,
+                                                  month=now.month,
+                                                  day=now.day,
+                                                  hour=20,
+                                                  minute=00)
+    market_closed = datetime.datetime(year=now.year,
+                                      month=now.month,
+                                      day=now.day,
+                                      hour=21,
+                                      minute=00)
 
     print("\nTime of the update is " + str(now))
 
@@ -181,11 +197,11 @@ def get_stocks_in_watchlist():
 def get_weights(watchlist):
 
     wl_len = len(watchlist)
-    base_weight = float("{:.5f}".format(1.0/wl_len))
+    base_weight = float("{:.5f}".format(1.0 / wl_len))
     weights = []
-    for i in range(0, wl_len-1):
+    for i in range(0, wl_len - 1):
         weights.append(base_weight)
-    weights.append(1.0 - (base_weight*(wl_len-1)))
+    weights.append(1.0 - (base_weight * (wl_len - 1)))
     stock_weights = np.array(weights)
     print(stock_weights)
     sum = 0.0
@@ -234,14 +250,16 @@ if __name__ == "__main__":
     df = pd.DataFrame()
     for stock in watchlist:
         print("Fetching data for " + stock["symbol"] + "...", end="")
-        df[stock["symbol"]] = web.DataReader(
-            stock["symbol"], data_source='yahoo', start=stock_start, end=stock_end)['Adj Close']
+        df[stock["symbol"]] = web.DataReader(stock["symbol"],
+                                             data_source='yahoo',
+                                             start=stock_start,
+                                             end=stock_end)['Adj Close']
         print("DONE")
 
     print(df)
     for stock in watchlist:
         symbol = stock["symbol"]
-        print(symbol + ": " + str(df[symbol][len(df[symbol])-1]))
+        print(symbol + ": " + str(df[symbol][len(df[symbol]) - 1]))
 
     # Show the simple daily returns
     returns = df.pct_change()
@@ -250,24 +268,27 @@ if __name__ == "__main__":
 
     # Create the annualised covariance matrix
     annual_covariance_matrix = returns.cov() * 252
-    port_variance = np.dot(weights.T, np.dot(
-        annual_covariance_matrix, weights))
+    port_variance = np.dot(weights.T, np.dot(annual_covariance_matrix,
+                                             weights))
     port_volatility = np.sqrt(port_variance)
     port_annual_return = np.sum(returns.mean() * weights) * 252
     print("Plain portfolio variance       : " + str(port_variance))
     print("Plain portfolio volatility     : " + str(port_volatility))
     print("Plain portfolio ann return (%) : {:.2f} ".format(
-        port_annual_return*100))
+        port_annual_return * 100))
     print("Plain portfolio ann return ($) : {:.2f} ".format(
-        (1+port_annual_return)*initial_capital))
+        (1 + port_annual_return) * initial_capital))
 
     print("Not bad!! Let's try to optimise it")
     mu = expected_returns.mean_historical_return(df)
     S = risk_models.sample_cov(df)
-    ef = EfficientFrontier(
-        mu, S, weight_bounds=build_stock_weghts(shortable_info))
+    ef = EfficientFrontier(mu,
+                           S,
+                           weight_bounds=build_stock_weghts(shortable_info))
 
-    print("Max sharpe ratio -----------------------------------------------------------------")
+    print(
+        "Max sharpe ratio -----------------------------------------------------------------"
+    )
     weights2 = ef.max_sharpe()
     clean_weitghs2 = ef.clean_weights()
     print("Raw weights: ")
@@ -276,7 +297,9 @@ if __name__ == "__main__":
     print(clean_weitghs2)
     ef.portfolio_performance(verbose=True)
 
-    print("Lower risks ----------------------------------------------------------------------")
+    print(
+        "Lower risks ----------------------------------------------------------------------"
+    )
     weights3 = ef.min_volatility()
     clean_weitghs3 = ef.clean_weights()
     print("Raw weights: ")
@@ -288,7 +311,8 @@ if __name__ == "__main__":
     latest_prices = get_latest_prices(df)
     clean_weitghs3
 
-    da = DiscreteAllocation(clean_weitghs3, latest_prices,
+    da = DiscreteAllocation(clean_weitghs3,
+                            latest_prices,
                             total_portfolio_value=initial_capital)
     allocation, leftover = da.lp_portfolio()
     print("========= Allocation =========")
@@ -301,7 +325,7 @@ if __name__ == "__main__":
     positions = proxy.api.list_positions()
     for k, v in sorted_allocation.items():
         alloc = int(v)
-        stock_curr_value = df[k][len(df[k])-1]
+        stock_curr_value = df[k][len(df[k]) - 1]
         stock_value = abs(stock_curr_value * alloc)
         print(k + " " + str(alloc) + " " + str(stock_value))
         value += stock_value
@@ -317,81 +341,92 @@ if __name__ == "__main__":
                 qty = float(pos.qty)
 
         if found:
-            print(stock + " already in position for " +
-                  str(qty) + " and we want " + str(alloc), end="")
+            print(stock + " already in position for " + str(qty) +
+                  " and we want " + str(alloc),
+                  end="")
             if side == 'long' and alloc < 0:
                 print("... we are in wrong position so selling " +
-                      str(abs(int(float(qty)))) + " and shorting " + str(abs(alloc)))
-                paper_account.api.submit_order(stock, abs(
-                    int(float(qty))), 'sell', "market", "day")
-                paper_account2.api.submit_order(stock, abs(
-                    int(float(qty))), 'sell', "market", "day")
+                      str(abs(int(float(qty)))) + " and shorting " +
+                      str(abs(alloc)))
+                paper_account.api.submit_order(stock, abs(int(float(qty))),
+                                               'sell', "market", "day")
+                paper_account2.api.submit_order(stock, abs(int(float(qty))),
+                                                'sell', "market", "day")
                 time.sleep(3)
-                paper_account.api.submit_order(
-                    stock, abs(alloc), 'sell', "market", "day")
-                paper_account2.api.submit_order(
-                    stock, abs(alloc), 'sell', "market", "day")
+                paper_account.api.submit_order(stock, abs(alloc), 'sell',
+                                               "market", "day")
+                paper_account2.api.submit_order(stock, abs(alloc), 'sell',
+                                                "market", "day")
 
             elif side == 'short' and alloc > 0:
                 print("... we are in wrong position so buying " +
-                      str(abs(int(float(qty)))) + " and longing " + str(abs(alloc)))
-                paper_account.api.submit_order(stock, abs(
-                    int(float(qty))), 'buy', "market", "day")
-                paper_account2.api.submit_order(stock, abs(
-                    int(float(qty))), 'buy', "market", "day")
+                      str(abs(int(float(qty)))) + " and longing " +
+                      str(abs(alloc)))
+                paper_account.api.submit_order(stock, abs(int(float(qty))),
+                                               'buy', "market", "day")
+                paper_account2.api.submit_order(stock, abs(int(float(qty))),
+                                                'buy', "market", "day")
                 time.sleep(3)
-                paper_account.api.submit_order(
-                    stock, abs(alloc), 'buy', "market", "day")
-                paper_account2.api.submit_order(
-                    stock, abs(alloc), 'buy', "market", "day")
+                paper_account.api.submit_order(stock, abs(alloc), 'buy',
+                                               "market", "day")
+                paper_account2.api.submit_order(stock, abs(alloc), 'buy',
+                                                "market", "day")
             elif side == 'long' and alloc > 0 and alloc != qty:
                 if qty < alloc:
                     print("... we are in right position but buying " +
                           str(abs(int(float(alloc - qty)))))
-                    paper_account.api.submit_order(stock, abs(
-                        int(float(alloc - qty))), 'buy', "market", "day")
-                    paper_account2.api.submit_order(stock, abs(
-                        int(float(alloc - qty))), 'buy', "market", "day")
+                    paper_account.api.submit_order(
+                        stock, abs(int(float(alloc - qty))), 'buy', "market",
+                        "day")
+                    paper_account2.api.submit_order(
+                        stock, abs(int(float(alloc - qty))), 'buy', "market",
+                        "day")
                 else:
                     print("... we are in right position but selling " +
                           str(abs(int(float(qty - alloc)))))
-                    paper_account.api.submit_order(stock, abs(
-                        int(float(qty - alloc))), 'sell', "market", "day")
-                    paper_account2.api.submit_order(stock, abs(
-                        int(float(qty - alloc))), 'sell', "market", "day")
+                    paper_account.api.submit_order(
+                        stock, abs(int(float(qty - alloc))), 'sell', "market",
+                        "day")
+                    paper_account2.api.submit_order(
+                        stock, abs(int(float(qty - alloc))), 'sell', "market",
+                        "day")
             elif side == 'short' and alloc < 0 and alloc != qty:
                 if qty > alloc:
                     print("... we are in right position but selling " +
                           str(abs(int(float(qty - alloc)))))
-                    paper_account.api.submit_order(stock, abs(
-                        int(float(qty - alloc))), 'sell', "market", "day")
-                    paper_account2.api.submit_order(stock, abs(
-                        int(float(qty - alloc))), 'sell', "market", "day")
+                    paper_account.api.submit_order(
+                        stock, abs(int(float(qty - alloc))), 'sell', "market",
+                        "day")
+                    paper_account2.api.submit_order(
+                        stock, abs(int(float(qty - alloc))), 'sell', "market",
+                        "day")
                 else:
                     print("... we are in right position but buying " +
                           str(abs(int(float(alloc - qty)))))
-                    paper_account.api.submit_order(stock, abs(
-                        int(float(alloc - qty))), 'buy', "market", "day")
-                    paper_account2.api.submit_order(stock, abs(
-                        int(float(alloc - qty))), 'buy', "market", "day")
+                    paper_account.api.submit_order(
+                        stock, abs(int(float(alloc - qty))), 'buy', "market",
+                        "day")
+                    paper_account2.api.submit_order(
+                        stock, abs(int(float(alloc - qty))), 'buy', "market",
+                        "day")
             else:
                 print("... we are good!")
         else:
             if alloc > 0:
                 print(stock + " not in position buying " + str(alloc))
-                paper_account.api.submit_order(
-                    stock, alloc, 'buy', "market", "day")
-                paper_account2.api.submit_order(
-                    stock, alloc, 'buy', "market", "day")
+                paper_account.api.submit_order(stock, alloc, 'buy', "market",
+                                               "day")
+                paper_account2.api.submit_order(stock, alloc, 'buy', "market",
+                                                "day")
             else:
                 print(stock + " not in position selling " + str(abs(alloc)))
-                paper_account.api.submit_order(
-                    stock, abs(alloc), 'sell', "market", "day")
-                paper_account2.api.submit_order(
-                    stock, abs(alloc), 'sell', "market", "day")
+                paper_account.api.submit_order(stock, abs(alloc), 'sell',
+                                               "market", "day")
+                paper_account2.api.submit_order(stock, abs(alloc), 'sell',
+                                                "market", "day")
 
-    print("Stock in watchlist used " +
-          str(len(sorted_allocation)) + "/" + str(len(watchlist)))
+    print("Stock in watchlist used " + str(len(sorted_allocation)) + "/" +
+          str(len(watchlist)))
     print("Total value invested:  " + str(value))
 
     exit(0)

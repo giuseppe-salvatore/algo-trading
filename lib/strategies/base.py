@@ -17,9 +17,11 @@ total_results = 0
 perc = range(0, 102)
 simulations = []
 
+
 def collect_simulation(simulation):
     global simulations
     simulations.append(simulation)
+
 
 def collect_result(result):
     global perc
@@ -36,9 +38,7 @@ def collect_result(result):
 
     while float(results_reported) / float(total_results) * 100.0 >= perc[0]:
         log.debug("{}% of the simulations completed {}".format(
-            perc[0],
-            results_reported
-        ))
+            perc[0], results_reported))
         if len(perc) > 1:
             perc = perc[1:]
 
@@ -49,8 +49,8 @@ class BacktestStrategy():
         global backtesting_results
 
         f = open(results_folder + "stats.csv", "w")
-        f.write(self.strategy_params_to_csv_header(
-            backtesting_results[0]) + "\n")
+        f.write(
+            self.strategy_params_to_csv_header(backtesting_results[0]) + "\n")
         for element in backtesting_results:
             f.write(self.strategy_params_to_csv_line(element) + "\n")
 
@@ -63,10 +63,10 @@ class BacktestStrategy():
                 for position in result[symbol]:
                     profit = position.get_profit()
                     log.debug("{:8s} profit: {:.2f}$".format(
-                        symbol+"'s",
-                        profit))
+                        symbol + "'s", profit))
                     stock_profit += profit
-                log.info("Total {} profit: {:.2f}$".format(symbol, stock_profit))
+                log.info("Total {} profit: {:.2f}$".format(
+                    symbol, stock_profit))
                 total_profit += stock_profit
             log.info("Total profit: {:.2f}$".format(total_profit))
 
@@ -83,8 +83,10 @@ class BacktestStrategy():
                         losers += 1
                 # log.info("Total {} profit: {}".format(symbol, stock_profit))
 
-            log.info("Total winners: {} ({:.2f}%)".format(winners, winners/(winners+losers)))
-            log.info("Total losers: {} ({:.2f}%)".format(losers, losers/(winners+losers)))
+            log.info("Total winners: {} ({:.2f}%)".format(
+                winners, winners / (winners + losers)))
+            log.info("Total losers: {} ({:.2f}%)".format(
+                losers, losers / (winners + losers)))
 
     def profits_to_dataframe(self):
         df = pd.DataFrame(columns=['date', 'symbol', 'profit', "total"])
@@ -95,11 +97,13 @@ class BacktestStrategy():
                     profit = position.get_profit()
                     last_trade = position.get_trades()[-1]
                     total_profit += profit
-                    df = df.append({
-                        "date": last_trade.date,
-                        "symbol": last_trade.symbol,
-                        "profit": profit
-                    }, ignore_index=True)
+                    df = df.append(
+                        {
+                            "date": last_trade.date,
+                            "symbol": last_trade.symbol,
+                            "profit": profit
+                        },
+                        ignore_index=True)
         df = df.set_index("date")
         df.sort_index(inplace=True)
         df["total"] = df["profit"].cumsum()
@@ -113,15 +117,18 @@ class BacktestStrategy():
             for symbol in result:
                 for position in result[symbol]:
                     for trade in position.get_trades():
-                        if (position.side == "long" and trade.side == "buy" or
-                                position.side == "short" and trade.side == "sell"):
+                        if (position.side == "long" and trade.side == "buy"
+                                or position.side == "short"
+                                and trade.side == "sell"):
                             traded_capital = -abs(trade.quantity * trade.price)
                         else:
                             traded_capital = abs(trade.quantity * trade.price)
-                        df = df.append({
-                            "date": trade.date,
-                            "capital": -traded_capital
-                        }, ignore_index=True)
+                        df = df.append(
+                            {
+                                "date": trade.date,
+                                "capital": -traded_capital
+                            },
+                            ignore_index=True)
         df = df.set_index("date")
         df.sort_index(inplace=True)
         max_capital_invested = 0.0
@@ -162,18 +169,28 @@ class BacktestStrategy():
 
             # Sorting the dictionary
             backtesting_dict_sorted = dict(
-                sorted(backtesting_dict.items(), key=operator.itemgetter(1), reverse=True))
+                sorted(backtesting_dict.items(),
+                       key=operator.itemgetter(1),
+                       reverse=True))
             profit_df = pd.DataFrame({
-                'strategy': list(backtesting_dict_sorted.keys()),
-                'gain': list(backtesting_dict_sorted.values())
+                'strategy':
+                list(backtesting_dict_sorted.keys()),
+                'gain':
+                list(backtesting_dict_sorted.values())
             })
 
             # Plot a chart that tells us how our strategy performed based on different
             # params as input
             fig, ax = plt.subplots()
             profit_file_name = result_folders[date] + "/strategy_results.png"
-            profit_df.plot.bar(title='Strategy Performance', x='strategy',
-                               y='gain', rot=90, ax=ax, figure=fig, grid=True, figsize=(40, 10))
+            profit_df.plot.bar(title='Strategy Performance',
+                               x='strategy',
+                               y='gain',
+                               rot=90,
+                               ax=ax,
+                               figure=fig,
+                               grid=True,
+                               figsize=(40, 10))
             fig.savefig(profit_file_name)
             plt.close(fig)
 
@@ -210,10 +227,7 @@ class BacktestStrategy():
         a list of strings used that are the header columns
     """
 
-    def run_simulation(self,
-                       symbols: list,
-                       param_set,
-                       pool_size: int):
+    def run_simulation(self, symbols: list, param_set, pool_size: int):
 
         BacktestParams.validate_param_set(param_set)
 
@@ -243,9 +257,7 @@ class BacktestStrategy():
 
         log.info("Simulations completed, storing results now")
 
-        log.info("Simulations executed: {}".format(
-            len(simulations)
-        ))
+        log.info("Simulations executed: {}".format(len(simulations)))
 
         total_profit = 0.0
         total_trades = 0
@@ -258,36 +270,29 @@ class BacktestStrategy():
                 log.warning("No trades performed")
                 return
             log.info("Total Profit: {:.2f}$".format(
-                trading_session.get_total_profit()
-            ))
+                trading_session.get_total_profit()))
             log.info("Success rate: {:.1f}%".format(
-                trading_session.get_total_success_rate()*100
-            ))
+                trading_session.get_total_success_rate() * 100))
             log.info("Total trades: {}".format(
-                trading_session.get_total_trades()
-            ))
+                trading_session.get_total_trades()))
             symbols = trading_session.get_symbols()
             for symbol in symbols:
                 log.info("Max session profit for {}: {:.2f}$".format(
                     symbol,
-                    trading_session.get_max_session_profit_for_symbol(symbol)
-                ))
+                    trading_session.get_max_session_profit_for_symbol(symbol)))
                 log.info("Min session profit for {}: {:.2f}$".format(
                     symbol,
-                    trading_session.get_min_session_profit_for_symbol(symbol)
-                ))
+                    trading_session.get_min_session_profit_for_symbol(symbol)))
                 log.info("Max position profit for {}: {:.2f}$".format(
                     symbol,
-                    trading_session.get_max_position_profit_for_symbol(symbol)
-                ))
+                    trading_session.get_max_position_profit_for_symbol(
+                        symbol)))
                 log.info("Min position profit for {}: {:.2f}$".format(
                     symbol,
-                    trading_session.get_min_position_profit_for_symbol(symbol)
-                ))
+                    trading_session.get_min_position_profit_for_symbol(
+                        symbol)))
                 log.info("Total profit for {} = {:.2f}$".format(
-                    symbol,
-                    trading_session.get_profit_for_symbol(symbol)
-                ))
+                    symbol, trading_session.get_profit_for_symbol(symbol)))
                 # for pos in trading_session.get_positions(symbol):
                 #     if pos.get_profit() < -10:
                 #         log.info("Profit/loss = {:.2f}$".format(pos.get_profit()))
@@ -298,20 +303,21 @@ class BacktestStrategy():
         if total_trades == 0:
             log.warning("No trades performed")
             return
-        log.info("Overall profit : {:.2f}$".format(
-            total_profit
-        ))
-        log.info("Overall trades : {}".format(
-            total_trades
-        ))
-        log.info("Overall winners: {:.0f}%".format(
-            won_trades / float(total_trades) * 100
-        ))
+        log.info("Overall profit : {:.2f}$".format(total_profit))
+        log.info("Overall trades : {}".format(total_trades))
+        log.info("Overall winners: {:.0f}%".format(won_trades /
+                                                   float(total_trades) * 100))
 
         if param_set["Draw Charts"]:
-            self.generate_equity_charts(simulations, save_pic=True, print_dates=True)
-            self.generate_equity_charts(simulations, save_pic=True, print_dates=False)
-            self.generate_trading_charts(simulations, save_pic=True, dispaly_pic=False)
+            self.generate_equity_charts(simulations,
+                                        save_pic=True,
+                                        print_dates=True)
+            self.generate_equity_charts(simulations,
+                                        save_pic=True,
+                                        print_dates=False)
+            self.generate_trading_charts(simulations,
+                                         save_pic=True,
+                                         dispaly_pic=False)
 
     def generate_equity_charts(self,
                                sims: BacktestSimulation,
@@ -339,9 +345,7 @@ class BacktestStrategy():
                 log.critical("sim.results.trading_session is None")
 
             dates = MarketDataUtils.get_market_days_in_range(
-                sim.start_date,
-                sim.end_date
-            )
+                sim.start_date, sim.end_date)
 
             print(sim.results.market_data.keys())
 
@@ -421,8 +425,7 @@ class StockMarketStrategy():
             if next_split["date"] == str(date):
                 for batch in position.batches:
                     batch["quantity"] *= next_split["toFactor"]
-                log.info("Split occurred when position open, factor {} to {}".format(
-                    next_split["fromFactor"],
-                    next_split["toFactor"]
-                ))
+                log.info("Split occurred when position open, factor {} to {}".
+                         format(next_split["fromFactor"],
+                                next_split["toFactor"]))
                 self.splits.pop(0)

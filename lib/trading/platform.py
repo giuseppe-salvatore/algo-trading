@@ -10,7 +10,9 @@ class TradingPlatform():
         if platform_name == "simulation":
             return SimulationPlatform()
         else:
-            raise ValueError("Unknown trading platform: {}".format(platform_name))
+            raise ValueError(
+                "Unknown trading platform: {}".format(platform_name))
+
 
 class SimulationPlatform(TradingPlatform):
 
@@ -67,19 +69,23 @@ class SimulationPlatform(TradingPlatform):
     def _check_limit_order(self, lo: Order):
         low = self.current_candle[lo.symbol].low
         if lo.side == 'buy' and lo.limit_price >= low:
-            log.debug("Triggering limit buy order low price {:.2f} <= current price {:.2f}".format(
-                low,
-                lo.limit_price,
-            ))
+            log.debug(
+                "Triggering limit buy order low price {:.2f} <= current price {:.2f}"
+                .format(
+                    low,
+                    lo.limit_price,
+                ))
             self._execute_order(lo.id)
             return True
 
         high = self.current_candle[lo.symbol].high
         if lo.side == 'sell' and lo.limit_price <= high:
-            log.debug("Triggering limit sell order high price {:.2f} >= sell limit {:.2f}".format(
-                high,
-                lo.limit_price,
-            ))
+            log.debug(
+                "Triggering limit sell order high price {:.2f} >= sell limit {:.2f}"
+                .format(
+                    high,
+                    lo.limit_price,
+                ))
             self._execute_order(lo.id)
             return True
 
@@ -87,20 +93,20 @@ class SimulationPlatform(TradingPlatform):
 
     def _check_stop_order(self, lo: Order):
         high = self.current_candle[lo.symbol].high
-        if lo.side == 'buy' and lo.stop_price <= self.current_candle[lo.symbol].high:
-            log.debug("Triggering stop buy order high price {:.2f} >= current price {:.2f}".format(
-                high,
-                lo.stop_price
-            ))
+        if lo.side == 'buy' and lo.stop_price <= self.current_candle[
+                lo.symbol].high:
+            log.debug(
+                "Triggering stop buy order high price {:.2f} >= current price {:.2f}"
+                .format(high, lo.stop_price))
             self._execute_order(lo.id)
             return True
 
         low = self.current_candle[lo.symbol].low
-        if lo.side == 'sell' and lo.stop_price >= self.current_candle[lo.symbol].low:
-            log.debug("Triggering stop sell order low price {:.2f} <= current price {:.2f}".format(
-                low,
-                lo.stop_price
-            ))
+        if lo.side == 'sell' and lo.stop_price >= self.current_candle[
+                lo.symbol].low:
+            log.debug(
+                "Triggering stop sell order low price {:.2f} <= current price {:.2f}"
+                .format(low, lo.stop_price))
             self._execute_order(lo.id)
             return True
 
@@ -131,51 +137,36 @@ class SimulationPlatform(TradingPlatform):
                      stop_price: float = None,
                      take_profit_price: float = None,
                      stop_loss_price: float = None):
-        order = Order(symbol,
-                      quantity,
-                      side,
-                      date,
-                      flavor,
-                      limit_price,
-                      stop_price,
-                      take_profit_price,
-                      stop_loss_price)
+        order = Order(symbol, quantity, side, date, flavor, limit_price,
+                      stop_price, take_profit_price, stop_loss_price)
 
         close_price = self.current_candle[symbol].close
         if order.side == 'buy':
             # TODO we need proper limits here
             if take_profit_price is not None and take_profit_price <= close_price:
-                raise ValueError("{} {} {} order's take profit price {:.2f} below current close price {:.2f}".format(
-                    order.symbol,
-                    order.flavor,
-                    'buy',
-                    take_profit_price,
-                    close_price))
+                raise ValueError(
+                    "{} {} {} order's take profit price {:.2f} below current close price {:.2f}"
+                    .format(order.symbol, order.flavor, 'buy',
+                            take_profit_price, close_price))
             # TODO we need proper limits here
             if stop_loss_price is not None and stop_loss_price >= close_price:
-                raise ValueError("{} {} {} order's stop_loss price {:.2f} above current close price {:.2f}".format(
-                    order.symbol,
-                    order.flavor,
-                    'sell',
-                    stop_loss_price,
-                    close_price))
+                raise ValueError(
+                    "{} {} {} order's stop_loss price {:.2f} above current close price {:.2f}"
+                    .format(order.symbol, order.flavor, 'sell',
+                            stop_loss_price, close_price))
         if order.side == 'sell':
             # TODO we need proper limits here
             if take_profit_price is not None and take_profit_price >= close_price:
-                raise ValueError("{} {} {} order's take profit price {:.2f} above current close price {:.2f}".format(
-                    order.symbol,
-                    order.flavor,
-                    'sell',
-                    take_profit_price,
-                    close_price))
+                raise ValueError(
+                    "{} {} {} order's take profit price {:.2f} above current close price {:.2f}"
+                    .format(order.symbol, order.flavor, 'sell',
+                            take_profit_price, close_price))
             # TODO we need proper limits here
             if stop_loss_price is not None and stop_loss_price <= close_price:
-                raise ValueError("{} {} {} order's stop_loss price {:.2f} below current close price {:.2f}".format(
-                    order.symbol,
-                    order.flavor,
-                    'buy',
-                    stop_loss_price,
-                    close_price))
+                raise ValueError(
+                    "{} {} {} order's stop_loss price {:.2f} below current close price {:.2f}"
+                    .format(order.symbol, order.flavor, 'buy', stop_loss_price,
+                            close_price))
 
         log.debug("Activating {} order\n{}".format(order.flavor, order))
         self.active_orders[order.id] = order
@@ -192,12 +183,10 @@ class SimulationPlatform(TradingPlatform):
             # TODO self.trading_session.get_orders(symbols)
 
         if order.flavor == 'market':
-            log.debug("Executing market {} {} ({}) order right away filled at {:.2f}".format(
-                order.side,
-                order.symbol,
-                order.id[:6],
-                self.current_candle[symbol].close
-            ))
+            log.debug(
+                "Executing market {} {} ({}) order right away filled at {:.2f}"
+                .format(order.side, order.symbol, order.id[:6],
+                        self.current_candle[symbol].close))
             self._execute_order(order.id)
 
         return order.id
@@ -218,31 +207,27 @@ class SimulationPlatform(TradingPlatform):
 
     def _execute_order(self, order_id):
         if order_id not in self.active_orders:
-            raise ValueError("Cannot execute order not in active order list {}".format(
-                order_id
-            ))
+            raise ValueError(
+                "Cannot execute order not in active order list {}".format(
+                    order_id))
         order: Order = self.active_orders[order_id]
-        log.debug("Executing {} {} {} order".format(
-            order.symbol,
-            order.flavor,
-            order.side))
+        log.debug("Executing {} {} {} order".format(order.symbol, order.flavor,
+                                                    order.side))
 
         # leg orders don't generate a trade when executed, they are only converted
-        trade: Trade = order.execute(
-            self.get_current_price_for(order.symbol),
-            self.get_current_time_for(order.symbol))
+        trade: Trade = order.execute(self.get_current_price_for(order.symbol),
+                                     self.get_current_time_for(order.symbol))
         leg_order_type = ['take_profit', 'stop_loss']
         if order.flavor not in leg_order_type:
             if trade is None:
-                raise ValueError("Execution of {} {} {} order should have generated a trade".format(
-                    order.symbol,
-                    order.flavor,
-                    order.side
-                ))
+                raise ValueError(
+                    "Execution of {} {} {} order should have generated a trade"
+                    .format(order.symbol, order.flavor, order.side))
             del self.active_orders[order.id]
             self.executed_orders[order.id] = order
             self.trading_session.add_trade(trade)
-            position: Position = self.trading_session.get_current_position(trade.symbol)
+            position: Position = self.trading_session.get_current_position(
+                trade.symbol)
             if position is not None:
                 if 'take_profit' in order._legs_by_type:
                     tp = order._legs_by_type['take_profit']
@@ -261,12 +246,9 @@ class SimulationPlatform(TradingPlatform):
         if order is None:
             raise ValueError("Cannot find order {}".format(order_id))
         if order_id not in self.active_orders:
-            raise ValueError("Expected {} {} {} order to be active ({})".format(
-                order.symbol,
-                order.flavor,
-                order.side,
-                order.side
-            ))
+            raise ValueError(
+                "Expected {} {} {} order to be active ({})".format(
+                    order.symbol, order.flavor, order.side, order.side))
 
         log.debug("Cancelling {} order\n{}".format(order.flavor, order))
         del self.active_orders[order_id]

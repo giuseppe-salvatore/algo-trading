@@ -21,9 +21,13 @@ coverage : install
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 		coverage run -m pytest -s -v tests/*_test.py --html=report.html --self-contained-html
 
+format : install
+	source .venv/bin/activate && \
+		for target in `find  -name *.py -not -path "./.venv/*" -not -path "./.venv-old/*"`; do yapf $$target; done
+
 unit-test : install
 	source .venv/bin/activate && \
-		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+		source .env.test && \
 		python -m pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
 
 acceptance-test : install
@@ -32,7 +36,9 @@ acceptance-test : install
 		python -m pytest -v bdd/ --junitxml=${REPORT_FILE}
 
 run : 
-	@echo "Run"
+	source .venv/bin/activate && \
+		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+		python -m lib.backtest.runner lib.strategies dummy DummyStrategy
 
 .PHONY: clean
 clean :

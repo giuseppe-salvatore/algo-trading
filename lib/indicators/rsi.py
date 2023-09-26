@@ -7,6 +7,7 @@ default_params = {
     "source": "close"
 }
 
+
 class RelativeStrenghtIndex(Indicator):
 
     def __init__(self, params=default_params):
@@ -15,6 +16,7 @@ class RelativeStrenghtIndex(Indicator):
         self.long_name = "Relative Strenght Index"
         self.description = "An inicator that goes between 0 and 100 that takes \
                             into accout the strenght of the price action"
+
         self.set_params(params)
 
     @staticmethod
@@ -30,11 +32,8 @@ class RelativeStrenghtIndex(Indicator):
         self._update_name()
 
     def _update_name(self):
-        self.name = "{} {} {}".format(
-            "RSI",
-            self.params["period"],
-            self.params["source"]
-        )
+        self.name = "{} {} {}".format("RSI", self.params["period"],
+                                      self.params["source"])
 
     def calculate(self, data):
         source = data[self.params["source"]]

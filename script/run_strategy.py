@@ -1,4 +1,3 @@
-
 from lib.trading.alpaca import AlpacaTrading
 from lib.strategies.macd.model import MovingAverageConvDiv
 

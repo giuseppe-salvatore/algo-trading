@@ -10,6 +10,7 @@ from lib.util.logger import log
 # logger.setup_logging("BaseStrategy")
 # log = logger.logging.getLogger("BaseStrategy")
 
+
 class GapAtOpenStrategy(StockMarketStrategy):
 
     def __init__(self):
@@ -33,9 +34,12 @@ class GapAtOpenStrategy(StockMarketStrategy):
     def simulate(self, symbol):
         log.debug("Running simulation on " + symbol)
 
-        t1 = Trade(symbol, 10, 10.0, "buy", datetime.datetime(2020, 10, 10, 10, 10, 0))
-        t2 = Trade(symbol, 15, 5.0, "buy", datetime.datetime(2020, 10, 10, 10, 20, 0))
-        t3 = Trade(symbol, 25, 10.0, "sell", datetime.datetime(2020, 10, 10, 10, 30, 0))
+        t1 = Trade(symbol, 10, 10.0, "buy",
+                   datetime.datetime(2020, 10, 10, 10, 10, 0))
+        t2 = Trade(symbol, 15, 5.0, "buy",
+                   datetime.datetime(2020, 10, 10, 10, 20, 0))
+        t3 = Trade(symbol, 25, 10.0, "sell",
+                   datetime.datetime(2020, 10, 10, 10, 30, 0))
 
         p = Position(symbol, t1)
         p.update_position(t2)

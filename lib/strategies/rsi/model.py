@@ -13,7 +13,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 # import matplotlib.ticker as ticker
 
-
 from lib.util.logger import log
 # from stockstats import StockDataFrame
 # from lib.trading.alpaca import AlpacaTrading
@@ -28,6 +27,7 @@ from lib.indicators.rsi import RSIIndicator
 
 
 class RSIStrategyParams():
+
     def __init__(self):
         self.default_params = {
             # "Period": 7,
@@ -55,8 +55,7 @@ class RSIStrategyParams():
             14,  # period
             6,  # mean_period
             'SMA',
-            'close'
-        )
+            'close')
 
         self.rsi_indicator = self.default_rsi_indicator
 
@@ -118,7 +117,9 @@ class RSIStrategy(StockMarketStrategy):
         if index == 0 or np.isnan(df['rsi'][index]):
             return False
         lower_threshold = self.params.lower_threshold
-        if df['rsi'][index - 1] > lower_threshold and df['rsi'][index] < lower_threshold:
+        if df['rsi'][
+                index -
+                1] > lower_threshold and df['rsi'][index] < lower_threshold:
             return True
         return False
 
@@ -127,7 +128,9 @@ class RSIStrategy(StockMarketStrategy):
         if index == 0 or np.isnan(df['rsi'][index]):
             return False
         upper_threshold = self.params.upper_threshold
-        if df['rsi'][index - 1] < upper_threshold and df['rsi'][index] > upper_threshold:
+        if df['rsi'][
+                index -
+                1] < upper_threshold and df['rsi'][index] > upper_threshold:
             return True
         return False
 
@@ -136,7 +139,9 @@ class RSIStrategy(StockMarketStrategy):
         if index == 0 or np.isnan(df['rsi'][index]):
             return False
         lower_threshold = self.params.lower_threshold
-        if df['rsi'][index - 1] < lower_threshold and df['rsi'][index] > lower_threshold:
+        if df['rsi'][
+                index -
+                1] < lower_threshold and df['rsi'][index] > lower_threshold:
             return True
         return False
 
@@ -145,7 +150,9 @@ class RSIStrategy(StockMarketStrategy):
         if index == 0 or np.isnan(df['rsi'][index]):
             return False
         upper_threshold = self.params.upper_threshold
-        if df['rsi'][index - 1] > upper_threshold and df['rsi'][index] < upper_threshold:
+        if df['rsi'][
+                index -
+                1] > upper_threshold and df['rsi'][index] < upper_threshold:
             return True
         return False
 
@@ -154,7 +161,9 @@ class RSIStrategy(StockMarketStrategy):
         if index == 0 or np.isnan(df['rsi'][index]):
             return False
         upper_threshold = self.params.upper_threshold
-        if df['rsi'][index - 1] < upper_threshold and df['rsi'][index] > upper_threshold:
+        if df['rsi'][
+                index -
+                1] < upper_threshold and df['rsi'][index] > upper_threshold:
             return True
         return False
 
@@ -164,7 +173,8 @@ class RSIStrategy(StockMarketStrategy):
             return False
         prev = df['rsi'][index - 1]
         curr = df['rsi'][index]
-        if prev < 50 and curr > 50 and abs(curr - prev) >= self.params.fifty_cross_diff:
+        if prev < 50 and curr > 50 and abs(
+                curr - prev) >= self.params.fifty_cross_diff:
             return True
         return False
 
@@ -174,7 +184,8 @@ class RSIStrategy(StockMarketStrategy):
             return False
         prev = df['rsi'][index - 1]
         curr = df['rsi'][index]
-        if prev > 50 and curr < 50 and abs(curr - prev) >= self.params.fifty_cross_diff:
+        if prev > 50 and curr < 50 and abs(
+                curr - prev) >= self.params.fifty_cross_diff:
             return True
         return False
 
@@ -206,8 +217,8 @@ class RSIStrategy(StockMarketStrategy):
             if self.rsi_has_crossed_down_fifty_threshold(i):
                 sell_signal = True
         else:
-            raise Exception(
-                "Unexpected entry signal parameter: " + self.params.entry_signal)
+            raise Exception("Unexpected entry signal parameter: " +
+                            self.params.entry_signal)
 
         if buy_signal == sell_signal:
             assert (buy_signal is False)
@@ -238,9 +249,7 @@ class RSIStrategy(StockMarketStrategy):
         close_price = df['close'][0]
         if self.value_close_to_threshold(close_price) == 0:
             log.debug("Skipping {} as it's too expensive: {}".format(
-                stock,
-                close_price
-            ))
+                stock, close_price))
             return False
 
         self.init_helper_dataframes()
@@ -384,8 +393,8 @@ class RSIStrategy(StockMarketStrategy):
 
                 used_stocks.append(s)
 
-                df['Perc Var'] = (df['close'] - df['close']
-                                  [0])/df['close'][0] * 100
+                df['Perc Var'] = (df['close'] -
+                                  df['close'][0]) / df['close'][0] * 100
                 self.set_df(df)
                 rsfld = self.results_folder + "/" + s + ".png"
 
@@ -462,10 +471,18 @@ class RSIStrategy(StockMarketStrategy):
                                     figure=fig,
                                     label='sell signals',
                                     marker='v')
-                ax.axhline(y=self.params.upper_threshold, xmin=-1,
-                           xmax=1, color='green', linestyle='--', lw=2)
-                ax.axhline(y=self.params.lower_threshold, xmin=-1,
-                           xmax=1, color='orange', linestyle='--', lw=2)
+                ax.axhline(y=self.params.upper_threshold,
+                           xmin=-1,
+                           xmax=1,
+                           color='green',
+                           linestyle='--',
+                           lw=2)
+                ax.axhline(y=self.params.lower_threshold,
+                           xmin=-1,
+                           xmax=1,
+                           color='orange',
+                           linestyle='--',
+                           lw=2)
                 rsfld = self.results_folder + "/" + s + "_rsi.png"
                 fig.savefig(rsfld)
                 plt.close(fig)
@@ -514,16 +531,25 @@ class RSIStrategy(StockMarketStrategy):
             # print('Overall Total Gain: ' + str(total_gain))
 
             per_stock_profit_sorted = dict(
-                sorted(per_stock_profit.items(), key=operator.itemgetter(1), reverse=True))
+                sorted(per_stock_profit.items(),
+                       key=operator.itemgetter(1),
+                       reverse=True))
             profit_df = pd.DataFrame({
-                'stocks': list(per_stock_profit_sorted.keys()),
-                'gain': list(per_stock_profit_sorted.values())
+                'stocks':
+                list(per_stock_profit_sorted.keys()),
+                'gain':
+                list(per_stock_profit_sorted.values())
             })
 
             fig, ax = plt.subplots()
             profit_file_name = self.results_folder + "/profit_histogram.png"
-            profit_df.plot.bar(title='Per stock profit', x='stocks',
-                               y='gain', rot=90, ax=ax, figure=fig, grid=True)
+            profit_df.plot.bar(title='Per stock profit',
+                               x='stocks',
+                               y='gain',
+                               rot=90,
+                               ax=ax,
+                               figure=fig,
+                               grid=True)
             fig.savefig(profit_file_name)
             plt.close(fig)
 
@@ -553,22 +579,19 @@ class RSIStrategy(StockMarketStrategy):
         rsi_strategy_params.set_entry_signal(params['entry_signal'])
         rsi_strategy_params.set_limit_threshols(params['limit_threshold'])
 
-        rsi_indicator_params = RSIIndicator(
-            params['rsi_period'],
-            params['rsi_mean_period'],
-            params['mean_type'],
-            params['source']
-        )
+        rsi_indicator_params = RSIIndicator(params['rsi_period'],
+                                            params['rsi_mean_period'],
+                                            params['mean_type'],
+                                            params['source'])
         rsi_strategy_params.set_rsi_indicator(rsi_indicator_params)
         self.params = rsi_strategy_params
 
-        self.results_folder += (
-            'peri-' + str(params['rsi_period']) + "_"
-            'meanperi-' + str(params['rsi_mean_period']) + "_"
-            'meantype-' + str(params['mean_type']) + "_"
-            'entry-' + str(params['entry_signal']) + "_"
-            'thr-' + str(params['limit_threshold']) + "/"
-        )
+        self.results_folder += ('peri-' + str(params['rsi_period']) + "_"
+                                'meanperi-' + str(params['rsi_mean_period']) +
+                                "_"
+                                'meantype-' + str(params['mean_type']) + "_"
+                                'entry-' + str(params['entry_signal']) + "_"
+                                'thr-' + str(params['limit_threshold']) + "/")
 
         log.debug("Params: " + str(params))
 
@@ -651,15 +674,9 @@ class RSIStrategy(StockMarketStrategy):
 
         fifty_cross_diff = [10]
 
-        param_product = itertools.product(
-            limit_threshold,
-            rsi_period,
-            rsi_mean_period,
-            mean_type,
-            source,
-            entry_signal,
-            fifty_cross_diff
-        )
+        param_product = itertools.product(limit_threshold, rsi_period,
+                                          rsi_mean_period, mean_type, source,
+                                          entry_signal, fifty_cross_diff)
 
         params = []
         for param in param_product:

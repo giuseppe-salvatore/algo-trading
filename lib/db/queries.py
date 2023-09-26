@@ -25,14 +25,12 @@ sql_create_order_table = """CREATE TABLE IF NOT EXISTS orders (
                                     replaced_at VA  RCHAR(20)
                                 );"""
 
-
 sql_create_order_legs_table = """CREATE TABLE IF NOT EXISTS order_legs (
                                     id           INTEGER PRIMARY KEY,
                                     order_id     VARCHAR(20) NOT NULL,
                                     order_leg_id VARCHAR(20) NOT NULL,
                                     UNIQUE(order_id, order_leg_id)
                                 );"""
-
 
 sql_create_minute_bars_table = """CREATE TABLE IF NOT EXISTS minute_bars (
                                     id      INTEGER PRIMARY KEY,

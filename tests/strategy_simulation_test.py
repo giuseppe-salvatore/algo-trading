@@ -90,166 +90,152 @@ class StrategyBacktestParametersTest(unittest.TestCase):
         })
 
     def test_validate_parameters_missing_strategy_key_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Parameter Size": "small",
-                              "Indicator List": ["rsi"],
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Parameter Size": "small",
+                "Indicator List": ["rsi"],
+                "Start Date": datetime.now(),
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_missing_parameter_size_key_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Indicator List": ["rsi"],
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Indicator List": ["rsi"],
+                "Start Date": datetime.now(),
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_missing_indicator_list_key_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Start Date": datetime.now(),
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_missing_start_date_key_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": ["rsi"],
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": ["rsi"],
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_missing_end_date_key_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": ["rsi"],
-                              "Start Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": ["rsi"],
+                "Start Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_missing_trading_style_key_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": ["rsi"],
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now()
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": ["rsi"],
+                "Start Date": datetime.now(),
+                "End Date": datetime.now()
+            })
 
     def test_validate_parameters_non_existing_param_size_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "non existing value",
-                              "Indicator List": ["rsi"],
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "non existing value",
+                "Indicator List": ["rsi"],
+                "Start Date": datetime.now(),
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_non_existing_indicator_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": ["non existing indicator"],
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": ["non existing indicator"],
+                "Start Date": datetime.now(),
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_non_existing_trading_style_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": ["rsi"],
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now(),
-                              "Trading Style": "non existing"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": ["rsi"],
+                "Start Date": datetime.now(),
+                "End Date": datetime.now(),
+                "Trading Style": "non existing"
+            })
 
     def test_validate_parameters_wrong_inidicator_type_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": "rsi",
-                              "Start Date": datetime.now(),
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": "rsi",
+                "Start Date": datetime.now(),
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_wrong_start_date_type_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": "rsi",
-                              "Start Date": [],
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": "rsi",
+                "Start Date": [],
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_wrong_end_date_type_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": "rsi",
-                              "Start Date": datetime.now(),
-                              "End Date": [],
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": "rsi",
+                "Start Date": datetime.now(),
+                "End Date": [],
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_wrong_start_date_format_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": "rsi",
-                              "Start Date": "2023-05-111",
-                              "End Date": datetime.now(),
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": "rsi",
+                "Start Date": "2023-05-111",
+                "End Date": datetime.now(),
+                "Trading Style": "intraday"
+            })
 
     def test_validate_parameters_wrong_end_date_format_fail(self):
-        self.assertRaises(ValueError,
-                          BacktestParams.validate_param_set,
-                          {
-                              "Strategy": "a strategy",
-                              "Parameter Size": "small",
-                              "Indicator List": "rsi",
-                              "Start Date": datetime.now(),
-                              "End Date": "2020-05-111",
-                              "Trading Style": "intraday"
-                          })
+        self.assertRaises(
+            ValueError, BacktestParams.validate_param_set, {
+                "Strategy": "a strategy",
+                "Parameter Size": "small",
+                "Indicator List": "rsi",
+                "Start Date": datetime.now(),
+                "End Date": "2020-05-111",
+                "Trading Style": "intraday"
+            })
 
 
 class DummyStrategyScenarios(unittest.TestCase):
@@ -259,7 +245,8 @@ class DummyStrategyScenarios(unittest.TestCase):
         # api = AlpacaTrading()
         backtest = BacktestStrategy()
         # strategy = importlib.import_module('matplotlib.text')
-        strategy_module = __import__("lib.strategies.dummy", fromlist=["DummyStrategy"])
+        strategy_module = __import__("lib.strategies.dummy",
+                                     fromlist=["DummyStrategy"])
         strategy_class = getattr(strategy_module, "DummyStrategy")
         log.debug("Selected {} strategy".format(strategy_class.get_name()))
         params = {
@@ -272,8 +259,6 @@ class DummyStrategyScenarios(unittest.TestCase):
             "Market Data Provider": "Finnhub",
             "Draw Charts": False
         }
-        backtest.run_simulation(
-            ["AAPL", ],
-            params,
-            parallel_process
-        )
+        backtest.run_simulation([
+            "AAPL",
+        ], params, parallel_process)

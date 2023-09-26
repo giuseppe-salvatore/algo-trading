@@ -1,11 +1,11 @@
-
-
 class TradingManagmentPolicy():
+
     def __init__(self):
         pass
 
     def get_trading_policy(self, name, configuration):
         pass
+
 
 class TradingPolicy():
 
@@ -25,7 +25,9 @@ class TradingPolicy():
     def _validate_config(self):
         pass
 
+
 class Unmanaged():
+
     def is_managed(self):
         return False
 
@@ -35,7 +37,9 @@ class Unmanaged():
     def _validate_config(self):
         return True
 
+
 class StaticPolicy():
+
     def __init__(self, config):
         self.confg = config
 
@@ -50,6 +54,7 @@ class StaticPolicy():
 
 
 class PriceDrivenPolicy():
+
     def __init__(self):
         pass
 

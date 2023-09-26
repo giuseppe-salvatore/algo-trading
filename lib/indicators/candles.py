@@ -1,8 +1,8 @@
-
-
 BULL_BEAR_PERC = 3.0
 
+
 class CandleStick():
+
     def __init__(self, ohlc_array):
         self.ohlc = ohlc_array
         self.open = self.ohlc[0]

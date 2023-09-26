@@ -4,7 +4,6 @@ import os
 import sys
 import operator
 
-
 if __name__ == "__main__":
 
     f = open("strategies/scalping/backtesting/results.json", "r")
@@ -22,10 +21,10 @@ if __name__ == "__main__":
     sum = 0.0
     for elem in soreted_results:
         value = soreted_results[elem]
-        
+
         sum += value
         print(str(elem) + "   " + str(soreted_results[elem]))
-        
+
         if value < 0:
             negative_count += 1
 

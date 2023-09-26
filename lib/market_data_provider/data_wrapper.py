@@ -3,11 +3,12 @@ import pandas as pd
 
 from lib.market_data_provider.finnhub import FinnhubDataProvider
 import lib.util.logger as logger
+
 logger.setup_logging("MarketData")
 log = logger.logging.getLogger("MarketData")
 
-
 provider = FinnhubDataProvider()
+
 
 class MarketData():
 
@@ -44,7 +45,8 @@ class MarketData():
 
         if fetch_data is True:
             if resolution == "minute":
-                self._data = provider.get_minute_candles(symbol, start_datetime, end_datetime)
+                self._data = provider.get_minute_candles(
+                    symbol, start_datetime, end_datetime)
                 self._resoluton = "1 min"
                 self._start = start_datetime
                 self._end = end_datetime

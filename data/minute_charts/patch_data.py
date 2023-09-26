@@ -14,8 +14,7 @@ def get_all_cvs_in_folder(path):
                     "root": r,
                     "file_name": file,
                     "date": path
-                }
-                )
+                })
 
     return file_array
 
@@ -88,13 +87,9 @@ def parse_candle(candle_string):
 
 def candle_to_string(candle):
 
-    return (candle["date"] + "," +
-            candle["open"] + "," +
-            candle["close"] + "," +
-            candle["high"] + "," +
-            candle["low"] + "," +
-            candle["volume"]
-            )
+    return (candle["date"] + "," + candle["open"] + "," + candle["close"] +
+            "," + candle["high"] + "," + candle["low"] + "," +
+            candle["volume"])
 
 
 def patch_missing_candles(files):
@@ -122,15 +117,20 @@ def patch_missing_candles(files):
                     # print("Hour " + hour_string + " is missing")
                     missing_hours.append(hour_string)
                     data.append({
-                        "date": file["date"][:-1] + " " + hour_string + "-04:00",
-                        "open": None,
-                        "close": None,
-                        "high": None,
-                        "low": None,
-                        "volume": None,
+                        "date":
+                        file["date"][:-1] + " " + hour_string + "-04:00",
+                        "open":
+                        None,
+                        "close":
+                        None,
+                        "high":
+                        None,
+                        "low":
+                        None,
+                        "volume":
+                        None,
                     })
                 source.close()
-
 
         dest = open(file['full_path'], "w")
         dest.write("date,open,close,high,low,volume\n")
@@ -139,9 +139,10 @@ def patch_missing_candles(files):
             if data[i]["open"] != None:
                 dest.write(candle_to_string(data[i]) + "\n")
             else:
-                if i != 0 and i != len(data) and data[i-1]["open"] != None and data[i+1]["open"] != None:
-                    data[i]["open"] = data[i-1]["close"]
-                    data[i]["close"] = data[i+1]["open"]
+                if i != 0 and i != len(data) and data[
+                        i - 1]["open"] != None and data[i + 1]["open"] != None:
+                    data[i]["open"] = data[i - 1]["close"]
+                    data[i]["close"] = data[i + 1]["open"]
 
                     if float(data[i]["open"]) >= float(data[i]["close"]):
                         data[i]["high"] = data[i]["open"]
@@ -149,14 +150,15 @@ def patch_missing_candles(files):
                     else:
                         data[i]["high"] = data[i]["close"]
                         data[i]["low"] = data[i]["open"]
-                    data[i]["volume"] = str(int(
-                        (float(data[i+1]["volume"]) + float(data[i-1]["volume"])) / 2)) + ".0"
+                    data[i]["volume"] = str(
+                        int((float(data[i + 1]["volume"]) +
+                             float(data[i - 1]["volume"])) / 2)) + ".0"
                     dest.write(candle_to_string(data[i]) + "\n")
                 else:
                     print(" ...missing first/last or consecutive elemnts ")
         dest.close()
         print(" ...fixed")
-            
+
         # for hour in missing_hours:
 
         # for line in source:
@@ -173,5 +175,3 @@ files = get_all_cvs_in_folder("2020-07-03")
 create_backup(files)
 fix_dataframe_format(files)
 patch_missing_candles(files)
-
-

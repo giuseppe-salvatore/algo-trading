@@ -8,10 +8,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from lib.trading.alpaca import AlpacaTrading
 
-
-
-
 NY = 'America/New_York'
+
 
 def main(symbol):
     api = AlpacaTrading()
@@ -22,7 +20,7 @@ def main(symbol):
     open = float(barset[symbol][0].o)
 
     times = []
-    values = [] 
+    values = []
     opens = []
     closes = []
     highs = []
@@ -30,14 +28,17 @@ def main(symbol):
     volumes = []
 
     for elem in barset:
-        print("Barset for " + elem + " has " + str(len(barset[elem]))  + " elements")
+        print("Barset for " + elem + " has " + str(len(barset[elem])) +
+              " elements")
         for bar in barset[elem]:
-            
+
             curr_time = bar.t
-            if curr_time.day == 26 and ((curr_time.hour == 9 and curr_time.minute >= 30) or curr_time.hour >= 10):
+            if curr_time.day == 26 and (
+                (curr_time.hour == 9 and curr_time.minute >= 30)
+                    or curr_time.hour >= 10):
                 print(bar)
                 times.append(str(curr_time))
-                
+
                 print(bar.t, end="")
                 opens.append(float(bar.o))
                 closes.append(float(bar.c))
@@ -45,11 +46,13 @@ def main(symbol):
                 lows.append(float(bar.l))
                 volumes.append(float(bar.v))
 
-                print(" perc: " + "{:.3f}".format((closes[-1] - opens[-1]) / open * 100) + "%")
+                print(" perc: " +
+                      "{:.3f}".format((closes[-1] - opens[-1]) / open * 100) +
+                      "%")
                 #print(pd.Timestamp(bar.t, unit='s', tz_convert=NY))
 
-    dataframe = pd.DataFrame(None,pd.DatetimeIndex(times),None)
-    
+    dataframe = pd.DataFrame(None, pd.DatetimeIndex(times), None)
+
     #dataframe["Time"] = np.array(times)
     #dataframe = dataframe.astype({'Time':'datetime64[ns]'})
     dataframe["Open"] = np.array(opens)
@@ -58,33 +61,37 @@ def main(symbol):
     dataframe["Low"] = np.array(lows)
     dataframe['Volume'] = np.array(volumes)
     dataframe['5 min mean'] = dataframe['Close'].rolling(window=5).mean()
-    dataframe['UpperBB'] = dataframe['5 min mean'] + 2*dataframe['Close'].rolling(window=5).std()
-    dataframe['LowerBB'] = dataframe['5 min mean'] - 2*dataframe['Close'].rolling(window=5).std()
+    dataframe['UpperBB'] = dataframe[
+        '5 min mean'] + 2 * dataframe['Close'].rolling(window=5).std()
+    dataframe['LowerBB'] = dataframe[
+        '5 min mean'] - 2 * dataframe['Close'].rolling(window=5).std()
     #dataframe['BB Divergence'] = dataframe['UpperBB'] - dataframe['LowerBB']
     plot_with_matplotlib(dataframe, symbol)
 
+
 def plot_with_finplot(dataframe):
-    ax,ax2 = fplt.create_plot(symbol, rows=2)
-    candles = dataframe[['Open','Close','High','Low']]
+    ax, ax2 = fplt.create_plot(symbol, rows=2)
+    candles = dataframe[['Open', 'Close', 'High', 'Low']]
     fplt.plot(dataframe['5 min mean'], ax=ax, legend='ma-5')
     fplt.plot(dataframe['UpperBB'], ax=ax, legend='UpperBB')
     fplt.plot(dataframe['LowerBB'], ax=ax, legend='LowerBB')
     #fplt.plot(dataframe['BB Divergence'], ax=ax, legend='Divergence')
     fplt.candlestick_ochl(candles, ax=ax)
 
-    volumes = dataframe[['Open','Close','Volume']]
+    volumes = dataframe[['Open', 'Close', 'Volume']]
     fplt.volume_ocv(volumes, ax=ax2)
-    #dataframe["CHK"].plot(label='MFA',figsize=(12,8),title='Prices')    
+    #dataframe["CHK"].plot(label='MFA',figsize=(12,8),title='Prices')
     #fplt.legend()
     fplt.show()
+
 
 def plot_with_matplotlib(dataframe, stock):
     #dataframe[['Close']].plot(title=stock)
     plt.clf()
     dataframe['Moving AVG 3'] = dataframe['Close'].rolling(window=3).mean()
-    dataframe['Derivate'] = dataframe['Close'].diff() / 3.0 
-    dataframe['Moving AVG 3'].plot(title=stock,label='Moving AVG 3')
-    dataframe['Moving AVG 10'] =  dataframe['Close'].rolling(window=10).mean()
+    dataframe['Derivate'] = dataframe['Close'].diff() / 3.0
+    dataframe['Moving AVG 3'].plot(title=stock, label='Moving AVG 3')
+    dataframe['Moving AVG 10'] = dataframe['Close'].rolling(window=10).mean()
     dataframe['Moving AVG 10'].plot(label='Moving AVG 10')
     dataframe['Exp Moving AVG 10'] = dataframe['Close'].ewm(com=5).mean()
     dataframe['Exp Moving AVG 10'].plot()
@@ -98,8 +105,6 @@ def plot_with_matplotlib(dataframe, stock):
 
 
 #def play(dataframe):
-
-
 
 if __name__ == "__main__":
 
