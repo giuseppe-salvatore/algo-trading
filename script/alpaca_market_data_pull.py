@@ -3,8 +3,7 @@ You can run the script with python -m script.alpaca_market_data_pull on the 1st 
 If no argument is passed it is assumed to go and fetch the data only for the previous month
 so it's good to run it on the first of each month to pull the previous month data
 """
-
-import sys
+import os
 import time
 import multiprocessing as mp
 from datetime import timedelta
@@ -109,6 +108,8 @@ def pull_stock_data_for_symbol(symbol, target_month, months_to_process):
     # start=datetime.strptime("2023-03-14", '%Y-%m-%d'),
     # end=datetime.strptime("2023-03-15", '%Y-%m-%d')
 
+    start = time.time()
+
     destfile = open(".tmp/{}.sql.{}-2023.sql".format(symbol, months[target_month]), "w")
 
     dest_str = "BEGIN TRANSACTION;\n"
@@ -119,52 +120,54 @@ def pull_stock_data_for_symbol(symbol, target_month, months_to_process):
     # Every start and end date corresponds to a month
     for date in get_start_end_dates():
 
-        log.info("Processing {} from {} to {}".format(symbol, date[0], date[1]))
+        success = False
+        while success != True:
+            try:
+                # keys required for stockdata data
+                client = StockHistoricalDataClient(ALPACA_LIVE_API_KEY, ALPACA_LIVE_SECRET)
 
-        try:
-            # keys required for stockdata data
-            client = StockHistoricalDataClient(ALPACA_LIVE_API_KEY, ALPACA_LIVE_SECRET)
+                request_params = StockBarsRequest(
+                    symbol_or_symbols=symbol,
+                    timeframe=TimeFrame.Minute,
+                    start=date[0],
+                    end=date[1]
+                )
 
-            request_params = StockBarsRequest(
-                symbol_or_symbols=symbol,
-                timeframe=TimeFrame.Minute,
-                start=date[0],
-                end=date[1]
-            )
+                bars = client.get_stock_bars(request_params)
 
-            bars = client.get_stock_bars(request_params)
+                res = print_sql_transaction(bars.df, symbol)
+                body += res
+                dest_str += res
+                success = True
 
-            res = print_sql_transaction(bars.df, symbol)
-            body += res
-            dest_str += res
-
-        except Exception as e:
-            log.warning(e)
+            except Exception as e:
+                log.error("Exception processing {}".format(symbol))
+                log.error(e)
+                log.warning("We are going too fast, slowing down 5 secs and retrying {}".format(symbol))
+                time.sleep(5)
 
         dest_str = ";".join(dest_str.rsplit(",", 1))
         dest_str += "COMMIT;\n"
         destfile.write(dest_str)
         destfile.close()
 
-        # sys.stdout.write("DONE in {}\n".format(to_userfriendly_str(
-        #     time_diff(
-        #         start_proc,
-        #         datetime.utcnow()
-        #     ))))
-        # sys.stdout.flush()
+    end = time.time()
+    log.info("Processed {} from {} to {} - ETA: {} seconds".format(symbol, date[0], date[1], int(end - start)))
 
-        #print("Bar count for {} = {}".format(symbol, count))
     return body
 
 
 if __name__ == '__main__':
 
+    os.makedirs(".tmp/", exist_ok=True)
+
     max_processes = mp.cpu_count()
+    max_load = 8
     log.info("Available parallel execution threads: {}".format(max_processes))
 
     start = time.time()
-    log.info("Initialising a multiprocess pool with {} parallel processes".format(max_processes))
-    pool = mp.Pool(max_processes)
+    log.info("Initialising a multiprocess pool with {} parallel processes".format(min(mp.cpu_count(), max_load)))
+    pool = mp.Pool(min(mp.cpu_count(), max_load))
     res = []
 
     target_month = datetime.now().month - 2
@@ -172,7 +175,7 @@ if __name__ == '__main__':
 
     symbols = []
     # for sym in open("stocklists/in_sqlite3_finnhub.py", "r"):
-    for sym in open("stocklists/master-watchlist-reduced.py", "r"):
+    for sym in open("stocklists/master-watchlist-reduced.txt", "r"):
         sym = sym.replace("\n", "")
         if sym not in symbols:
             symbols.append(sym)

@@ -40,6 +40,19 @@ run :
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 		python -m lib.backtest.runner lib.strategies dummy DummyStrategy
 
+pull : install
+	source .venv/bin/activate && \
+	source .env.test && \
+	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+	python -m script.alpaca_market_data_pull
+
+store: install
+	source .venv/bin/activate && \
+	source .env.prod && \
+	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
+	sqlite3 $$SQLITE_DB_FILE < ./.tmp/`ls -1 .tmp/|grep ALL_SYM`
+
+
 .PHONY: clean
 clean :
 	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache/

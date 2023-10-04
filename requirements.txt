@@ -1,3 +1,5 @@
+alpaca-py
+# Next on might be deprecated in favour of the above
 alpaca-trade-api
 numpy
 pandas
