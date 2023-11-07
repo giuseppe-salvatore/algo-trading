@@ -9,6 +9,10 @@ from datetime import datetime
 from datetime import timedelta
 from lib.util.logger import log
 
+DATETIME_FORMAT_DATE_ONLY = "%Y-%m-%d"
+DATETIME_FORMAT = "%Y-%m-%d %H:%M"
+DATETIME_FORMAT_FULL = "%Y-%m-%d %H:%M:%S"
+
 
 class DBManager():
 
@@ -83,6 +87,20 @@ class DBManager():
         df.index = pd.to_datetime(df.index,
                                   format='%Y-%m-%d %H:%M',
                                   exact=False)
+        return df
+
+    def get_all_minute_candles_to_dataframe(self,
+                                            symbol: str,
+                                            from_table="minute_bars"):
+        query = """SELECT time AS datetime, open, close, low, high, volume
+                   FROM {}
+                   WHERE symbol='{}'""".format(
+            from_table,
+            symbol
+        )
+        log.debug(query)
+        df = pd.read_sql(query, self.conn, index_col='datetime')
+        df.index = pd.to_datetime(df.index, format=DATETIME_FORMAT, exact=False)
         return df
 
     def get_filtered_watchlist(self):

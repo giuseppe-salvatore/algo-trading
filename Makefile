@@ -52,8 +52,14 @@ store: install
 	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
 	sqlite3 $$SQLITE_DB_FILE < ./.tmp/`ls -1 .tmp/|grep ALL_SYM`
 
+db-info: install
+	source .venv/bin/activate && \
+    source .env.prod && \
+    export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
+	python -m script.get_cache_period ATVI
 
 .PHONY: clean
 clean :
 	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache/
+	rm .tmp/*
 

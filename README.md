@@ -54,3 +54,12 @@ Here is an example on how to run a strategy, there is no make target yet but wil
 ```
 python -m lib.backtest.runner lib.strategies dummy DummyStrategy
 ```
+
+## Updating the local db with latest bars ##
+
+```
+make clean   // will clean a few folders
+make pull    // will pull the actual data from the alpaca API and store it in a tmp folder
+make store   // will store the data in the db
+make db-info // will grab the info regarding the symbols in the db
+```
