@@ -46,17 +46,23 @@ pull : install
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 	python -m script.alpaca_market_data_pull
 
-store: install
+store-all: install
 	source .venv/bin/activate && \
 	source .env.prod && \
 	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
-	sqlite3 $$SQLITE_DB_FILE < ./.tmp/`ls -1 .tmp/|grep ALL_SYM`
+	sqlite3 $$SQLITE_DB_FILE < ./.tmp/`ls -1 .tmp/|grep ALL_SYMBOLS`
+
+store-single: install
+	source .venv/bin/activate && \
+	source .env.prod && \
+	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
+	for f in `ls -1 .tmp/|grep sql`; do echo "process $$f"; sqlite3 $$SQLITE_DB_FILE < ./.tmp/$$f; done;
 
 db-info: install
 	source .venv/bin/activate && \
-    source .env.prod && \
-    export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
-	python -m script.get_cache_period ATVI
+	source .env.prod && \
+	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
+	python -m script.get_cache_period
 
 .PHONY: clean
 clean :
