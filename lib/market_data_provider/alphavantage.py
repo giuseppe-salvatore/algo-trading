@@ -1,15 +1,126 @@
 import csv
+import json
 import requests
-import conf.secret as config
+import pandas as pd
+
+from io import StringIO
+from datetime import datetime
+
+import lib.util.perf_timer as timer
+from lib.util.logger import log
+
+
+def convert_to_ny_tz_string(utc_tz):
+    return str(utc_tz.tz_convert(tz="America/New_York"))[:19]
+
+
+def print_sql_transaction(df, symbol):
+    dest_str = ""
+
+    for index, elem in df.iterrows():
+        dest_str += '("{}","{}",{:3.2f},{:3.2f},{:3.2f},{:3.2f},{:.0f}),\n'.format(
+            symbol,
+            # convert_to_ny_tz_string(index),
+            index,
+            elem["open"],
+            elem["close"],
+            elem["high"],
+            elem["low"],
+            elem["volume"],
+        )
+
+    return dest_str
+
+
+def get_df_from_csv(resp):
+    timer.start("Read CSV")
+    if resp is not None:
+        df = pd.read_csv(StringIO(str(resp.content.decode("utf-8"))), sep=",")
+    else:
+        df = pd.read_csv("MT.alphavantage.data.csv")
+
+    timer.stop("Read CSV")
+    timer.print_elapsed("Read CSV")
+
+    return df
+
+
+months = [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+]
+
+from conf.secret import (
+    ALPHAVANTAGE_FREE_API_KEY_01,
+    ALPHAVANTAGE_FREE_API_KEY_02,
+    ALPHAVANTAGE_FREE_API_KEY_03,
+    ALPHAVANTAGE_FREE_API_KEY_04,
+    ALPHAVANTAGE_FREE_API_KEY_05,
+    ALPHAVANTAGE_FREE_API_KEY_06,
+    ALPHAVANTAGE_FREE_API_KEY_07,
+    ALPHAVANTAGE_FREE_API_KEY_08,
+    ALPHAVANTAGE_FREE_API_KEY_09,
+)
+
+
+class APIKeyManager:
+    def __init__(self):
+        self.current_api_key_idx = 0
+        self.api_keys = [
+            ALPHAVANTAGE_FREE_API_KEY_09,
+            ALPHAVANTAGE_FREE_API_KEY_01,
+            ALPHAVANTAGE_FREE_API_KEY_02,
+            ALPHAVANTAGE_FREE_API_KEY_03,
+            ALPHAVANTAGE_FREE_API_KEY_04,
+            ALPHAVANTAGE_FREE_API_KEY_05,
+            ALPHAVANTAGE_FREE_API_KEY_06,
+            ALPHAVANTAGE_FREE_API_KEY_07,
+            ALPHAVANTAGE_FREE_API_KEY_08,
+        ]
+
+    def get_api_key(self):
+        if self.current_api_key_idx < len(self.api_keys):
+            print("Using key: " + str(self.api_keys[self.current_api_key_idx]))
+            return str(self.api_keys[self.current_api_key_idx])
+        else:
+            raise AllApiKeyUsed(
+                "API Keys exhausted for today, Alphavantage has a limit per day"
+            )
+
+    def use_next_api_key(self):
+        self.current_api_key_idx = self.current_api_key_idx + 1
+        print("Switching to next API Key with idx " + str(self.current_api_key_idx + 1))
+
+
+error_messages = {
+    "apikey_exhausted": "Thank you for using Alpha Vantage! Our standard API rate limit is 25 requests per day"
+}
+
+
+class ApiKeyExhaustedException(Exception):
+    pass
+
+
+class AllApiKeyUsed(Exception):
+    pass
+
 
 alphavantage_base_api_url = "https://www.alphavantage.co/query?function="
 intraday_function = "TIME_SERIES_INTRADAY"
-intraday_function_ext = "TIME_SERIES_INTRADAY_EXTENDED"
 
 
 def append_params(url: str, params):
-
-    url += "&apikey=" + params['apikey']
+    url += "&apikey=" + params["apikey"]
     for elem in params:
         if elem == "apikey":
             continue
@@ -18,36 +129,133 @@ def append_params(url: str, params):
     return url
 
 
-# def get_minute_bars(symbol: str, time_from: str, time_to: str):
-#     url = alphavantage_base_api_url + intraday_function
-#     url = append_params(url, {
-#         "symbol": "AAPL",
-#         "apikey": config.ALPHAVANTAGE_FREE_API_KEY,
-#         "interval": "1min"
-#     })
-#     print(url)
-#     response = requests.get(url)
-#     content = json.loads(response.content)
-#     print(json.dumps(content,indent=4))
+SQL_INSERT_FILE_FORMAT = "data/alphavantage/sql/{}-{}.sql"
 
 
-def get_minute_bars(symbol: str, time_from: str, time_to: str):
-    url = alphavantage_base_api_url + intraday_function_ext
-    url = append_params(
-        url, {
-            "symbol": "AAPL",
-            "apikey": config.ALPHAVANTAGE_FREE_API_KEY,
-            "interval": "1min",
-            "slice": "year1month1"
-        })
-    with requests.Session() as s:
-        download = s.get(url)
+def get_date_str(date: datetime) -> str:
+    if date is None:
+        return str(datetime.now())[:7]
+    else:
+        return str(date)[:7]
 
-        decoded_content = download.content.decode('utf-8')
 
-        cr = csv.reader(decoded_content.splitlines(), delimiter=',')
-        my_list = list(cr)
-        header = my_list[0]
-        for row in reversed(my_list[1:]):
-            print(row)
-        print(header)
+def get_sql_insert_from_df(df, symbol, year, month):
+    date_str = get_date_str(datetime(year, month, 1))
+    dest_file_name = SQL_INSERT_FILE_FORMAT.format(symbol, date_str)
+
+    timer.start("Get SQL INSERT statement")
+
+    with open(dest_file_name, "w") as dest_file:
+        dest_str = "BEGIN TRANSACTION;\n"
+        dest_str += (
+            "INSERT INTO minute_bars (symbol,time,open,close,high,low,volume) VALUES\n"
+        )
+
+        dest_str += print_sql_transaction(df, symbol)
+
+        dest_str = ";".join(dest_str.rsplit(",", 1))
+        dest_str += "COMMIT;\n"
+
+        dest_file.write(dest_str)
+
+    timer.stop("Get SQL INSERT statement")
+    timer.print_elapsed("Get SQL INSERT statement")
+
+
+"""
+Gets minute bars from Alphavantage API by month
+You can easily pass the symbol and year-month
+
+:param symbol:
+:param year: a string value for the target year
+:param month: a string value for the target month (as number, example: Jan will be 01)
+"""
+
+
+def get_minute_bars_by_month(symbol: str, year: str, month: str):
+    completed = False
+    while not completed:
+        try:
+            url = alphavantage_base_api_url + intraday_function
+            url = append_params(
+                url,
+                {
+                    "symbol": symbol,
+                    "apikey": apikey_manager.get_api_key(),
+                    "interval": "1min",
+                    "month": get_date_str(datetime(int(year), int(month), 1)),
+                    "outputsize": "full",
+                    "adjusted": "false",
+                    "datatype": "csv",
+                },
+            )
+
+            with requests.Session() as s:
+                log.debug(url)
+                res = s.get(url)
+
+                if res.status_code != 200:
+                    raise Exception(
+                        "Error fetching data from Alphavantage API: status code = "
+                        + str(res.status_code)
+                    )
+
+                content = res.content.decode("utf-8")
+                if "Error" in content or "Information in content":
+                    raise ApiKeyExhaustedException(content)
+                print(
+                    "Key " + str(apikey_manager.current_api_key_idx) + " is good to go"
+                )
+
+                df = get_df_from_csv(res)
+
+                df["timestamp"] = pd.to_datetime(df["timestamp"])
+                df = df.set_index(pd.DatetimeIndex(df["timestamp"]))
+                df.drop(columns=["timestamp"], inplace=True)
+
+                completed = True
+                return df
+
+        except ApiKeyExhaustedException as e:
+            # We can handle this
+            log.warn("ApiKeyExhaustedException: " + str(e))
+            apikey_manager.use_next_api_key()
+        except AllApiKeyUsed as e:
+            # print(e)
+            log.error("AllApiKeyUsed")
+            completed = True
+        except Exception as e:
+            log.error("Exception: " + str(e))
+            completed = True
+            raise e
+
+
+def generate_required_stocks():
+    required_stocks = []
+    stock_format = "{}-{}"
+    with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist:
+        for symbol in watchlist:
+            for year in range(2001, 2024):
+                for month in range(1, 13):
+                    if year == 2023 and month >= 11:
+                        continue
+                    required_stocks.append(
+                        stock_format.format(
+                            symbol[:-1], get_date_str(datetime(year, month, 1))
+                        )
+                    )
+    return required_stocks
+
+
+apikey_manager = APIKeyManager()
+
+if __name__ == "__main__":
+    stocks = generate_required_stocks()
+
+    for el in stocks:
+        print(el)
+
+    # for year in range(2001, 2023):
+    #     for month in range(1, 13):
+    #         df = get_minute_bars_by_month("MT", str(year), str(month))
+    #         get_sql_insert_from_df(df, "MT", year, month)
