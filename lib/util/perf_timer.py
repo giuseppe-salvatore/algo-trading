@@ -4,7 +4,7 @@ entries = {}
 
 def start(name):
     entries[name] = {
-        "start" : datetime.now()
+        "start": datetime.now()
     }
 
 def stop(name):
@@ -13,7 +13,7 @@ def stop(name):
 
 def get_elapsed(name):
     if name in entries.keys():
-        return entries[name]["stop"] - entries[name]["start"];
-    
+        return entries[name]["stop"] - entries[name]["start"]
+
 def print_elapsed(name):
     print("Timer: " + str(name) + " = " + str(get_elapsed(name)))
