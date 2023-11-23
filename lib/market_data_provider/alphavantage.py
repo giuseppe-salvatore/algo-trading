@@ -1,3 +1,4 @@
+import os
 import csv
 import json
 import requests
@@ -10,9 +11,6 @@ import lib.util.perf_timer as timer
 from lib.util.logger import log
 
 
-def convert_to_ny_tz_string(utc_tz):
-    return str(utc_tz.tz_convert(tz="America/New_York"))[:19]
-
 
 def print_sql_transaction(df, symbol):
     dest_str = ""
@@ -20,7 +18,6 @@ def print_sql_transaction(df, symbol):
     for index, elem in df.iterrows():
         dest_str += '("{}","{}",{:3.2f},{:3.2f},{:3.2f},{:3.2f},{:.0f}),\n'.format(
             symbol,
-            # convert_to_ny_tz_string(index),
             index,
             elem["open"],
             elem["close"],
@@ -77,15 +74,7 @@ class APIKeyManager:
     def __init__(self):
         self.current_api_key_idx = 0
         self.api_keys = [
-            ALPHAVANTAGE_FREE_API_KEY_09,
-            ALPHAVANTAGE_FREE_API_KEY_01,
-            ALPHAVANTAGE_FREE_API_KEY_02,
-            ALPHAVANTAGE_FREE_API_KEY_03,
-            ALPHAVANTAGE_FREE_API_KEY_04,
-            ALPHAVANTAGE_FREE_API_KEY_05,
-            ALPHAVANTAGE_FREE_API_KEY_06,
-            ALPHAVANTAGE_FREE_API_KEY_07,
-            ALPHAVANTAGE_FREE_API_KEY_08,
+            ALPHAVANTAGE_FREE_API_KEY_05
         ]
 
     def get_api_key(self):
@@ -139,9 +128,9 @@ def get_date_str(date: datetime) -> str:
         return str(date)[:7]
 
 
-def get_sql_insert_from_df(df, symbol, year, month):
-    date_str = get_date_str(datetime(year, month, 1))
-    dest_file_name = SQL_INSERT_FILE_FORMAT.format(symbol, date_str)
+def get_sql_insert_from_df(df, symbol: str, year: str, month: str):
+
+    dest_file_name = SQL_INSERT_FILE_FORMAT.format(symbol,  year + "-" + month)
 
     timer.start("Get SQL INSERT statement")
 
@@ -160,6 +149,8 @@ def get_sql_insert_from_df(df, symbol, year, month):
 
     timer.stop("Get SQL INSERT statement")
     timer.print_elapsed("Get SQL INSERT statement")
+    
+    
 
 
 """
@@ -183,7 +174,7 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
                     "symbol": symbol,
                     "apikey": apikey_manager.get_api_key(),
                     "interval": "1min",
-                    "month": get_date_str(datetime(int(year), int(month), 1)),
+                    "month": year + "-" + month,
                     "outputsize": "full",
                     "adjusted": "false",
                     "datatype": "csv",
@@ -201,11 +192,11 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
                     )
 
                 content = res.content.decode("utf-8")
-                if "Error" in content or "Information in content":
+                if "Information" in content:
                     raise ApiKeyExhaustedException(content)
-                print(
-                    "Key " + str(apikey_manager.current_api_key_idx) + " is good to go"
-                )
+                
+                if "Error" in content:
+                    raise Exception(content)
 
                 df = get_df_from_csv(res)
 
@@ -224,6 +215,7 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
             # print(e)
             log.error("AllApiKeyUsed")
             completed = True
+            raise e
         except Exception as e:
             log.error("Exception: " + str(e))
             completed = True
@@ -233,17 +225,20 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
 def generate_required_stocks():
     required_stocks = []
     stock_format = "{}-{}"
-    with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist:
-        for symbol in watchlist:
-            for year in range(2001, 2024):
-                for month in range(1, 13):
-                    if year == 2023 and month >= 11:
-                        continue
+       
+    for year in range(2015, 2001, -1):
+        for month in range(12, 0, -1):
+            print("print {} {}".format( year, month))
+            # if year == 2023 and month >= 11:
+            with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist: 
+                for symbol in watchlist:
+                    print("print {} {} {}".format(symbol[:-1], year, month))
                     required_stocks.append(
                         stock_format.format(
                             symbol[:-1], get_date_str(datetime(year, month, 1))
                         )
                     )
+
     return required_stocks
 
 
@@ -253,9 +248,24 @@ if __name__ == "__main__":
     stocks = generate_required_stocks()
 
     for el in stocks:
-        print(el)
+        if os.path.isfile("data/alphavantage/sql/" + str(el) + ".sql"):
+            print("File {}.sql exists skipping".format(el))
+        else: 
+            tokens = el.split("-")
+            symbol = tokens[0]
+            year = tokens[1]
+            month = tokens[2]
+            
+            try:
+                df = get_minute_bars_by_month(symbol, year, month)
+                
+            except AllApiKeyUsed as e:
+                print(e)
+                break
+            except Exception as e:
+                print(e)
+                continue
+            get_sql_insert_from_df(df, symbol, year, month)
+        # else: 
+        #     print(el)
 
-    # for year in range(2001, 2023):
-    #     for month in range(1, 13):
-    #         df = get_minute_bars_by_month("MT", str(year), str(month))
-    #         get_sql_insert_from_df(df, "MT", year, month)
