@@ -150,8 +150,6 @@ def get_sql_insert_from_df(df, symbol: str, year: str, month: str):
     timer.stop("Get SQL INSERT statement")
     timer.print_elapsed("Get SQL INSERT statement")
     
-    
-
 
 """
 Gets minute bars from Alphavantage API by month
@@ -182,6 +180,11 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
             )
 
             with requests.Session() as s:
+                log.info("Pulling data for {} year {} and month {}".format(
+                    symbol,
+                    year,
+                    month
+                ))
                 log.debug(url)
                 res = s.get(url)
 
@@ -209,10 +212,9 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
 
         except ApiKeyExhaustedException as e:
             # We can handle this
-            log.warn("ApiKeyExhaustedException: " + str(e))
+            log.warning("ApiKeyExhaustedException: " + str(e))
             apikey_manager.use_next_api_key()
         except AllApiKeyUsed as e:
-            # print(e)
             log.error("AllApiKeyUsed")
             completed = True
             raise e
@@ -228,11 +230,8 @@ def generate_required_stocks():
        
     for year in range(2015, 2001, -1):
         for month in range(12, 0, -1):
-            print("print {} {}".format( year, month))
-            # if year == 2023 and month >= 11:
             with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist: 
                 for symbol in watchlist:
-                    print("print {} {} {}".format(symbol[:-1], year, month))
                     required_stocks.append(
                         stock_format.format(
                             symbol[:-1], get_date_str(datetime(year, month, 1))
@@ -249,7 +248,7 @@ if __name__ == "__main__":
 
     for el in stocks:
         if os.path.isfile("data/alphavantage/sql/" + str(el) + ".sql"):
-            print("File {}.sql exists skipping".format(el))
+            log.debug("File {}.sql exists skipping".format(el))
         else: 
             tokens = el.split("-")
             symbol = tokens[0]
@@ -260,11 +259,10 @@ if __name__ == "__main__":
                 df = get_minute_bars_by_month(symbol, year, month)
                 
             except AllApiKeyUsed as e:
-                print(e)
+                log.error(e)
                 break
             except Exception as e:
-                print(e)
+                log.error(e)
                 continue
             get_sql_insert_from_df(df, symbol, year, month)
-
 
