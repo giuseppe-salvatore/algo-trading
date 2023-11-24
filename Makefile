@@ -10,7 +10,12 @@ install : prepare
 	source .venv/bin/activate && \
 	python -m pip install --upgrade pip && \
 	python -m pip install -r requirements.txt
-	if [[ $${EUID} > 0 ]]; then sudo apt-get install -y sqlite3 xmlstarlet; else apt-get install -y sqlite3 xmlstarlet; fi
+	if [[ $${EUID} > 0 ]]; \
+	then \
+		xargs sudo apt-get install -y < requirements-deb.txt; \
+	else \
+		xargs apt-get install -y < requirements-deb.txt; \
+	fi
 
 verify : install
 	source .venv/bin/activate && \
@@ -40,11 +45,17 @@ run :
 		export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 		python -m lib.backtest.runner lib.strategies dummy DummyStrategy
 
-pull : install
+pull-alpaca: install
 	source .venv/bin/activate && \
 	source .env.test && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 	python -m script.alpaca_market_data_pull
+
+pull-alphavantage: install
+	source .venv/bin/activate && \
+	source .env.prod && \
+	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+	python -m lib.market_data_provider.alphavantage
 
 store-all: install
 	source .venv/bin/activate && \
