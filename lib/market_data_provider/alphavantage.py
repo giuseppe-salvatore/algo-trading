@@ -74,7 +74,7 @@ class APIKeyManager:
     def __init__(self):
         self.current_api_key_idx = 0
         self.api_keys = [
-            ALPHAVANTAGE_FREE_API_KEY_05
+            ALPHAVANTAGE_FREE_API_KEY_03
         ]
 
     def get_api_key(self):
@@ -266,6 +266,5 @@ if __name__ == "__main__":
                 print(e)
                 continue
             get_sql_insert_from_df(df, symbol, year, month)
-        # else: 
-        #     print(el)
+
 
