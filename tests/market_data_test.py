@@ -22,10 +22,8 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
             symbol="TSLA",
-            start_date=
-            "2023-08-07",  # TODO: replace me with a dynamic version of data otherwise will fail in future
-            end_date=
-            "2023-08-19",  # TODO: replace me with a dynamic version of data otherwise will fail in future
+            start_date="2023-08-07",  # TODO: replace me with a dynamic version of data otherwise will fail in future
+            end_date="2023-08-19",  # TODO: replace me with a dynamic version of data otherwise will fail in future
             force_provider_fetch=True,
             store_fetched_data=False)
         self.assertTrue(len(df.index) > 100)
@@ -34,10 +32,8 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
             symbol="TSLA",
-            start_date=
-            "2023-08-07",  # TODO: replace me with a dynamic version of data otherwise will fail in future
-            end_date=
-            "2023-08-08",  # TODO: replace me with a dynamic version of data otherwise will fail in future
+            start_date="2023-08-07",  # TODO: replace me with a dynamic version of data otherwise will fail in future
+            end_date="2023-08-08",  # TODO: replace me with a dynamic version of data otherwise will fail in future
             force_provider_fetch=True,
             store_fetched_data=False)
         self.assertTrue(len(df.index) > 100)
@@ -46,10 +42,8 @@ class FinnhubMarketDataProviderTest(unittest.TestCase):
         provider = MarketDataProviderUtils.get_provider("Finnhub")
         df = provider.get_minute_candles(
             symbol="TSLA",
-            start_date=
-            "2023-08-07",  # TODO: replace me with a dynamic version of data otherwise will fail in future
-            end_date=
-            "2023-08-09",  # TODO: replace me with a dynamic version of data otherwise will fail in future
+            start_date="2023-08-07",  # TODO: replace me with a dynamic version of data otherwise will fail in future
+            end_date="2023-08-09",  # TODO: replace me with a dynamic version of data otherwise will fail in future
             force_provider_fetch=True,
             store_fetched_data=False)
         indexes = df.index.values

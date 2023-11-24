@@ -125,9 +125,9 @@ class MarketDataChart:
         tot_rows = base_rows
 
         plt.figure(figsize=(40, 20))
-        #plt.grid(b=True)
+        # plt.grid(b=True)
         self._candle_ax = plt.subplot2grid((tot_rows, 1), (0, 0), rowspan=5, colspan=1)
-        #self._candle_ax.grid(b=True)
+        # self._candle_ax.grid(b=True)
         self._candle_ax.xaxis_date()
         self._candle_ax.xaxis.set_major_formatter(
             mdates.DateFormatter("%Y-%m-%d %H:%M")
@@ -142,8 +142,6 @@ class MarketDataChart:
         plt.sca(self._candle_ax)
         candlestick_ohlc(self._candle_ax, quotes, colorup="g", width=0.0003, alpha=1)
         plt.sca(self._candle_ax)
-        
-
 
         plt.title("{}'s candles from {} to {}\n".format(symbol, start_date, end_date))
         plt.sca(self._candle_ax)
@@ -151,7 +149,7 @@ class MarketDataChart:
         # plt.axvline(pd.Timestamp(market_close), color="black", linestyle=":")
         plt.sca(self._candle_ax)
 
-        #self._candle_ax.grid(b=True, which="major", linestyle="-")
+        # self._candle_ax.grid(b=True, which="major", linestyle="-")
 
         # Now we plot the additional axes, for example volume or RSI or MACD
         # for el in self._extra_ax:
@@ -163,15 +161,13 @@ class MarketDataChart:
         # NOTE: savefig should be called before show is called otherwise show will clean up the
         #       canvase ans savefig will save an empty file
         if save_pic:
-            plt.savefig(symbol  + ".png", format="png")
+            plt.savefig(symbol + ".png", format="png")
 
         if display_pic:
             plt.show()
 
-        
-
         plt.close()
-        
+
     def draw_intraday(self, symbol, date, save_pic=True, display_pic=True):
         md = self.market_data
         start_date = datetime(date.year, date.month, date.day, 0, 0)
@@ -187,9 +183,9 @@ class MarketDataChart:
         tot_rows = base_rows
 
         plt.figure(figsize=(40, 20))
-        #plt.grid(b=True)
+        # plt.grid(b=True)
         self._candle_ax = plt.subplot2grid((tot_rows, 1), (0, 0), rowspan=5, colspan=1)
-        #self._candle_ax.grid(b=True)
+        # self._candle_ax.grid(b=True)
         self._candle_ax.xaxis_date()
         self._candle_ax.xaxis.set_major_formatter(
             mdates.DateFormatter("%Y-%m-%d %H:%M")
@@ -204,8 +200,6 @@ class MarketDataChart:
         plt.sca(self._candle_ax)
         candlestick_ohlc(self._candle_ax, quotes, colorup="g", width=0.0003, alpha=1)
         plt.sca(self._candle_ax)
-        
-
 
         plt.title("{}'s candles on {}\n".format(symbol, date))
         plt.sca(self._candle_ax)
@@ -213,7 +207,7 @@ class MarketDataChart:
         # plt.axvline(pd.Timestamp(market_close), color="black", linestyle=":")
         plt.sca(self._candle_ax)
 
-        #self._candle_ax.grid(b=True, which="major", linestyle="-")
+        # self._candle_ax.grid(b=True, which="major", linestyle="-")
 
         # Now we plot the additional axes, for example volume or RSI or MACD
         # for el in self._extra_ax:

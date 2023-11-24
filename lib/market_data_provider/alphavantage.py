@@ -1,3 +1,14 @@
+from conf.secret import (
+    ALPHAVANTAGE_FREE_API_KEY_01,
+    ALPHAVANTAGE_FREE_API_KEY_02,
+    ALPHAVANTAGE_FREE_API_KEY_03,
+    ALPHAVANTAGE_FREE_API_KEY_04,
+    ALPHAVANTAGE_FREE_API_KEY_05,
+    ALPHAVANTAGE_FREE_API_KEY_06,
+    ALPHAVANTAGE_FREE_API_KEY_07,
+    ALPHAVANTAGE_FREE_API_KEY_08,
+    ALPHAVANTAGE_FREE_API_KEY_09,
+)
 import os
 import csv
 import json
@@ -9,7 +20,6 @@ from datetime import datetime
 
 import lib.util.perf_timer as timer
 from lib.util.logger import log
-
 
 
 def print_sql_transaction(df, symbol):
@@ -56,18 +66,6 @@ months = [
     "november",
     "december",
 ]
-
-from conf.secret import (
-    ALPHAVANTAGE_FREE_API_KEY_01,
-    ALPHAVANTAGE_FREE_API_KEY_02,
-    ALPHAVANTAGE_FREE_API_KEY_03,
-    ALPHAVANTAGE_FREE_API_KEY_04,
-    ALPHAVANTAGE_FREE_API_KEY_05,
-    ALPHAVANTAGE_FREE_API_KEY_06,
-    ALPHAVANTAGE_FREE_API_KEY_07,
-    ALPHAVANTAGE_FREE_API_KEY_08,
-    ALPHAVANTAGE_FREE_API_KEY_09,
-)
 
 
 class APIKeyManager:
@@ -130,7 +128,7 @@ def get_date_str(date: datetime) -> str:
 
 def get_sql_insert_from_df(df, symbol: str, year: str, month: str):
 
-    dest_file_name = SQL_INSERT_FILE_FORMAT.format(symbol,  year + "-" + month)
+    dest_file_name = SQL_INSERT_FILE_FORMAT.format(symbol, year + "-" + month)
 
     timer.start("Get SQL INSERT statement")
 
@@ -149,7 +147,7 @@ def get_sql_insert_from_df(df, symbol: str, year: str, month: str):
 
     timer.stop("Get SQL INSERT statement")
     timer.print_elapsed("Get SQL INSERT statement")
-    
+
 
 """
 Gets minute bars from Alphavantage API by month
@@ -190,14 +188,14 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
 
                 if res.status_code != 200:
                     raise Exception(
-                        "Error fetching data from Alphavantage API: status code = "
-                        + str(res.status_code)
+                        "Error fetching data from Alphavantage API: status code = " +
+                        str(res.status_code)
                     )
 
                 content = res.content.decode("utf-8")
                 if "Information" in content:
                     raise ApiKeyExhaustedException(content)
-                
+
                 if "Error" in content:
                     raise Exception(content)
 
@@ -227,10 +225,10 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
 def generate_required_stocks():
     required_stocks = []
     stock_format = "{}-{}"
-       
+
     for year in range(2015, 2001, -1):
         for month in range(12, 0, -1):
-            with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist: 
+            with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist:
                 for symbol in watchlist:
                     required_stocks.append(
                         stock_format.format(
@@ -249,15 +247,15 @@ if __name__ == "__main__":
     for el in stocks:
         if os.path.isfile("data/alphavantage/sql/" + str(el) + ".sql"):
             log.debug("File {}.sql exists skipping".format(el))
-        else: 
+        else:
             tokens = el.split("-")
             symbol = tokens[0]
             year = tokens[1]
             month = tokens[2]
-            
+
             try:
                 df = get_minute_bars_by_month(symbol, year, month)
-                
+
             except AllApiKeyUsed as e:
                 log.error(e)
                 break
@@ -265,4 +263,3 @@ if __name__ == "__main__":
                 log.error(e)
                 continue
             get_sql_insert_from_df(df, symbol, year, month)
-
