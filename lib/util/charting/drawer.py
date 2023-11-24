@@ -1,5 +1,6 @@
 import collections
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
@@ -10,9 +11,9 @@ from mplfinance.original_flavor import candlestick_ohlc
 from lib.trading.generic import Position
 from lib.market_data_provider.market_data_provider import MarketDataUtils
 
+matplotlib.use("TkAgg")
 
-class EquityChart():
-
+class EquityChart:
     def __init__(self):
         self._title = None
         self._symbol = None
@@ -22,7 +23,6 @@ class EquityChart():
         self._ax = None
 
     def draw(self, dataframe):
-
         print("----------------------------------------------------")
         print(dataframe)
         dataframe["total"] = dataframe["equity"]
@@ -32,7 +32,6 @@ class EquityChart():
         plt.close()
 
     def draw_all(self, save_pic, print_dates):
-
         plt.clf()
         profits = {}
         symbols = self.trading_session.get_symbols()
@@ -66,9 +65,7 @@ class EquityChart():
             file_name = "TotalEquityWithDates.png"
             df = pd.DataFrame({"equity": od.values(), "dates": od.keys()})
             df.set_index("dates", inplace=True)
-            df.index = pd.to_datetime(df.index,
-                                      format='%Y-%m-%d %H:%M',
-                                      exact=False)
+            df.index = pd.to_datetime(df.index, format="%Y-%m-%d %H:%M", exact=False)
         else:
             file_name = "TotalEquityNoDates.png"
             df = pd.DataFrame({"equity": od.values()})
@@ -82,8 +79,159 @@ class EquityChart():
             plt.close()
 
 
-class TradeChart():
+class MarketDataChart:
+    @property
+    def title(self):
+        return self._title
 
+    @title.setter
+    def title(self, val):
+        self._title = val
+
+    @property
+    def market_data(self):
+        return self._market_data
+
+    @market_data.setter
+    def market_data(self, val):
+        self._market_data = val
+
+    @property
+    def symbol(self):
+        return self._symbol
+
+    @symbol.setter
+    def symbol(self, val):
+        self._symbol = val
+
+    def __init__(self):
+        self._title = None
+        self._symbol = None
+        self._market_data = None
+        self._fig = None
+        self._candle_ax = None
+        self._volume_ax = None
+        self._extra_ax = dict()
+
+    def draw_multiday(self, symbol, start_day, end_day, save_pic=True, display_pic=True):
+        md = self.market_data
+        start_date = datetime(start_day.year, start_day.month, start_day.day, 0, 0)
+        end_date = datetime(end_day.year, end_day.month, end_day.day, 23, 59)
+
+        datetime_mask = (md.index >= start_date) & (md.index <= end_date)
+        sub_df = md.loc[datetime_mask].between_time("07:30", "18:00")
+
+        base_rows = 5
+        tot_rows = base_rows
+
+        plt.figure(figsize=(40, 20))
+        #plt.grid(b=True)
+        self._candle_ax = plt.subplot2grid((tot_rows, 1), (0, 0), rowspan=5, colspan=1)
+        #self._candle_ax.grid(b=True)
+        self._candle_ax.xaxis_date()
+        self._candle_ax.xaxis.set_major_formatter(
+            mdates.DateFormatter("%Y-%m-%d %H:%M")
+        )
+
+        sub_df["date"] = [mdates.date2num(d) for d in sub_df.index]
+        sub_df.reset_index()
+        quotes = [
+            tuple(x) for x in sub_df[["date", "open", "high", "low", "close"]].values
+        ]
+
+        plt.sca(self._candle_ax)
+        candlestick_ohlc(self._candle_ax, quotes, colorup="g", width=0.0003, alpha=1)
+        plt.sca(self._candle_ax)
+        
+
+
+        plt.title("{}'s candles from {} to {}\n".format(symbol, start_date, end_date))
+        plt.sca(self._candle_ax)
+        # plt.axvline(pd.Timestamp(market_open), color="black", linestyle=":")
+        # plt.axvline(pd.Timestamp(market_close), color="black", linestyle=":")
+        plt.sca(self._candle_ax)
+
+        #self._candle_ax.grid(b=True, which="major", linestyle="-")
+
+        # Now we plot the additional axes, for example volume or RSI or MACD
+        # for el in self._extra_ax:
+        #     plt.sca(self._extra_ax[el]["ax"])
+        #     sub_df[self._extra_ax[el]["data"]].plot()
+        #     self._extra_ax[el]["ax"].grid(b=True, which="major", linestyle="-")
+        plt.tight_layout(pad=5.0, w_pad=5.0, h_pad=5.0)
+
+        # NOTE: savefig should be called before show is called otherwise show will clean up the
+        #       canvase ans savefig will save an empty file
+        if save_pic:
+            plt.savefig(symbol  + ".png", format="png")
+
+        if display_pic:
+            plt.show()
+
+        
+
+        plt.close()
+        
+    def draw_intraday(self, symbol, date, save_pic=True, display_pic=True):
+        md = self.market_data
+        start_date = datetime(date.year, date.month, date.day, 0, 0)
+        market_open, market_close = MarketDataUtils.get_market_open_time_as_datetime(
+            date
+        )
+        end_date = datetime(date.year, date.month, date.day, 23, 59)
+
+        datetime_mask = (md.index >= start_date) & (md.index <= end_date)
+        sub_df = md.loc[datetime_mask].between_time("07:30", "18:00")
+
+        base_rows = 5
+        tot_rows = base_rows
+
+        plt.figure(figsize=(40, 20))
+        #plt.grid(b=True)
+        self._candle_ax = plt.subplot2grid((tot_rows, 1), (0, 0), rowspan=5, colspan=1)
+        #self._candle_ax.grid(b=True)
+        self._candle_ax.xaxis_date()
+        self._candle_ax.xaxis.set_major_formatter(
+            mdates.DateFormatter("%Y-%m-%d %H:%M")
+        )
+
+        sub_df["date"] = [mdates.date2num(d) for d in sub_df.index]
+        sub_df.reset_index()
+        quotes = [
+            tuple(x) for x in sub_df[["date", "open", "high", "low", "close"]].values
+        ]
+
+        plt.sca(self._candle_ax)
+        candlestick_ohlc(self._candle_ax, quotes, colorup="g", width=0.0003, alpha=1)
+        plt.sca(self._candle_ax)
+        
+
+
+        plt.title("{}'s candles on {}\n".format(symbol, date))
+        plt.sca(self._candle_ax)
+        # plt.axvline(pd.Timestamp(market_open), color="black", linestyle=":")
+        # plt.axvline(pd.Timestamp(market_close), color="black", linestyle=":")
+        plt.sca(self._candle_ax)
+
+        #self._candle_ax.grid(b=True, which="major", linestyle="-")
+
+        # Now we plot the additional axes, for example volume or RSI or MACD
+        # for el in self._extra_ax:
+        #     plt.sca(self._extra_ax[el]["ax"])
+        #     sub_df[self._extra_ax[el]["data"]].plot()
+        #     self._extra_ax[el]["ax"].grid(b=True, which="major", linestyle="-")
+        plt.tight_layout(pad=5.0, w_pad=5.0, h_pad=5.0)
+
+        if display_pic:
+            plt.show()
+
+        if save_pic:
+            plt.savefig(self.result_folder + "/" + str(date) + "-" + symbol + ".png")
+
+        plt.close()
+
+
+class TradeChart:
     def __init__(self):
         self._title = None
         self._symbol = None
@@ -103,11 +251,11 @@ class TradeChart():
         self._extra_ax[name] = {"data": data, "ax": None, "type": _type}
 
     def draw_date(self, symbol, date, save_pic, display_pic):
-
         md = self.market_data[symbol]
         start_date = datetime(date.year, date.month, date.day, 0, 0)
         market_open, market_close = MarketDataUtils.get_market_open_time_as_datetime(
-            date)
+            date
+        )
         end_date = datetime(date.year, date.month, date.day, 23, 59)
 
         md["SMMA 20"] = md["close"].ewm(span=20, adjust=False).mean()
@@ -120,48 +268,45 @@ class TradeChart():
 
         plt.figure(figsize=(40, 20))
         plt.grid(b=True)
-        self._candle_ax = plt.subplot2grid((tot_rows, 1), (0, 0),
-                                           rowspan=5,
-                                           colspan=1)
+        self._candle_ax = plt.subplot2grid((tot_rows, 1), (0, 0), rowspan=5, colspan=1)
         self._candle_ax.grid(b=True)
         self._candle_ax.xaxis_date()
         self._candle_ax.xaxis.set_major_formatter(
-            mdates.DateFormatter("%Y-%m-%d %H:%M"))
+            mdates.DateFormatter("%Y-%m-%d %H:%M")
+        )
 
         # For each extra indicator chart we want to see in the main chart we need to do
         # some setup
         idx = 0
         for el in self._extra_ax:
-            self._extra_ax[el]["ax"] = plt.subplot2grid((tot_rows, 1),
-                                                        (base_rows + idx, 0),
-                                                        rowspan=1,
-                                                        colspan=1,
-                                                        sharex=self._candle_ax)
+            self._extra_ax[el]["ax"] = plt.subplot2grid(
+                (tot_rows, 1),
+                (base_rows + idx, 0),
+                rowspan=1,
+                colspan=1,
+                sharex=self._candle_ax,
+            )
             idx += 1
 
         # self._variance_ax = plt.subplot2grid(
         #     (tot_rows, 1), (base_rows + 1, 0), rowspan=1, colspan=1, sharex=self._candle_ax)
 
-        sub_df['date'] = [mdates.date2num(d) for d in sub_df.index]
+        sub_df["date"] = [mdates.date2num(d) for d in sub_df.index]
         sub_df.reset_index()
         quotes = [
-            tuple(x)
-            for x in sub_df[['date', 'open', 'high', 'low', 'close']].values
+            tuple(x) for x in sub_df[["date", "open", "high", "low", "close"]].values
         ]
 
         plt.sca(self._candle_ax)
-        candlestick_ohlc(self._candle_ax,
-                         quotes,
-                         colorup='g',
-                         width=0.0003,
-                         alpha=1)
+        candlestick_ohlc(self._candle_ax, quotes, colorup="g", width=0.0003, alpha=1)
 
         day_profit = 0.0
         success = 0
         total = 0.0
         plt.sca(self._candle_ax)
         for position in self.trading_session.get_positions_between_dates(
-                symbol, market_open, market_close):
+            symbol, market_open, market_close
+        ):
             self.draw_position(position)
             profit = position.get_profit()
             day_profit += profit
@@ -171,31 +316,33 @@ class TradeChart():
 
         ratio = 0 if total == 0 else success / total
         plt.sca(self._candle_ax)
-        plt.title("{}'s candles on {}\nProfit: {:.2f}$, Ratio: {:.2f}%".format(
-            symbol, date, day_profit, ratio))
+        plt.title(
+            "{}'s candles on {}\nProfit: {:.2f}$, Ratio: {:.2f}%".format(
+                symbol, date, day_profit, ratio
+            )
+        )
         plt.sca(self._candle_ax)
-        plt.axvline(pd.Timestamp(market_open), color='black', linestyle=':')
-        plt.axvline(pd.Timestamp(market_close), color='black', linestyle=':')
+        plt.axvline(pd.Timestamp(market_open), color="black", linestyle=":")
+        plt.axvline(pd.Timestamp(market_close), color="black", linestyle=":")
         plt.sca(self._candle_ax)
         sub_df["SMMA 20"].plot()
         sub_df["SMMA 50"].plot()
         # sub_df["vwap"].plot(label='vwap')
 
-        self._candle_ax.grid(b=True, which='major', linestyle='-')
+        self._candle_ax.grid(b=True, which="major", linestyle="-")
 
         # Now we plot the additional axes, for example volume or RSI or MACD
         for el in self._extra_ax:
             plt.sca(self._extra_ax[el]["ax"])
             sub_df[self._extra_ax[el]["data"]].plot()
-            self._extra_ax[el]["ax"].grid(b=True, which='major', linestyle='-')
+            self._extra_ax[el]["ax"].grid(b=True, which="major", linestyle="-")
         plt.tight_layout(pad=5.0, w_pad=5.0, h_pad=5.0)
 
         if display_pic:
             plt.show()
 
         if save_pic:
-            plt.savefig(self.result_folder + "/" + str(date) + "-" + symbol +
-                        ".png")
+            plt.savefig(self.result_folder + "/" + str(date) + "-" + symbol + ".png")
 
         plt.close()
 
@@ -205,32 +352,35 @@ class TradeChart():
         open_price = position.get_open_price()
         close_price = position.get_close_price()
         color = "green" if position.get_profit() > 0 else "red"
-        rec = Rectangle((open_time, open_price),
-                        close_time - open_time,
-                        close_price - open_price,
-                        facecolor=color,
-                        alpha=0.2)
+        rec = Rectangle(
+            (open_time, open_price),
+            close_time - open_time,
+            close_price - open_price,
+            facecolor=color,
+            alpha=0.2,
+        )
         self._candle_ax.add_patch(rec)
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+        props = dict(boxstyle="round", facecolor="wheat", alpha=0.8)
         message = "Position: {}\nEntry $ : {:.2f}$\nProfit  : {:.2f}$".format(
-            position.side, open_price, position.get_profit())
-        self._candle_ax.text(open_time,
-                             max(open_price, close_price) + 0.5,
-                             message,
-                             fontsize=10,
-                             verticalalignment='top',
-                             bbox=props)
+            position.side, open_price, position.get_profit()
+        )
+        self._candle_ax.text(
+            open_time,
+            max(open_price, close_price) + 0.5,
+            message,
+            fontsize=10,
+            verticalalignment="top",
+            bbox=props,
+        )
 
     def save_to_file(self, file):
         self._fig.savefig(file)
         plt.close(self._fig)
 
     def add_indicator(self, indicator, in_chart: bool = True):
-        self._indicators.append({
-            "name": indicator.name,
-            "indicator": indicator,
-            "in chart": in_chart
-        })
+        self._indicators.append(
+            {"name": indicator.name, "indicator": indicator, "in chart": in_chart}
+        )
 
     @property
     def title(self):
