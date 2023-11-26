@@ -63,6 +63,15 @@ store-all: install
 	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
 	sqlite3 $$SQLITE_DB_FILE < ./.tmp/`ls -1 .tmp/|grep ALL_SYMBOLS`
 
+store-alphavantage: install
+	source .venv/bin/activate && \
+	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.alphavantage.db" && \
+	for sql_file in `ls -1 ./data/alphavantage/sql/`; \
+	do \
+		echo "Storing $$sql_file in $$SQLITE_DB_FILE"; \
+		sqlite3 $$SQLITE_DB_FILE < ./data/alphavantage/sql/$$sql_file; \
+	done;
+
 store-single: install
 	source .venv/bin/activate && \
 	source .env.prod && \
