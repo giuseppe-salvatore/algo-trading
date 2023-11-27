@@ -3,7 +3,7 @@
 #  This template allows you to validate your python code.
 #  The workflow allows running tests and code linting on the default branch.
 
-image: python:3.8
+image: python:3.10
 
 pipelines:
   default:
@@ -14,7 +14,7 @@ pipelines:
             - pip
           script:
             - apt-get -y update
-            - apt-get -y install sqlite3 xmlstarlet
+            - apt-get -y install sqlite3 xmlstarlet python3-tk
             - python -m venv .venv/
             - source .venv/bin/activate
             - python -m pip install --upgrade pip            
@@ -31,7 +31,7 @@ pipelines:
             - pip
           script:
             - apt-get -y update
-            - apt-get -y install sqlite3 xmlstarlet
+            - apt-get -y install sqlite3 xmlstarlet python3-tk
             - python -m venv .venv/
             - source .venv/bin/activate
             - python -m pip install --upgrade pip            
@@ -59,7 +59,7 @@ pipelines:
             - pip
           script:               
             - apt-get -y update
-            - apt-get -y install sqlite3 xmlstarlet
+            - apt-get -y install sqlite3 xmlstarlet python3-tk
             - python -m venv .venv/
             - source .venv/bin/activate
             - python -m pip install --upgrade pip
