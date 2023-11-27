@@ -4,3 +4,4 @@ python3-pip
 sqlite3
 mysql-server
 xmlstarlet
+python3-tk
