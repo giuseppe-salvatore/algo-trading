@@ -17,7 +17,7 @@ from alpaca.data.requests import StockBarsRequest
 from alpaca.data.historical import StockHistoricalDataClient
 
 
-FIX_MODE = True
+FIX_MODE = False
 
 months = [
     "january",
@@ -125,6 +125,13 @@ def print_sql_transaction(df, symbol):
     return dest_str
 
 
+def get_date_str(date: datetime) -> str:
+    if date is None:
+        return str(datetime.now())[:7]
+    else:
+        return str(date)[:7]
+
+
 def get_start_end_date_for_symbol(sym):
     dates = []
 
@@ -149,14 +156,6 @@ def get_start_end_date_for_symbol(sym):
 def get_start_end_dates():
     dates = []
 
-    # for year in [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]:
-    #     for month in range(1, 13):
-    #         start = datetime(year, month, 1)
-    #         if month + 1 == 13:
-    #             end = datetime(year + 1, 1, 1)
-    #         else:
-    #             end = datetime(year, month + 1, 1)
-    #         dates.append((start, end))
     current_date = datetime.now()
     current_month = current_date.month
     current_year = current_date.year
@@ -193,8 +192,11 @@ def pull_stock_data_for_symbol(symbol, target_month, target_year, months_to_proc
 
     start = time.time()
 
-    destfile = open(
-        ".tmp/{}.sql.{}-{}.sql".format(symbol, months[target_month], target_year), "w"
+    dest_file = open(
+        "data/alpaca/sql/{}-{}.sql".format(
+            symbol, get_date_str(datetime(target_year, target_month, 1))
+        ),
+        "w",
     )
 
     dest_str = "BEGIN TRANSACTION;\n"
@@ -215,7 +217,7 @@ def pull_stock_data_for_symbol(symbol, target_month, target_year, months_to_proc
         success = False
         while success != True:
             try:
-                # keys required for stockdata data
+                # keys required for stock data data
                 client = StockHistoricalDataClient(
                     ALPACA_LIVE_API_KEY, ALPACA_LIVE_SECRET
                 )
@@ -246,8 +248,8 @@ def pull_stock_data_for_symbol(symbol, target_month, target_year, months_to_proc
 
         dest_str = ";".join(dest_str.rsplit(",", 1))
         dest_str += "COMMIT;\n"
-        destfile.write(dest_str)
-        destfile.close()
+        dest_file.write(dest_str)
+        dest_file.close()
 
     end = time.time()
     log.info(
@@ -260,22 +262,20 @@ def pull_stock_data_for_symbol(symbol, target_month, target_year, months_to_proc
 
 
 if __name__ == "__main__":
-    os.makedirs(".tmp/", exist_ok=True)
-
     max_processes = mp.cpu_count()
     max_load = 8
     log.info("Available parallel execution threads: {}".format(max_processes))
 
     start = time.time()
     log.info(
-        "Initialising a multiprocess pool with {} parallel processes".format(
+        "Initializing a multi-process pool with {} parallel processes".format(
             min(mp.cpu_count(), max_load)
         )
     )
     pool = mp.Pool(min(mp.cpu_count(), max_load))
     res = []
 
-    target_month = datetime.now().month - 2
+    target_month = datetime.now().month - 1
     target_year = datetime.now().year
 
     if FIX_MODE is False:
@@ -321,14 +321,17 @@ if __name__ == "__main__":
     pool.close()
     pool.join()
 
-    destfile = open(
-        ".tmp/{}.sql.{}-2023.sql".format("ALL_SYMBOLS", months[target_month]), "w"
+    dest_file = open(
+        "data/alpaca/sql/{}-{}-2023.sql".format(
+            "ALL_SYMBOLS", get_date_str(datetime(target_year, target_month, 1))
+        ),
+        "w",
     )
 
     body_str = ";".join(body_str.rsplit(",", 1))
     body_str += "COMMIT;\n"
-    destfile.write(body_str)
-    destfile.close()
+    dest_file.write(body_str)
+    dest_file.close()
 
     end = time.time()
 

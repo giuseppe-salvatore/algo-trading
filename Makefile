@@ -47,8 +47,7 @@ run:
 
 pull-alpaca: install
 	source .venv/bin/activate && \
-	source .env.test && \
-	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+	source .env.prod && \
 	python -m script.alpaca_market_data_pull
 
 pull-alphavantage: install
@@ -78,10 +77,16 @@ store-single: install
 	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
 	for f in `ls -1 .tmp/|grep sql`; do echo "process $$f"; sqlite3 $$SQLITE_DB_FILE < ./.tmp/$$f; done;
 
-db-info: install
+db-info-alpaca: install
 	source .venv/bin/activate && \
 	source .env.prod && \
-	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.db" && \
+	export SQLITE_DB_FILE="$$(pwd)/data/.backup/stock_data.alpaca.2023-11.db" && \
+	python -m script.get_cache_period
+
+db-info-alphavantage: install
+	source .venv/bin/activate && \
+	source .env.prod && \
+	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.alphavantage.db" && \
 	python -m script.get_cache_period
 
 .PHONY: clean
