@@ -71,6 +71,15 @@ store-alphavantage: install
 		sqlite3 $$SQLITE_DB_FILE < ./data/alphavantage/sql/$$sql_file; \
 	done;
 
+store-alpaca: install
+	source .venv/bin/activate && \
+	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.alpaca.db" && \
+	for sql_file in `ls -1 ./data/alpaca/sql/`; \
+	do \
+		echo "Storing $$sql_file in $$SQLITE_DB_FILE"; \
+		sqlite3 $$SQLITE_DB_FILE < ./data/alpaca/sql/$$sql_file; \
+	done;
+
 store-single: install
 	source .venv/bin/activate && \
 	source .env.prod && \
@@ -80,7 +89,7 @@ store-single: install
 db-info-alpaca: install
 	source .venv/bin/activate && \
 	source .env.prod && \
-	export SQLITE_DB_FILE="$$(pwd)/data/.backup/stock_data.alpaca.2023-11.db" && \
+	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.alpaca.db" && \
 	python -m script.get_cache_period
 
 db-info-alphavantage: install
