@@ -90,8 +90,8 @@ if __name__ == "__main__":
         total_actual = 0
 
         for date in market_dates_in_range:
-            open_time = MarketDataUtils.get_merket_open_time_on_date(exchange_df, date)
-            close_time = MarketDataUtils.get_merket_close_time_on_date(
+            open_time = MarketDataUtils.get_market_open_time_on_date(exchange_df, date)
+            close_time = MarketDataUtils.get_market_close_time_on_date(
                 exchange_df, date
             )
             close_time = close_time - timedelta(minutes=1)
