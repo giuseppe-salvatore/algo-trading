@@ -1,13 +1,13 @@
 from conf.secret import (
-    #    ALPHAVANTAGE_FREE_API_KEY_01,
-    #    ALPHAVANTAGE_FREE_API_KEY_02,
+    ALPHAVANTAGE_FREE_API_KEY_01,
+    ALPHAVANTAGE_FREE_API_KEY_02,
     ALPHAVANTAGE_FREE_API_KEY_03,
-    #    ALPHAVANTAGE_FREE_API_KEY_04,
-    #    ALPHAVANTAGE_FREE_API_KEY_05,
-    #    ALPHAVANTAGE_FREE_API_KEY_06,
-    #    ALPHAVANTAGE_FREE_API_KEY_07,
-    #    ALPHAVANTAGE_FREE_API_KEY_08,
-    #    ALPHAVANTAGE_FREE_API_KEY_09,
+    ALPHAVANTAGE_FREE_API_KEY_04,
+    ALPHAVANTAGE_FREE_API_KEY_05,
+    ALPHAVANTAGE_FREE_API_KEY_06,
+    ALPHAVANTAGE_FREE_API_KEY_07,
+    ALPHAVANTAGE_FREE_API_KEY_08,
+    ALPHAVANTAGE_FREE_API_KEY_09,
 )
 import os
 import requests
@@ -70,7 +70,7 @@ class APIKeyManager:
     def __init__(self):
         self.current_api_key_idx = 0
         self.api_keys = [
-            ALPHAVANTAGE_FREE_API_KEY_03
+            ALPHAVANTAGE_FREE_API_KEY_02
         ]
 
     def get_api_key(self):
@@ -225,9 +225,11 @@ def generate_required_stocks():
     stock_format = "{}-{}"
 
     for year in range(2015, 2001, -1):
-        for month in range(12, 0, -1):
+        for month in range(2, 0, -1):
             with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist:
                 for symbol in watchlist:
+                    if "#" in symbol:
+                        continue
                     required_stocks.append(
                         stock_format.format(
                             symbol[:-1], get_date_str(datetime(year, month, 1))
@@ -244,7 +246,7 @@ if __name__ == "__main__":
 
     for el in stocks:
         if os.path.isfile("data/alphavantage/sql/" + str(el) + ".sql"):
-            log.debug("File {}.sql exists skipping".format(el))
+            pass
         else:
             tokens = el.split("-")
             symbol = tokens[0]

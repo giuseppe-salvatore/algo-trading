@@ -1,5 +1,6 @@
 from lib.market_data_provider.finnhub import FinnhubDataProvider
 from lib.market_data_provider.polygon import PolygonDataProvider
+from lib.market_data_provider.alpaca import AlpacaDataProvider
 
 
 class MarketDataProviderUtils:

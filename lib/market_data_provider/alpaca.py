@@ -7,11 +7,11 @@ from datetime import datetime
 from datetime import timedelta
 from lib.util.logger import log
 from lib.db.manager import DBManager
+from alpaca.data.timeframe import TimeFrame
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.historical import StockHistoricalDataClient
+from conf.secret import ALPACA_LIVE_API_KEY, ALPACA_LIVE_SECRET
 from lib.market_data_provider.market_data_provider import MarketDataProvider, MarketDataUtils
-
-candle_endpoint = "/v1/stock/candle"
-news_endpoint = "/v1/company-news"
-splits_endpoint = "/v1/stock/split"
 
 
 def to_unix_ts(date_time: str):
@@ -19,15 +19,15 @@ def to_unix_ts(date_time: str):
     return str(int(time.mktime(date_time.timetuple())))
 
 
-class FinnhubDataProvider(MarketDataProvider):
+class AlpacaDataProvider(MarketDataProvider):
 
     def __init__(self):
-        self.set_provider_name("Finnhub")
-        self.set_provider_url("https://finnhub.io")
-        self.set_base_url("https://finnhub.io/api")
-        self.api_key = os.environ.get('FINNHUB_API_KEY')
-        if self.api_key is None:
-            self.api_key = config.FINNHUB_API_KEY
+        self.set_provider_name("Alpaca")
+        self.set_provider_url(None)
+        self.set_base_url(None)
+        self.api_key = ALPACA_LIVE_API_KEY
+        self.api_secret = ALPACA_LIVE_SECRET
+        self.client = StockHistoricalDataClient(ALPACA_LIVE_API_KEY, ALPACA_LIVE_SECRET)
 
     def get_key_name(self):
         return "token"
@@ -61,33 +61,6 @@ class FinnhubDataProvider(MarketDataProvider):
                                   format='%Y-%m-%d %H:%M',
                                   exact=False)
         return df
-
-    def get_news(self, symbol: str, start_date: datetime, end_date: datetime):
-        start_date = to_unix_ts(start_date)
-        end_date = to_unix_ts(end_date)
-
-        endpoint = news_endpoint
-        params = {"symbol": symbol, "from": start_date, "to": end_date}
-
-        return self.get(endpoint, params)
-
-    def get_splits(self, symbol: str, start_date: str, end_date: str):
-
-        endpoint = splits_endpoint
-        params = {"symbol": symbol, "from": start_date, "to": end_date}
-
-        res = self.get(endpoint, params)
-        try:
-            json_res = res.json()
-        except Exception as e:
-            log.error("Response not in json format " + res.text)
-            log.error(e)
-            return None
-
-        return json_res
-
-    def get_market_news(self):
-        pass
 
     def get_candles(self,
                     symbol: str,
@@ -145,35 +118,6 @@ class FinnhubDataProvider(MarketDataProvider):
                            end_date: datetime,
                            force_provider_fetch: bool = False,
                            store_fetched_data: bool = False):
-        """
-        Example: https://finnhub.io/api/v1/stock/candle?
-                 symbol=AAPL&resolution=1&from=1572651390&to=1572910590
-
-        Arguments:
-
-        token: apiKey
-
-        symbol: REQUIRED
-        Symbol.
-
-        resolution: REQUIRED
-        Supported resolution includes 1, 5, 15, 30, 60, D, W, M .
-        Some timeframes might not be available depending on the exchange.
-
-        from: REQUIRED
-        UNIX timestamp. Interval initial value. (use datetime.fromtimestamp(from))
-
-        to: REQUIRED
-        UNIX timestamp. Interval end value. (NOTE: this is excluded except
-                        for the first candle of this day at 00:00)
-
-        format: optional
-        By default, format=json. Strings json and csv are accepted.
-
-        adjusted: optional
-        By default, adjusted=false. Use true to get adjusted data.
-
-        """
 
         # Finnhub uses UNIX timestapms to operate with time ranges so we need to convert to datetime
         start_date = MarketDataUtils.from_string_to_datetime(start_date)
@@ -203,26 +147,20 @@ class FinnhubDataProvider(MarketDataProvider):
         start_date = str(int(time.mktime(start_date.timetuple())))
         end_date = str(int(time.mktime(end_date.timetuple())))
 
-        endpoint = candle_endpoint
-        params = {
-            "symbol": symbol,
-            "resolution": "1",
-            "format": "json",
-            "from": start_date,
-            "to": end_date,
-            "adjusted": "true"
-        }
-
-        res = self.get(endpoint, params)
-
         try:
-            json_res = res.json()
+            request_params = StockBarsRequest(
+                symbol_or_symbols=symbol,
+                timeframe=TimeFrame.Minute,
+                start=start_date,
+                end=end_date,
+            )
+
+            bars = self.client.get_stock_bars(request_params)
         except Exception as e:
-            log.error("Response not in json format " + res.text)
             log.error(e)
             return None
 
-        df = self._transform_to_dataframe(json_res, native_tz=True)
+        df = bars.df
         df.drop(pd.Timestamp(end_date_filter), inplace=True, errors='ignore')
 
         if store_fetched_data is True:
