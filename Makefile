@@ -12,9 +12,9 @@ install: prepare
 	python -m pip install -r requirements.txt
 	if [[ $${EUID} > 0 ]]; \
 	then \
-		xargs sudo apt-get install -y < requirements-deb.txt; \
+		xargs sudo DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt; \
 	else \
-		xargs apt-get install -y < requirements-deb.txt; \
+		xargs DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt; \
 	fi
 
 verify: install
@@ -54,7 +54,7 @@ pull-alphavantage: install
 	source .venv/bin/activate && \
 	source .env.prod && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
-	python -m lib.market_data_provider.alphavantage
+	python -m lib.market_data_provider.alphavantage "2014-10" "2014-01"
 
 store-all: install
 	source .venv/bin/activate && \

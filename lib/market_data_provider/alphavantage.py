@@ -10,6 +10,7 @@ from conf.secret import (
     ALPHAVANTAGE_FREE_API_KEY_09,
 )
 import os
+import sys
 import requests
 import pandas as pd
 
@@ -69,9 +70,7 @@ months = [
 class APIKeyManager:
     def __init__(self):
         self.current_api_key_idx = 0
-        self.api_keys = [
-            ALPHAVANTAGE_FREE_API_KEY_02
-        ]
+        self.api_keys = [ALPHAVANTAGE_FREE_API_KEY_02]
 
     def get_api_key(self):
         if self.current_api_key_idx < len(self.api_keys):
@@ -125,7 +124,6 @@ def get_date_str(date: datetime) -> str:
 
 
 def get_sql_insert_from_df(df, symbol: str, year: str, month: str):
-
     dest_file_name = SQL_INSERT_FILE_FORMAT.format(symbol, year + "-" + month)
 
     timer.start("Get SQL INSERT statement")
@@ -176,18 +174,18 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
             )
 
             with requests.Session() as s:
-                log.info("Pulling data for {} year {} and month {}".format(
-                    symbol,
-                    year,
-                    month
-                ))
+                log.info(
+                    "Pulling data for {} year {} and month {}".format(
+                        symbol, year, month
+                    )
+                )
                 log.debug(url)
                 res = s.get(url)
 
                 if res.status_code != 200:
                     raise Exception(
-                        "Error fetching data from Alphavantage API: status code = " +
-                        str(res.status_code)
+                        "Error fetching data from Alphavantage API: status code = "
+                        + str(res.status_code)
                     )
 
                 content = res.content.decode("utf-8")
@@ -220,12 +218,22 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
             raise e
 
 
-def generate_required_stocks():
+def generate_required_stocks(_from: datetime, _to: datetime):
     required_stocks = []
     stock_format = "{}-{}"
 
-    for year in range(2015, 2001, -1):
-        for month in range(2, 0, -1):
+    year = _from.year
+    while year >= _to.year:
+        from_month = 12
+        if year == _from.year:
+            from_month = _from.month
+
+        to_month = 1
+        if year == _to.year:
+            to_month = _to.month
+
+        month = from_month
+        while month >= to_month:
             with open("stocklists/master-watchlist-reduced.txt", "r") as watchlist:
                 for symbol in watchlist:
                     if "#" in symbol:
@@ -235,6 +243,8 @@ def generate_required_stocks():
                             symbol[:-1], get_date_str(datetime(year, month, 1))
                         )
                     )
+            month -= 1
+        year -= 1
 
     return required_stocks
 
@@ -242,7 +252,15 @@ def generate_required_stocks():
 apikey_manager = APIKeyManager()
 
 if __name__ == "__main__":
-    stocks = generate_required_stocks()
+    if len(sys.argv) != 3:
+        raise Exception(
+            """usage: python -m lib.market_data_provider.alphavantage \"start\" \"end\"\nexample: python -m lib.market_data_provider.alphavantage \"2015-12\" \"2010-01\" (note from recent to older)"""
+        )
+
+    from_date = datetime.strptime(sys.argv[1] + "-01", "%Y-%m-%d")
+    to_date = datetime.strptime(sys.argv[2] + "-01", "%Y-%m-%d")
+
+    stocks = generate_required_stocks(from_date, to_date)
 
     for el in stocks:
         if os.path.isfile("data/alphavantage/sql/" + str(el) + ".sql"):
