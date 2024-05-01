@@ -6,10 +6,6 @@ from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 
 from lib.util.logger import log
-# import lib.util.logger as logger
-# logger.setup_logging("BaseStrategy")
-# log = logger.logging.getLogger("BaseStrategy")
-
 
 class DummyStrategy(StockMarketStrategy):
 
@@ -190,13 +186,13 @@ class DummyStrategy(StockMarketStrategy):
         # if candle within strategy trading hours
         # if last candle
         # cancel pending orders
-        # if strategy is daytrading
+        # if strategy is day trading
         # close pending positions
         # else
         # check if active candles have been triggered and generate trades to open/close positions
         # execute strategy actions
         # if in position
-        # update braket orders
+        # update bracket orders
         # submit orders
 
     def set_generated_param(self, params):

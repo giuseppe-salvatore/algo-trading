@@ -82,9 +82,9 @@ class BuyAndHold(StockMarketStrategy):
 
         for trading_date in dates:
             # We extract the open/close market time
-            open_time = MarketDataUtils.get_merket_open_time_on_date(
+            open_time = MarketDataUtils.get_market_open_time_on_date(
                 exchange_datetimes, trading_date).tz_localize(None)
-            close_time: ts.Timestamp = MarketDataUtils.get_merket_close_time_on_date(
+            close_time: ts.Timestamp = MarketDataUtils.get_market_close_time_on_date(
                 exchange_datetimes, trading_date).tz_localize(None)
             # We need to get the close time of the last candle that is at
             # 15:59 (usually). We can't use the close time of the 16:00 candle

@@ -11,10 +11,10 @@ def get_max_capital_invested():
     return max_capital_invested
 
 
-class Trade():
-
-    def __init__(self, symbol: str, quantity: int, price: float, side: str,
-                 date: datetime):
+class Trade:
+    def __init__(
+        self, symbol: str, quantity: int, price: float, side: str, date: datetime
+    ):
         self._date = date
         self._side = side
         self._date = date
@@ -68,13 +68,17 @@ class Trade():
             str_repr += "Bought "
         else:
             str_repr += "Sold "
-        str_repr += str(self.quantity) + " shares at " + \
-            str(self.price) + "$ on " + str(self.date)
+        str_repr += (
+            str(self.quantity) +
+            " shares at " +
+            str(self.price) +
+            "$ on " +
+            str(self.date)
+        )
         return str_repr
 
 
-class Position():
-
+class Position:
     def __init__(self, symbol: str, trade: Trade):
         self.side = "long" if trade.side == "buy" else "short"
         self.open_time = trade.date
@@ -86,16 +90,15 @@ class Position():
 
         # Batches will collect the current status whilst orders the
         # whole history
-        self.batches = [{
-            "quantity": trade.quantity,
-            "price": trade.price
-        }] if trade.side == "buy" else [{
-            "quantity": -trade.quantity,
-            "price": -trade.price
-        }]
+        self.batches = (
+            [{"quantity": trade.quantity, "price": trade.price}]
+            if trade.side == "buy"
+            else [{"quantity": -trade.quantity, "price": -trade.price}]
+        )
 
-        log.debug("Opening {} {} position ({})".format(self.symbol, self.side,
-                                                       trade.quantity))
+        log.debug(
+            "Opening {} {} position ({})".format(self.symbol, self.side, trade.quantity)
+        )
 
         global capital_invested
         global max_capital_invested
@@ -134,8 +137,9 @@ class Position():
     def get_profit(self):
         pl = 0.0
         for t in self.trades:
-            pl += (-(t.price * t.quantity)
-                   if t.side == "buy" else +(t.price * t.quantity))
+            pl += (
+                -(t.price * t.quantity) if t.side == "buy" else +(t.price * t.quantity)
+            )
         return pl
 
     def get_current_profit(self, curr_price):
@@ -160,18 +164,14 @@ class Position():
 
         if trade.side == "buy":
             if self.side == "long":
-                self.batches.append({
-                    "quantity": trade.quantity,
-                    "price": trade.price
-                })
+                self.batches.append({"quantity": trade.quantity, "price": trade.price})
             else:
                 self._remove_shares(trade)
         elif trade.side == "sell":
             if self.side == "short":
-                self.batches.append({
-                    "quantity": -trade.quantity,
-                    "price": -trade.price
-                })
+                self.batches.append(
+                    {"quantity": -trade.quantity, "price": -trade.price}
+                )
             else:
                 self._remove_shares(trade)
         else:
@@ -182,8 +182,11 @@ class Position():
 
         global capital_invested
         if self.get_total_shares() == 0:
-            log.debug("Closing {} {} position (profit = {:.2f})".format(
-                self.symbol, self.side, self.get_profit()))
+            log.debug(
+                "Closing {} {} position (profit = {:.2f})".format(
+                    self.symbol, self.side, self.get_profit()
+                )
+            )
             capital_invested += abs(trade.quantity * trade.price)
 
     def _remove_shares(self, trade: Trade):
@@ -203,15 +206,19 @@ class Position():
                 elif abs(batch["quantity"]) < abs(left_to_trade):
                     left_to_trade += batch["quantity"]
                     batch["quantity"] = 0
-            self.batches = [
-                batch for batch in self.batches if batch["quantity"] != 0
-            ]
+            self.batches = [batch for batch in self.batches if batch["quantity"] != 0]
         else:
             log.error(
-                "Invalid trade cannot {} more than {}, {} not acceptable".
-                format(trade.side, tradable_shares, trade_quantity))
-            raise ValueError("Invalid trade cannot " + trade.side +
-                             " more than " + str(tradable_shares))
+                "Invalid trade cannot {} more than {}, {} not acceptable".format(
+                    trade.side, tradable_shares, trade_quantity
+                )
+            )
+            raise ValueError(
+                "Invalid trade cannot " +
+                trade.side +
+                " more than " +
+                str(tradable_shares)
+            )
 
     def has_leg_orders(self):
         if self.leg_orders["take_profit"] is not None:
@@ -235,11 +242,11 @@ class Position():
     def get_average_entry_price(self):
         average_price = 0.0
         for batch in self.batches:
-            average_price += (batch["quantity"] * batch["price"])
+            average_price += batch["quantity"] * batch["price"]
         return average_price / abs(self.get_total_shares())
 
     def is_open(self):
-        return (False if len(self.batches) == 0 else True)
+        return False if len(self.batches) == 0 else True
 
     def get_trades(self):
         return self.trades
@@ -257,19 +264,26 @@ class Position():
         if self.is_open():
             side = "sell" if self.side == "long" else "buy"
             previous_trade_date: datetime = self.trades[-1].date
-            close_date = datetime.datetime(previous_trade_date.year,
-                                           previous_trade_date.month,
-                                           previous_trade_date.day, date.hour,
-                                           date.minute)
+            close_date = datetime.datetime(
+                previous_trade_date.year,
+                previous_trade_date.month,
+                previous_trade_date.day,
+                date.hour,
+                date.minute,
+            )
             self.update_position(
-                Trade(self.symbol, abs(self.get_total_shares()), price, side,
-                      close_date))
-            log.debug("{}' position liquidated, profit = {:.2f}$".format(
-                self.symbol, self.get_profit()))
+                Trade(
+                    self.symbol, abs(self.get_total_shares()), price, side, close_date
+                )
+            )
+            log.debug(
+                "{}' position liquidated, profit = {:.2f}$".format(
+                    self.symbol, self.get_profit()
+                )
+            )
 
 
-class Candle():
-
+class Candle:
     def __init__(self, idx, data):
         self.date_time = idx
         self.open = data["open"]
@@ -279,8 +293,7 @@ class Candle():
         self.volume = data["volume"]
 
 
-class TradeSession():
-
+class TradeSession:
     def __init__(self):
         self.positions = dict()
         self.orders = dict()
@@ -296,8 +309,7 @@ class TradeSession():
             if latest_position.is_open():
                 latest_position.update_position(trade)
             else:
-                self.positions[trade.symbol].append(
-                    Position(trade.symbol, trade))
+                self.positions[trade.symbol].append(Position(trade.symbol, trade))
 
     def get_orders(self, symbol):
         if symbol in self.orders:
@@ -403,27 +415,25 @@ class TradeSession():
         return min_profit
 
 
-class Order():
-
-    def __init__(self,
-                 symbol: str,
-                 quantity: int,
-                 side: str,
-                 date: datetime,
-                 flavor: str = "market",
-                 limit_price: float = None,
-                 stop_price: float = None,
-                 take_profit_price: float = None,
-                 stop_loss_price: float = None):
-
+class Order:
+    def __init__(
+        self,
+        symbol: str,
+        quantity: int,
+        side: str,
+        date: datetime,
+        flavor: str = "market",
+        limit_price: float = None,
+        stop_price: float = None,
+        take_profit_price: float = None,
+        stop_loss_price: float = None,
+    ):
         # Sanity checks
-        if flavor == 'market' and (limit_price is not None or
-                                   stop_price is not None):
-            raise ValueError(
-                "Market orders can't have limit/stop price specified")
-        if flavor == 'limit' and limit_price is None:
+        if flavor == "market" and (limit_price is not None or stop_price is not None):
+            raise ValueError("Market orders can't have limit/stop price specified")
+        if flavor == "limit" and limit_price is None:
             raise ValueError("Limit orders must have limit price specified")
-        if flavor == 'stop' and stop_price is None:
+        if flavor == "stop" and stop_price is None:
             raise ValueError("Stop orders must have stop price specified")
 
         self._id = "{:032x}".format(random.getrandbits(128))
@@ -453,7 +463,7 @@ class Order():
         return side
 
     def _check_flavor(self, flavor):
-        flavors = ['market', 'limit', 'stop', 'take_profit', 'stop_loss']
+        flavors = ["market", "limit", "stop", "take_profit", "stop_loss"]
         if flavor not in flavors:
             raise ValueError("Order flavor must one of {}".format(flavors))
         return flavor
@@ -464,23 +474,27 @@ class Order():
 
         if self._take_profit_price is not None:
             log.debug("Creating take profit leg order")
-            take_profit_order = Order(self.symbol,
-                                      self.quantity,
-                                      "sell" if self.side == "buy" else "buy",
-                                      self.date,
-                                      flavor='take_profit',
-                                      limit_price=self._take_profit_price)
+            take_profit_order = Order(
+                self.symbol,
+                self.quantity,
+                "sell" if self.side == "buy" else "buy",
+                self.date,
+                flavor="take_profit",
+                limit_price=self._take_profit_price,
+            )
             self._legs_by_id[take_profit_order.id] = take_profit_order
             self._legs_by_type[take_profit_order.flavor] = take_profit_order
 
         if self._stop_loss_price is not None:
             log.debug("Creating stop loss leg order")
-            stop_loss_order = Order(self.symbol,
-                                    self.quantity,
-                                    "sell" if self.side == "buy" else "buy",
-                                    self.date,
-                                    flavor='stop_loss',
-                                    stop_price=self._stop_loss_price)
+            stop_loss_order = Order(
+                self.symbol,
+                self.quantity,
+                "sell" if self.side == "buy" else "buy",
+                self.date,
+                flavor="stop_loss",
+                stop_price=self._stop_loss_price,
+            )
             self._legs_by_id[stop_loss_order.id] = stop_loss_order
             self._legs_by_type[stop_loss_order.flavor] = stop_loss_order
 
@@ -490,26 +504,29 @@ class Order():
             stop_loss_order._linked_with.append(take_profit_order)
 
     def promote(self):
-        if self.flavor == 'take_profit':
-            log.debug("Converting {} {} to limit order".format(
-                self.symbol, self.flavor))
-            self.flavor = 'limit'
-        elif self._flavor == 'stop_loss':
-            log.debug("Converting {} {} to stop order".format(
-                self.symbol, self.flavor))
-            self.flavor = 'stop'
+        if self.flavor == "take_profit":
+            log.debug(
+                "Converting {} {} to limit order".format(self.symbol, self.flavor)
+            )
+            self.flavor = "limit"
+        elif self._flavor == "stop_loss":
+            log.debug("Converting {} {} to stop order".format(self.symbol, self.flavor))
+            self.flavor = "stop"
         else:
-            raise ValueError("Can only promote {}/{} orders this is {}".format(
-                "take_profit", "stop_loss", self.flavor))
+            raise ValueError(
+                "Can only promote {}/{} orders this is {}".format(
+                    "take_profit", "stop_loss", self.flavor
+                )
+            )
 
     def get_stop_loss_order(self):
-        if 'stop_loss' in self._legs_by_type:
-            return self._legs_by_type['stop_loss']
+        if "stop_loss" in self._legs_by_type:
+            return self._legs_by_type["stop_loss"]
         return None
 
     def get_take_profit_order(self):
-        if 'take_profit' in self._legs_by_type:
-            return self._legs_by_type['take_profit']
+        if "take_profit" in self._legs_by_type:
+            return self._legs_by_type["take_profit"]
         return None
 
     def __str__(self):
@@ -630,13 +647,13 @@ class Order():
     def replaced_by(self, val):
         self._replaced_by = val
 
-    def execute(self,
-                price: float = None,
-                execution_time: datetime = datetime.datetime.now()):
-        if self.status != 'new':
+    def execute(
+        self, price: float = None, execution_time: datetime = datetime.datetime.now()
+    ):
+        if self.status != "new":
             raise ValueError(
-                "Cannot execute a order in status other than new \n{}".format(
-                    self))
+                "Cannot execute a order in status other than new \n{}".format(self)
+            )
 
         # First we need to execute/convert the two leg orders
         leg = self.get_take_profit_order()
@@ -647,24 +664,23 @@ class Order():
         if leg is not None:
             leg.execute()
 
-        promotable_orders = ['take_profit', 'stop_loss']
+        promotable_orders = ["take_profit", "stop_loss"]
         if self.flavor in promotable_orders:
             log.debug("Promoting {} order {}".format(self.flavor, self.id))
             self.promote()
             return None
 
-        if self.flavor == 'limit':
+        if self.flavor == "limit":
             price = self.limit_price
-        elif self.flavor == 'stop':
+        elif self.flavor == "stop":
             # TODO this is a best case scenario, we need to make it a bit more relistic
             price = self.stop_price
 
-        trade = Trade(self.symbol, self.quantity, price, self.side,
-                      execution_time)
+        trade = Trade(self.symbol, self.quantity, price, self.side, execution_time)
 
-        self.status = 'executed'
+        self.status = "executed"
 
         return trade
 
     def cancel(self, time: datetime = datetime.datetime.now()):
-        self.status = 'cancelled'
+        self.status = "cancelled"

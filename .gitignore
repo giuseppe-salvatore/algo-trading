@@ -22,3 +22,4 @@ tests/data/test_data.db
 data
 .env.prod 
 .env.test
+*.info

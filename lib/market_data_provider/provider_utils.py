@@ -1,12 +1,12 @@
 from lib.market_data_provider.finnhub import FinnhubDataProvider
 from lib.market_data_provider.polygon import PolygonDataProvider
+from lib.market_data_provider.alpaca import AlpacaDataProvider
 
 
-class MarketDataProviderUtils():
-
+class MarketDataProviderUtils:
     @staticmethod
     def get_available_providers():
-        return ["Finnhub", "Polygon", "Tiingo"]
+        return ["Finnhub", "Polygon", "Tiingo", "Alpaca"]
 
     @staticmethod
     def get_provider(provider_name: str):
@@ -20,6 +20,7 @@ class MarketDataProviderUtils():
             return FinnhubDataProvider()
         elif provider_name == "Polygon":
             return PolygonDataProvider()
+        elif provider_name == "Alpaca":
+            return AlpacaDataProvider()
         else:
-            raise ValueError(
-                "No provider avaialbe named: {}".format(provider_name))
+            raise ValueError("No provider avaialbe named: {}".format(provider_name))

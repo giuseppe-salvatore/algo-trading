@@ -2,16 +2,26 @@ from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.backtest.model import BacktestParams, BacktestSimulation
 from lib.util.charting.drawer import TradeChart, EquityChart
 import lib.util.logger as logger
+
 import matplotlib.pyplot as plt
 import operator
 import pandas as pd
 import multiprocessing as mp
 import matplotlib
-matplotlib.use('TKAgg')
+import os
 
 
 logger.setup_logging("BaseStrategy")
 log = logger.logging.getLogger("BaseStrategy")
+
+# The following workaround is needed because of CI execution
+if os.getenv("CI") is None:
+    log.debug("base.py will be using TKAgg")
+    matplotlib.use('TKAgg')
+else:
+    log.debug("base.py won't be using TKAgg")
+    matplotlib.use("Agg")
+
 
 backtesting_results = []
 results_reported = 0

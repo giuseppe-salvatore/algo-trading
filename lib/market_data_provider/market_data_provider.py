@@ -174,12 +174,12 @@ class MarketDataUtils:
         return exchange_dates
 
     @staticmethod
-    def get_merket_open_time_on_date(exchange_dataframe, date):
+    def get_market_open_time_on_date(exchange_dataframe, date):
         open_close = exchange_dataframe.loc[str(date), :]
         return open_close.loc["market_open"]
 
     @staticmethod
-    def get_merket_close_time_on_date(exchange_dataframe, date):
+    def get_market_close_time_on_date(exchange_dataframe, date):
         open_close = exchange_dataframe.loc[str(date), :]
         return open_close.loc["market_close"]
 
@@ -233,10 +233,12 @@ class MarketDataUtils:
         for i in range(delta_days.days):
             # We check if the day we are interested is actually in a market day
             if tmp_start.date() in exchange_dates.index.date:
+
                 log.debug("Checking candles in date {}".format(tmp_start.date()))
+
                 # Creating a mask to filter between start date and end date, considering
                 # tmp end is always tmp start plus one day and that start date will start
-                # from same date as passed by paramenter but forcing time at 00:00
+                # from same date as passed by parameter but forcing time at 00:00
                 tmp_end = tmp_start + timedelta(days=1)
                 filtered_df = df.loc[tmp_start:tmp_end]
                 filtered_by_time = filtered_df.between_time("9:30", "16:00")

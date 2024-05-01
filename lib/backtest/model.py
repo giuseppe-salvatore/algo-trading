@@ -5,11 +5,11 @@ from lib.util.logger import log
 from lib.trading.generic import TradeSession
 from lib.trading.platform import TradingPlatform
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
+
 # from lib.market_data_provider.market_data_provider import MarketDataUtils
 
 
-class BacktestParams():
-
+class BacktestParams:
     @staticmethod
     def get_param_size():
         return ["default", "light", "small", "medium", "full"]
@@ -38,33 +38,37 @@ class BacktestParams():
                 except Exception:
                     success = False
                     msg += "{} has to be datetime or a string of format {}".format(
-                        param_key, "%Y-%m-%d\n")
+                        param_key, "%Y-%m-%d\n"
+                    )
             else:
                 success = False
                 msg += "{} has to be datetime or a string of format {}".format(
-                    param_key, "%Y-%m-%d\n")
+                    param_key, "%Y-%m-%d\n"
+                )
         return success, msg
 
     @staticmethod
     def validate_param_set(params):
-
         msg = ""
         success = True
 
-        success, msg = BacktestParams.check_param_key("Strategy", params, msg,
-                                                      success)
-        success, msg = BacktestParams.check_param_key("Parameter Size", params,
-                                                      msg, success)
-        success, msg = BacktestParams.check_param_key("Indicator List", params,
-                                                      msg, success)
-        success, msg = BacktestParams.check_param_key("Start Date", params,
-                                                      msg, success)
-        success, msg = BacktestParams.check_param_key("End Date", params, msg,
-                                                      success)
-        success, msg = BacktestParams.check_param_key("Trading Style", params,
-                                                      msg, success)
-        success, msg = BacktestParams.check_param_key("Market Data Provider",
-                                                      params, msg, success)
+        success, msg = BacktestParams.check_param_key("Strategy", params, msg, success)
+        success, msg = BacktestParams.check_param_key(
+            "Parameter Size", params, msg, success
+        )
+        success, msg = BacktestParams.check_param_key(
+            "Indicator List", params, msg, success
+        )
+        success, msg = BacktestParams.check_param_key(
+            "Start Date", params, msg, success
+        )
+        success, msg = BacktestParams.check_param_key("End Date", params, msg, success)
+        success, msg = BacktestParams.check_param_key(
+            "Trading Style", params, msg, success
+        )
+        success, msg = BacktestParams.check_param_key(
+            "Market Data Provider", params, msg, success
+        )
 
         if not success:
             raise ValueError(msg)
@@ -74,7 +78,8 @@ class BacktestParams():
         if params[param] not in BacktestParams.get_param_size():
             success = False
             msg += "{} can only be {} but {} provided instead".format(
-                param, BacktestParams.get_param_size(), params[param])
+                param, BacktestParams.get_param_size(), params[param]
+            )
 
         # Verifying the indicator's list
         param = "Indicator List"
@@ -85,30 +90,34 @@ class BacktestParams():
             if elem not in BacktestParams.get_available_indicators():
                 success = False
                 msg += "{} can only be {} but {} provided instead".format(
-                    param, BacktestParams.get_available_indicators(),
-                    params[param])
+                    param, BacktestParams.get_available_indicators(), params[param]
+                )
 
         # Verifying the start date and end date
         param_key = "Start Date"
-        success, msg = BacktestParams.check_date(param_key, params[param_key],
-                                                 msg, success)
+        success, msg = BacktestParams.check_date(
+            param_key, params[param_key], msg, success
+        )
         param_key = "End Date"
-        success, msg = BacktestParams.check_date(param_key, params[param_key],
-                                                 msg, success)
+        success, msg = BacktestParams.check_date(
+            param_key, params[param_key], msg, success
+        )
 
         # Verifying the trading style
         param = "Trading Style"
         if params[param] not in BacktestParams.get_trading_style():
             success = False
             msg += "{} can only be {} but {} provided instead".format(
-                param, BacktestParams.get_trading_style(), params[param])
+                param, BacktestParams.get_trading_style(), params[param]
+            )
 
         # Verifying the trading style
         param = "Trading Style"
         if params[param] not in BacktestParams.get_trading_style():
             success = False
             msg += "{} can only be {} but {} provided instead".format(
-                param, BacktestParams.get_trading_style(), params[param])
+                param, BacktestParams.get_trading_style(), params[param]
+            )
 
         # Verifying the market data provider
         param = "Market Data Provider"
@@ -116,15 +125,14 @@ class BacktestParams():
         if params[param] not in available_providers:
             success = False
             msg += "{} can only be {} but {} provided instead".format(
-                param, MarketDataProviderUtils.get_available_providers(),
-                params[param])
+                param, MarketDataProviderUtils.get_available_providers(), params[param]
+            )
 
         if not success:
             raise ValueError(msg)
 
 
-class BacktestResult():
-
+class BacktestResult:
     def __init__(self):
         self._total_profit = None
         self._trading_session = TradeSession()
@@ -179,8 +187,7 @@ class BacktestResult():
         self._market_data = val
 
 
-class BacktestSimulation():
-
+class BacktestSimulation:
     def __init__(self):
         self._symbols = None
         self._strategy_class = None
@@ -196,7 +203,6 @@ class BacktestSimulation():
         self._platform = TradingPlatform.get_trading_platform("simulation")
 
     def execute(self):
-
         # start_date = MarketDataUtils.from_string_to_datetime(self.start_date)
         # end_date = MarketDataUtils.from_string_to_datetime(self.end_date)
         # market_dates = MarketDataUtils.get_market_days_in_range(start_date, end_date)
@@ -210,16 +216,22 @@ class BacktestSimulation():
             try:
                 log.info(
                     "Start executing of {} simulation for symbol {}".format(
-                        self.strategy_class.get_name(), symbol))
+                        self.strategy_class.get_name(), symbol
+                    )
+                )
                 strategy = self.strategy_class()
                 strategy.trade_session = self._results.trading_session
                 strategy.platform = self._platform
                 strategy.platform.trading_session = strategy.trade_session
                 strategy.trading_style = self._trading_style
-                strategy.simulate(symbol, self.start_date, self.end_date,
-                                  self.market_data_provider)
-                log.info("Completed executing of {} simulation for symbol {}".
-                         format(self.strategy_class.get_name(), symbol))
+                strategy.simulate(
+                    symbol, self.start_date, self.end_date, self.market_data_provider
+                )
+                log.info(
+                    "Completed executing of {} simulation for symbol {}".format(
+                        self.strategy_class.get_name(), symbol
+                    )
+                )
                 self._results.market_data[symbol] = strategy.market_data
                 self._results.trading_session = strategy.trade_session
             except Exception as e:
@@ -298,7 +310,8 @@ class BacktestSimulation():
         if self._result_folder is None:
             date = datetime.now()
             self._result_folder = "data/simulations/" + date.strftime(
-                "%Y-%m-%d_%h-%M-%s")
+                "%Y-%m-%d_%h-%M-%s"
+            )
             os.makedirs(self._result_folder)
 
         return self._result_folder
