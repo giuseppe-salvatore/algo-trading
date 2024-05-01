@@ -184,8 +184,8 @@ def get_minute_bars_by_month(symbol: str, year: str, month: str):
 
                 if res.status_code != 200:
                     raise Exception(
-                        "Error fetching data from Alphavantage API: status code = "
-                        + str(res.status_code)
+                        "Error fetching data from Alphavantage API: status code = " +
+                        str(res.status_code)
                     )
 
                 content = res.content.decode("utf-8")

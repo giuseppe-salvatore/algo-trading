@@ -63,3 +63,10 @@ make pull    // will pull the actual data from the alpaca API and store it in a 
 make store   // will store the data in the db
 make db-info // will grab the info regarding the symbols in the db
 ```
+
+## MOnthly update ##
+Every beginning of the month run the following make target to pull and store all the data for the previous month (possible to do this with CI). That target will also create a database backup and push into dark-matter server, as well as creating a db.info with stats about the stock data.
+
+```
+make monthly-update-alpaca
+```

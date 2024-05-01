@@ -98,8 +98,15 @@ db-info-alphavantage: install
 	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.alphavantage.db" && \
 	python -m script.get_cache_period
 
-.PHONY: clean
+make-monthly-update:
+	bash script/pull-previous-month-data.sh
+	bash sync-data-with-dark-matter.sh
+
+.PHONY: clean hard-clean
 clean :
-	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache/
-	rm .tmp/*
+	rm -rf .pytest_cache/ test-reports/ .pytest_cache/
+	rm -rf .tmp/*
+
+hard-clean:
+	rm -rf .venv/
 

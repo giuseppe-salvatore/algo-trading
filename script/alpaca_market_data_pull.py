@@ -212,10 +212,12 @@ def pull_stock_data_for_symbol(symbol, target_month, target_year, months_to_proc
     else:
         dates = get_start_end_dates()
 
+    errors = {}
     # Every start and end date corresponds to a month
     for date in dates:
         success = False
-        while success != True:
+        skip = False
+        while success != True and skip == False:
             try:
                 # keys required for stock data data
                 client = StockHistoricalDataClient(
@@ -238,6 +240,10 @@ def pull_stock_data_for_symbol(symbol, target_month, target_year, months_to_proc
 
             except Exception as e:
                 log.error("Exception processing {}".format(symbol))
+                if symbol in errors:
+                    errors[symbol] += 1
+                else:
+                    errors[symbol] = 1
                 log.error(e)
                 log.warning(
                     "We are going too fast, slowing down 5 secs and retrying {}".format(
@@ -245,6 +251,8 @@ def pull_stock_data_for_symbol(symbol, target_month, target_year, months_to_proc
                     )
                 )
                 time.sleep(5)
+                if errors[symbol] > 5:
+                    skip = True
 
         dest_str = ";".join(dest_str.rsplit(",", 1))
         dest_str += "COMMIT;\n"
@@ -277,9 +285,12 @@ if __name__ == "__main__":
 
     target_month = datetime.now().month - 1
     target_year = datetime.now().year
+    if target_month == 0:
+        target_month = 12
+        target_year -= 1
 
     if FIX_MODE is False:
-        log.info("Target month(s) is {}".format(months[target_month]))
+        log.info("Target month(s) is {}".format(months[target_month - 1]))
     else:
         log.info("Using FIX_MODE now")
 
@@ -288,13 +299,14 @@ if __name__ == "__main__":
     if FIX_MODE is False:
         for sym in open("stocklists/master-watchlist-reduced.txt", "r"):
             sym = sym.replace("\n", "")
+            sym = sym.replace("#", "")
             if sym not in symbols:
                 symbols.append(sym)
 
     print(symbols)
     body_str = "BEGIN TRANSACTION;\n"
     body_str += (
-        "INSERT INTO minute_bars (symbol,time,open,close,high,low,volume) VALUES\n"
+        "INSERT OR IGNORE INTO minute_bars (symbol,time,open,close,high,low,volume) VALUES\n"
     )
 
     if FIX_MODE is True:
