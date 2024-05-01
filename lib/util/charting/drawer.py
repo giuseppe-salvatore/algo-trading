@@ -1,17 +1,30 @@
+import os
 import collections
 import pandas as pd
 import matplotlib
+
+import lib.util.logger as logger
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.patches import Rectangle
 
 from datetime import datetime
-from matplotlib.patches import Rectangle
+
 from mplfinance.original_flavor import candlestick_ohlc
 
 from lib.trading.generic import Position
 from lib.market_data_provider.market_data_provider import MarketDataUtils
 
-matplotlib.use("TkAgg")
+logger.setup_logging("Drawer")
+log = logger.logging.getLogger("Drawer")
+
+if os.getenv("CI") is None:
+    log.debug("drawer.py will be using TKAgg")
+    matplotlib.use("TkAgg")
+else:
+    log.debug("drawer.py won't be using TKAgg")
+    matplotlib.use("Agg")
+
 
 class EquityChart:
     def __init__(self):

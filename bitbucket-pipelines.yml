@@ -47,6 +47,8 @@ pipelines:
                 BITBUCKET_USERNAME: $BITBUCKET_USERNAME
                 BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
                 FILENAME: 'pass_rate.svg'
+                CI: 'true'
+                MPLBACKEND: 'Agg'
       - step:
           name: Lint Code
           script:
@@ -75,3 +77,5 @@ pipelines:
                 BITBUCKET_USERNAME: $BITBUCKET_USERNAME
                 BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
                 FILENAME: 'code_coverage.svg'
+                CI: 'true'
+                MPLBACKEND: 'Agg'
