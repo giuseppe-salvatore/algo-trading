@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from datetime import datetime
-from lib.util.logger import log
 from lib.ai.algorithm import QNetwork
 from lib.ai.environment import StockMarketEnv
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils

@@ -1,17 +1,34 @@
-import os
 import pytz
 import time
 import pandas as pd
-import conf.secret as config
 from datetime import datetime
 from datetime import timedelta
 from lib.util.logger import log
 from lib.db.manager import DBManager
-from alpaca.data.timeframe import TimeFrame
-from alpaca.data.requests import StockBarsRequest
+# from alpaca.data.timeframe import TimeFrame
+# from alpaca.data.requests import StockBarsRequest
 from alpaca.data.historical import StockHistoricalDataClient
 from conf.secret import ALPACA_LIVE_API_KEY, ALPACA_LIVE_SECRET
-from lib.market_data_provider.market_data_provider import MarketDataProvider, MarketDataUtils
+from lib.market_data_provider.market_data_provider import (
+    MarketDataProvider,
+    MarketDataUtils,
+)
+
+candle_endpoint = "/v1/stock/candle"
+news_endpoint = "/v1/company-news"
+splits_endpoint = "/v1/stock/split"
+
+# The following is commented out because the linter was complaining
+# but it looks like this piece of code is not used
+
+# request_params = StockBarsRequest(
+#     symbol_or_symbols=symbol,
+#     timeframe=TimeFrame.Minute,
+#     start=date[0],
+#     end=date[1],
+# )
+
+# bars = client.get_stock_bars(request_params)
 
 
 def to_unix_ts(date_time: str):
@@ -20,56 +37,64 @@ def to_unix_ts(date_time: str):
 
 
 class AlpacaDataProvider(MarketDataProvider):
-
     def __init__(self):
         self.set_provider_name("Alpaca")
         self.set_provider_url(None)
         self.set_base_url(None)
-        self.api_key = ALPACA_LIVE_API_KEY
-        self.api_secret = ALPACA_LIVE_SECRET
         self.client = StockHistoricalDataClient(ALPACA_LIVE_API_KEY, ALPACA_LIVE_SECRET)
 
     def get_key_name(self):
         return "token"
 
     def get_key_value(self):
-        return self.api_key
+        return ALPACA_LIVE_API_KEY
 
     def _transform_to_dataframe(self, json_res, native_tz=False):
         result_list = []
-        result_lengh = len(json_res["c"])
+        result_length = len(json_res["c"])
 
-        for i in range(result_lengh):
+        for i in range(result_length):
             if native_tz:
                 date_time = datetime.fromtimestamp(
-                    int(json_res["t"][i]), pytz.timezone('America/New_York'))
+                    int(json_res["t"][i]), pytz.timezone("America/New_York")
+                )
             else:
                 date_time = datetime.fromtimestamp(int(json_res["t"][i]))
 
-            result_list.append({
-                "datetime": date_time.strftime("%Y-%m-%d %H:%M"),
-                "open": json_res["o"][i],
-                "high": json_res["h"][i],
-                "low": json_res["l"][i],
-                "close": json_res["c"][i],
-                "volume": json_res["v"][i]
-            })
+            result_list.append(
+                {
+                    "datetime": date_time.strftime("%Y-%m-%d %H:%M"),
+                    "open": json_res["o"][i],
+                    "high": json_res["h"][i],
+                    "low": json_res["l"][i],
+                    "close": json_res["c"][i],
+                    "volume": json_res["v"][i],
+                }
+            )
 
         df = pd.DataFrame(result_list)
         df.set_index("datetime", inplace=True)
-        df.index = pd.to_datetime(df.index,
-                                  format='%Y-%m-%d %H:%M',
-                                  exact=False)
+        df.index = pd.to_datetime(df.index, format="%Y-%m-%d %H:%M", exact=False)
         return df
 
-    def get_candles(self,
-                    symbol: str,
-                    start_date: datetime,
-                    end_date: datetime,
-                    time_frame: dict,
-                    force_provider_fetch: bool = False,
-                    store_fetched_data: bool = False):
+    def get_news(self, symbol: str, start_date: datetime, end_date: datetime):
+        pass
 
+    def get_splits(self, symbol: str, start_date: str, end_date: str):
+        pass
+
+    def get_market_news(self):
+        pass
+
+    def get_candles(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        time_frame: dict,
+        force_provider_fetch: bool = False,
+        store_fetched_data: bool = False,
+    ):
         tf = time_frame["multiplier"]
         tf += time_frame["timeframe"]
 
@@ -79,14 +104,16 @@ class AlpacaDataProvider(MarketDataProvider):
                 start_date=start_date,
                 end_date=end_date,
                 force_provider_fetch=force_provider_fetch,
-                store_fetched_data=store_fetched_data)
+                store_fetched_data=store_fetched_data,
+            )
         elif time_frame["timeframe"] == "Day":
             df = self.get_daily_candles(
                 symbol=symbol,
                 start_date=start_date,
                 end_date=end_date,
                 force_provider_fetch=force_provider_fetch,
-                store_fetched_data=store_fetched_data)
+                store_fetched_data=store_fetched_data,
+            )
         else:
             raise ValueError("Unexpected time frame candle specificed ")
 
@@ -104,22 +131,25 @@ class AlpacaDataProvider(MarketDataProvider):
 
         return result_df
 
-    def get_daily_candles(self,
-                          symbol: str,
-                          start_date: datetime,
-                          end_date: datetime,
-                          force_provider_fetch: bool = False,
-                          store_fetched_data: bool = False):
+    def get_daily_candles(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        force_provider_fetch: bool = False,
+        store_fetched_data: bool = False,
+    ):
         pass
 
-    def get_minute_candles(self,
-                           symbol: str,
-                           start_date: datetime,
-                           end_date: datetime,
-                           force_provider_fetch: bool = False,
-                           store_fetched_data: bool = False):
-
-        # Finnhub uses UNIX timestapms to operate with time ranges so we need to convert to datetime
+    def get_minute_candles(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        force_provider_fetch: bool = False,
+        store_fetched_data: bool = False,
+    ):
+        # Finnhub uses UNIX time-stamps to operate with time ranges so we need to convert to datetime
         start_date = MarketDataUtils.from_string_to_datetime(start_date)
         end_date = MarketDataUtils.from_string_to_datetime(end_date)
         end_date = end_date + timedelta(days=1)
@@ -127,41 +157,45 @@ class AlpacaDataProvider(MarketDataProvider):
         if force_provider_fetch is False:
             log.debug(
                 "Loading candles from db for {} time between {} {}".format(
-                    symbol, start_date, end_date))
+                    symbol, start_date, end_date
+                )
+            )
             db = DBManager()
             df = db.minute_candles_to_dataframe(symbol, start_date, end_date)
-            if MarketDataUtils.check_candles_in_timeframe(
-                    df, start_date, end_date):
+            if MarketDataUtils.check_candles_in_timeframe(df, start_date, end_date):
                 db.close()
-                log.debug("Successfully fetched {} candles ".format(
-                    df.shape[0]))
+                log.debug("Successfully fetched {} candles ".format(df.shape[0]))
                 df["ny_datetime"] = df.index - pd.DateOffset(hours=4)
                 return df
             else:
-                log.warning(
-                    "No candles available in db, fetching from data provider")
+                log.warning("No candles available in db, fetching from data provider")
 
-        log.debug("Fetching minute candles on " + self.get_provider_name() +
-                  " api")
+        log.debug("Fetching minute candles on " + self.get_provider_name() + " api")
         end_date_filter = end_date.replace(hour=0, minute=0)
         start_date = str(int(time.mktime(start_date.timetuple())))
         end_date = str(int(time.mktime(end_date.timetuple())))
 
-        try:
-            request_params = StockBarsRequest(
-                symbol_or_symbols=symbol,
-                timeframe=TimeFrame.Minute,
-                start=start_date,
-                end=end_date,
-            )
+        endpoint = candle_endpoint
+        params = {
+            "symbol": symbol,
+            "resolution": "1",
+            "format": "json",
+            "from": start_date,
+            "to": end_date,
+            "adjusted": "true",
+        }
 
-            bars = self.client.get_stock_bars(request_params)
+        res = self.get(endpoint, params)
+
+        try:
+            json_res = res.json()
         except Exception as e:
+            log.error("Response not in json format " + res.text)
             log.error(e)
             return None
 
-        df = bars.df
-        df.drop(pd.Timestamp(end_date_filter), inplace=True, errors='ignore')
+        df = self._transform_to_dataframe(json_res, native_tz=True)
+        df.drop(pd.Timestamp(end_date_filter), inplace=True, errors="ignore")
 
         if store_fetched_data is True:
             try:

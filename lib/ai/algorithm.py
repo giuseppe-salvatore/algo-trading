@@ -1,8 +1,5 @@
-import pandas as pd
 import numpy as np
 import tensorflow as tf
-
-from lib.ai.environment import StockMarketEnv
 
 # Neural Network model for Q-learning
 class QNetwork(tf.keras.Model):

@@ -1,11 +1,3 @@
-import numpy as np
-import pandas as pd
-
-from datetime import datetime
-from lib.util.logger import log
-from lib.market_data_provider.provider_utils import MarketDataProviderUtils
-
-
 # Define the stock market environment for reinforcement learning
 class StockMarketEnv:
     def __init__(self, data):
@@ -30,13 +22,13 @@ class StockMarketEnv:
         else:
             next_state = self.data.iloc[self.current_step]
 
-            if action is 'SELL':
+            if action == 'SELL':
                 profit = (current_state['close'] - self.buy_price) * self.shares
                 self.shares = 0
                 self.buy_price = 0
                 reward = profit
                 # print("Profit = {:.2f}".format(profit))
-            elif action is 'BUY':
+            elif action == 'BUY':
                 self.buy_price = current_state['close']
                 self.shares = 10
                 reward = 0

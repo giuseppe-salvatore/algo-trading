@@ -1,13 +1,13 @@
 from conf.secret import (
-    ALPHAVANTAGE_FREE_API_KEY_01,
+    # ALPHAVANTAGE_FREE_API_KEY_01,
     ALPHAVANTAGE_FREE_API_KEY_02,
-    ALPHAVANTAGE_FREE_API_KEY_03,
-    ALPHAVANTAGE_FREE_API_KEY_04,
-    ALPHAVANTAGE_FREE_API_KEY_05,
-    ALPHAVANTAGE_FREE_API_KEY_06,
-    ALPHAVANTAGE_FREE_API_KEY_07,
-    ALPHAVANTAGE_FREE_API_KEY_08,
-    ALPHAVANTAGE_FREE_API_KEY_09,
+    # ALPHAVANTAGE_FREE_API_KEY_03,
+    # ALPHAVANTAGE_FREE_API_KEY_04,
+    # ALPHAVANTAGE_FREE_API_KEY_05,
+    # ALPHAVANTAGE_FREE_API_KEY_06,
+    # ALPHAVANTAGE_FREE_API_KEY_07,
+    # ALPHAVANTAGE_FREE_API_KEY_08,
+    # ALPHAVANTAGE_FREE_API_KEY_09,
 )
 import os
 import sys
@@ -254,7 +254,9 @@ apikey_manager = APIKeyManager()
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         raise Exception(
-            """usage: python -m lib.market_data_provider.alphavantage \"start\" \"end\"\nexample: python -m lib.market_data_provider.alphavantage \"2015-12\" \"2010-01\" (note from recent to older)"""
+            """usage: python -m lib.market_data_provider.alphavantage
+            \"start\" \"end\"\nexample: python -m lib.market_data_provider.alphavantage
+            \"2015-12\" \"2010-01\" (note from recent to older)"""
         )
 
     from_date = datetime.strptime(sys.argv[1] + "-01", "%Y-%m-%d")
