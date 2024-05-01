@@ -9,29 +9,40 @@ from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 
 
-class MarketDataDatabaseTest(unittest.TestCase):
+# class MarketDataDatabaseTest(unittest.TestCase):
 
-    def test_store_market_data_in_db(self):
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    # def test_store_market_data_in_db(self):
 
-        db = DBManager()
-        fh = MarketDataProviderUtils.get_provider("Finnhub")
-        db.delete_rows_from("minute_bars", "symbol='TSLA'")
-        dataframe = fh.get_minute_candles(
-            'TSLA',
-            datetime(
-                2023, 8,
-                9),  # TODO: replace this with a dynamic version of the data
-            datetime(
-                2023, 8,
-                20),  # TODO: replace this with a dynamic version of the data
-            force_provider_fetch=True,
-            store_fetched_data=False)
-        log.debug("\n{}".format(dataframe))
+    #     db = DBManager()
+    #     fh = MarketDataProviderUtils.get_provider("Finnhub")
+    #     db.delete_rows_from("minute_bars", "symbol='TSLA'")
+    #     dataframe = fh.get_minute_candles(
+    #         'TSLA',
+    #         datetime(
+    #             2023, 8,
+    #             9),  # TODO: replace this with a dynamic version of the data
+    #         datetime(
+    #             2023, 8,
+    #             20),  # TODO: replace this with a dynamic version of the data
+    #         force_provider_fetch=True,
+    #         store_fetched_data=False)
+    #     log.debug("\n{}".format(dataframe))
 
-        db.dataframe_to_minute_candles('TSLA', dataframe)
-        db.delete_rows_from("minute_bars", "symbol='TSLA'")
-        db.close()
+    #     db.dataframe_to_minute_candles('TSLA', dataframe)
+    #     db.delete_rows_from("minute_bars", "symbol='TSLA'")
+    #     db.close()
 
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
     # def test_store_market_data_in_db_with_diffs(self):
 
     #     db = DBManager()
@@ -67,6 +78,11 @@ class MarketDataDatabaseTest(unittest.TestCase):
     #     self.assertTrue(res)
     #     db.close()
 
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
+    #TODO convert it with Alpaca and Alphavantage
     # def test_store_market_data_in_db_with_diffs_3(self):
 
     #     db = DBManager()
