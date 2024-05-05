@@ -45,10 +45,15 @@ test:
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 	python -m lib.backtest.runner lib.strategies dummy DummyStrategy
 
-run:
+run-dummy:
 	source .venv/bin/activate && \
 	source .env.prod && \
 	python -m lib.backtest.runner lib.strategies dummy DummyStrategy
+
+run-macrossover:
+	source .venv/bin/activate && \
+	source .env.prod && \
+	python -m lib.backtest.runner lib.strategies macrossover MACrossoverStrategy
 
 pull-alpaca: install
 	source .venv/bin/activate && \
