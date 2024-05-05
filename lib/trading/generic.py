@@ -385,8 +385,8 @@ class TradeSession:
     def get_max_session_profit_for_symbol(self, symbol):
         curr_profit = 0.0
         max_profit = -float("inf")
-        for pos in self.positions[symbol]:
-            print("Profit {:.2f}".format(pos.get_profit()))
+        # for pos in self.positions[symbol]:
+        #     print("Profit {:.2f}".format(pos.get_profit()))
         for pos in self.positions[symbol]:
             curr_profit += pos.get_profit()
             max_profit = max(max_profit, curr_profit)

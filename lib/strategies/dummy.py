@@ -4,7 +4,6 @@ from lib.indicators.moving_average import MovingAverage
 from lib.strategies.base import StockMarketStrategy
 from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
-from lib.market_data_provider.market_data_provider import MarketDataProvider
 
 from lib.util.logger import log
 
@@ -110,7 +109,7 @@ class DummyStrategy(StockMarketStrategy):
                 if curr_position is not None:
                     curr_profit = curr_position.get_current_profit(close_price)
                     if curr_profit >= stop_increase_threshold:
-                        log.error("Increasing threshold to {}".format(
+                        log.warning("Increasing threshold to {}".format(
                             stop_increase_threshold))
                         # time.sleep(1)
                         if curr_position.side == 'buy':
