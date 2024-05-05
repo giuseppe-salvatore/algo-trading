@@ -4,6 +4,7 @@ from lib.indicators.moving_average import MovingAverage
 from lib.strategies.base import StockMarketStrategy
 from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
+from lib.market_data_provider.market_data_provider import MarketDataProvider
 
 from lib.util.logger import log
 
@@ -37,7 +38,7 @@ class DummyStrategy(StockMarketStrategy):
 
         log.debug("Start feeding data on " + symbol)
 
-        self.get_data(symbol, start_date, end_date, "Finnhub")
+        self.get_data(symbol, start_date, end_date, provider)
         df = self.market_data[symbol]
 
         macd_indicator = MACD()

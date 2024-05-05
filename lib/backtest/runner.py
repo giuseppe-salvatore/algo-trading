@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     pd.set_option("mode.chained_assignment", None)
     parallel_process = 4
-    # api = AlpacaTrading()
+
     backtest = BacktestStrategy()
     strategy = importlib.import_module("matplotlib.text")
     strategy_module = __import__(
@@ -28,9 +28,9 @@ if __name__ == "__main__":
         "Parameter Size": "default",
         "Indicator List": ["rsi"],
         "Start Date": "2020-07-15",
-        "End Date": "2020-09-30",
+        "End Date": "2023-09-30",
         "Trading Style": "multiday",
-        "Market Data Provider": "Finnhub",
+        "Market Data Provider": "Alpaca",
     }
     # backtester.run(api, strategy_class, parallel_process)
     # backtest.run_simulation(
@@ -39,4 +39,4 @@ if __name__ == "__main__":
     #     params,
     #     parallel_process
     # )
-    backtest.run_simulation(["AAPL"], params, parallel_process)
+    backtest.run_simulation(["AAPL", "TSLA", "CSCO", "MSFT", "INTC"], params, parallel_process)
