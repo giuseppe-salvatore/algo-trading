@@ -274,9 +274,9 @@ class TradeChart:
         tot_rows = base_rows + len(self._extra_ax)
 
         plt.figure(figsize=(40, 20))
-        plt.grid(b=True)
+        plt.grid()
         self._candle_ax = plt.subplot2grid((tot_rows, 1), (0, 0), rowspan=5, colspan=1)
-        self._candle_ax.grid(b=True)
+        self._candle_ax.grid()
         self._candle_ax.xaxis_date()
         self._candle_ax.xaxis.set_major_formatter(
             mdates.DateFormatter("%Y-%m-%d %H:%M")
@@ -336,13 +336,13 @@ class TradeChart:
         sub_df["SMMA 50"].plot()
         # sub_df["vwap"].plot(label='vwap')
 
-        self._candle_ax.grid(b=True, which="major", linestyle="-")
+        self._candle_ax.grid(which="major", linestyle="-")
 
         # Now we plot the additional axes, for example volume or RSI or MACD
         for el in self._extra_ax:
             plt.sca(self._extra_ax[el]["ax"])
             sub_df[self._extra_ax[el]["data"]].plot()
-            self._extra_ax[el]["ax"].grid(b=True, which="major", linestyle="-")
+            self._extra_ax[el]["ax"].grid(which="major", linestyle="-")
         plt.tight_layout(pad=5.0, w_pad=5.0, h_pad=5.0)
 
         if display_pic:

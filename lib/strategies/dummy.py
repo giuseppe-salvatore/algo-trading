@@ -37,7 +37,7 @@ class DummyStrategy(StockMarketStrategy):
 
         log.debug("Start feeding data on " + symbol)
 
-        self.get_data(symbol, start_date, end_date, "Finnhub")
+        self.get_data(symbol, start_date, end_date, provider)
         df = self.market_data[symbol]
 
         macd_indicator = MACD()
@@ -109,7 +109,7 @@ class DummyStrategy(StockMarketStrategy):
                 if curr_position is not None:
                     curr_profit = curr_position.get_current_profit(close_price)
                     if curr_profit >= stop_increase_threshold:
-                        log.error("Increasing threshold to {}".format(
+                        log.warning("Increasing threshold to {}".format(
                             stop_increase_threshold))
                         # time.sleep(1)
                         if curr_position.side == 'buy':

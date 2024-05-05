@@ -40,9 +40,14 @@ acceptance-test: install
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 	python -m pytest -v bdd/ --junitxml=${REPORT_FILE}
 
-run: 
+test: 
 	source .venv/bin/activate && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
+	python -m lib.backtest.runner lib.strategies dummy DummyStrategy
+
+run:
+	source .venv/bin/activate && \
+	source .env.prod && \
 	python -m lib.backtest.runner lib.strategies dummy DummyStrategy
 
 pull-alpaca: install

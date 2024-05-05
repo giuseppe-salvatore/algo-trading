@@ -340,8 +340,9 @@ class BacktestStrategy:
         )
 
         if param_set["Draw Charts"]:
-            self.generate_equity_charts(simulations, save_pic=True, print_dates=True)
-            self.generate_equity_charts(simulations, save_pic=True, print_dates=False)
+            # TODO Try to understand what you wanted with these equity charts
+            # self.generate_equity_charts(simulations, save_pic=True, print_dates=True)
+            # self.generate_equity_charts(simulations, save_pic=True, print_dates=False)
             self.generate_trading_charts(simulations, save_pic=True, dispaly_pic=False)
 
     def generate_equity_charts(
@@ -355,7 +356,7 @@ class BacktestStrategy:
             chart.starting_capital = 50000
             chart.trading_session = sim.results.trading_session
             chart.result_folder = sim.result_folder
-            chart.draw(sim.results.market_data["SPY"]["SPY"])
+            chart.draw(sim.results.market_data)
 
     def generate_trading_charts(
         self, simulations: BacktestSimulation, save_pic=True, dispaly_pic=False
@@ -377,7 +378,7 @@ class BacktestStrategy:
                     chart.trading_session = sim.results.trading_session
                     chart.result_folder = sim.result_folder
                     chart.add_extra_subchart("volume", "volume", "bar")
-                    chart.add_extra_subchart("variance", "variance", "line")
+                    # chart.add_extra_subchart("variance", "variance", "line")
                     # chart.draw_indicator("vwap")
                     chart.draw_date(symbol, date, save_pic, dispaly_pic)
 

@@ -15,6 +15,7 @@ class MarketDataProviderUtils:
         Currently supported data providers are:
         - Finnhub
         - Polygon
+        - Alpaca
         """
         if provider_name == "Finnhub":
             return FinnhubDataProvider()
