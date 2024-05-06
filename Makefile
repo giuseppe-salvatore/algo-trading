@@ -108,9 +108,10 @@ db-info-alphavantage: install
 	export SQLITE_DB_FILE="$$(pwd)/data/stock_data.alphavantage.db" && \
 	python -m script.get_cache_period
 
+# Note, this should only be running on silver-boxy
 make-monthly-update:
-	bash script/pull-previous-month-data.sh
-	bash sync-data-with-dark-matter.sh
+	bash script/pull-previous-month-data.sh && \
+	bash sync-data-with-dark-matter.sh; \
 
 .PHONY: clean hard-clean
 clean :
