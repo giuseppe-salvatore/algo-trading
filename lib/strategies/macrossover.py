@@ -161,10 +161,10 @@ class MACrossoverStrategy(StockMarketStrategy):
             if manage_trade:
                 if curr_position is not None:
                     curr_profit = curr_position.get_current_profit(close_price)
-                    log.error("Close {:.2f} Curr Profit: {:.2f}".format(
+                    log.debug("Close {:.2f} Curr Profit: {:.2f}".format(
                         close_price, curr_profit))
                     if curr_profit >= curr_stop_increase_threshold and not scaled:
-                        log.error("Increasing threshold to {}".format(
+                        log.debug("Increasing threshold to {}".format(
                             curr_stop_increase_threshold))
                         # scaled = True
                         # time.sleep(1)
@@ -175,7 +175,7 @@ class MACrossoverStrategy(StockMarketStrategy):
                                 'stop_loss').stop_price += 0.6
                             curr_stop = curr_position.get_leg(
                                 'stop_loss').stop_price
-                            log.warning(
+                            log.debug(
                                 "Updating stop ({:.2f}) -> ({:.2f})".format(
                                     prev_stop, curr_stop))
                             prev_profit = curr_position.get_leg(
@@ -184,7 +184,7 @@ class MACrossoverStrategy(StockMarketStrategy):
                                 'take_profit').limit_price += 0.15
                             curr_profit = curr_position.get_leg(
                                 'take_profit').limit_price
-                            log.warning(
+                            log.debug(
                                 "Updating profit ({:.2f}) -> ({:.2f})".format(
                                     prev_profit, curr_profit))
                         if curr_position.side == 'short':
@@ -194,7 +194,7 @@ class MACrossoverStrategy(StockMarketStrategy):
                                 'stop_loss').stop_price -= 0.6
                             curr_stop = curr_position.get_leg(
                                 'stop_loss').stop_price
-                            log.warning(
+                            log.debug(
                                 "Updating stop ({:.2f}) -> ({:.2f})".format(
                                     prev_stop, curr_stop))
 
@@ -204,7 +204,7 @@ class MACrossoverStrategy(StockMarketStrategy):
                                 'take_profit').limit_price -= 0.15
                             curr_profit = curr_position.get_leg(
                                 'take_profit').limit_price
-                            log.warning(
+                            log.debug(
                                 "Updating profit ({:.2f}) -> ({:.2f})".format(
                                     prev_profit, curr_profit))
                         curr_stop_increase_threshold += stop_increase_threshold

@@ -34,7 +34,7 @@ class SimulationPlatform(TradingPlatform):
 
     def get_current_price_for(self, symbol):
         current_price = self.current_candle[symbol].close
-        log.warning("Current price used: " + str(current_price))
+        log.debug("Current price used: " + str(current_price))
         return current_price
 
     def get_current_time_for(self, symbol):

@@ -227,8 +227,7 @@ class MarketDataUtils:
         log.debug("Days in range: {}".format(delta_days.days))
         log.debug("Trading days in range: {}".format(len(exchange_dates.index.date)))
 
-        print(exchange_dates.index.date)
-        print("--------------------------")
+        log.debug(exchange_dates.index.date)
 
         for i in range(delta_days.days):
             # We check if the day we are interested is actually in a market day

@@ -9,6 +9,7 @@ import pandas as pd
 import multiprocessing as mp
 import matplotlib
 import os
+import time
 
 
 logger.setup_logging("BaseStrategy")
@@ -245,6 +246,8 @@ class BacktestStrategy:
     """
 
     def run_simulation(self, symbols: list, param_set, pool_size: int):
+
+        start = time.time()
         BacktestParams.validate_param_set(param_set)
 
         global total_results
@@ -254,30 +257,26 @@ class BacktestStrategy:
         # Get the market days in range
         simulations = []
 
-        pool = mp.Pool(pool_size)
+        for symbol in symbols:
+            simulation = BacktestSimulation()
+            simulation.symbols = [symbol]
+            simulation.start_date = param_set["Start Date"]
+            simulation.end_date = param_set["End Date"]
+            simulation.strategy_class = param_set["Strategy"]
+            simulation.trading_style = param_set["Trading Style"]
+            simulation.indicator_list = param_set["Indicator List"]
+            simulation.market_data_provider = param_set["Market Data Provider"]
 
-        # for symbol in symbols:
-        simulation = BacktestSimulation()
-        simulation.symbols = symbols
-        simulation.start_date = param_set["Start Date"]
-        simulation.end_date = param_set["End Date"]
-        simulation.strategy_class = param_set["Strategy"]
-        simulation.trading_style = param_set["Trading Style"]
-        simulation.indicator_list = param_set["Indicator List"]
-        simulation.market_data_provider = param_set["Market Data Provider"]
-
-        pool.apply_async(simulation.execute, callback=collect_simulation)
+            pool.apply_async(simulation.execute, callback=collect_simulation)
 
         pool.close()
         pool.join()
-
+        end = time.time()
         log.info("Simulations completed, storing results now")
-
-        log.info("Simulations executed: {}".format(len(simulations)))
 
         total_profit = 0.0
         total_trades = 0
-        won_trades = 0.0
+        won_trades = 0
         for simulation in simulations:
             trading_session = simulation.results.trading_session
             total_profit += trading_session.get_total_profit()
@@ -333,11 +332,14 @@ class BacktestStrategy:
         if total_trades == 0:
             log.warning("No trades performed")
             return
-        log.info("Overall profit : {:.2f}$".format(total_profit))
-        log.info("Overall trades : {}".format(total_trades))
-        log.info(
-            "Overall winners: {:.0f}%".format(won_trades / float(total_trades) * 100)
-        )
+
+        log.info("Simulations stats")
+        log.info(f" - Total executed: {len(simulations)}")
+        log.info(f" - Total time    : {(end - start):.2f} secs")
+        log.info(f" - Total profit  : {total_profit:.2f}$")
+        log.info(f" - Total trades  : {total_trades}")
+        log.info(f" - Total won     : {won_trades}")
+        log.info(f" - Perc. winners : {(won_trades / float(total_trades) * 100):.2f}%")
 
         if param_set["Draw Charts"]:
             # TODO Try to understand what you wanted with these equity charts
@@ -368,8 +370,6 @@ class BacktestStrategy:
             dates = MarketDataUtils.get_market_days_in_range(
                 sim.start_date, sim.end_date
             )
-
-            print(sim.results.market_data.keys())
 
             for symbol in sim.symbols:
                 for date in dates:

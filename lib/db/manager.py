@@ -36,7 +36,7 @@ class DBManager:
         if not os.path.exists(db_file):
             log.fatal("Database file doesn't exist: {}".format(db_file))
         else:
-            log.info("Found database file: {}".format(db_file))
+            log.debug("Found database file: {}".format(db_file))
 
         self.conn = self._create_connection(db_file)
 

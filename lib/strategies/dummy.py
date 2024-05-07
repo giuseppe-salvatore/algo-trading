@@ -76,7 +76,7 @@ class DummyStrategy(StockMarketStrategy):
                 self.platform.print_all_orders()
                 log.debug("Total trades = {}".format(
                     self.platform.trading_session.get_total_trades()))
-                for pos in self.platform.trading_session.get_positions("AAPL"):
+                for pos in self.platform.trading_session.get_positions(symbol):
                     log.debug("{}".format(pos))
                 break
 
@@ -109,7 +109,7 @@ class DummyStrategy(StockMarketStrategy):
                 if curr_position is not None:
                     curr_profit = curr_position.get_current_profit(close_price)
                     if curr_profit >= stop_increase_threshold:
-                        log.warning("Increasing threshold to {}".format(
+                        log.debug("Increasing threshold to {}".format(
                             stop_increase_threshold))
                         # time.sleep(1)
                         if curr_position.side == 'buy':
