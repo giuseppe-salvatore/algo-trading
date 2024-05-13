@@ -3,15 +3,14 @@ from lib.util.logger import log
 from lib.trading.generic import TradeSession, Trade, Order, Candle, Position
 
 
-class TradingPlatform():
+class TradingPlatform:
 
     @staticmethod
     def get_trading_platform(platform_name):
         if platform_name == "simulation":
             return SimulationPlatform()
         else:
-            raise ValueError(
-                "Unknown trading platform: {}".format(platform_name))
+            raise ValueError("Unknown trading platform: {}".format(platform_name))
 
 
 class SimulationPlatform(TradingPlatform):
@@ -23,6 +22,8 @@ class SimulationPlatform(TradingPlatform):
         self.rejected_orders = dict()
         self.trading_session = TradeSession()
         self.current_candle = dict()
+        self.available_cash = 0
+        self.equity_df = None
 
     def clear(self):
         self.active_orders = dict()
@@ -31,6 +32,8 @@ class SimulationPlatform(TradingPlatform):
         self.rejected_orders = dict()
         self.trading_session = TradeSession()
         self.current_candle = dict()
+        self.available_cash = 0
+        self.equity_df = None
 
     def get_current_price_for(self, symbol):
         current_price = self.current_candle[symbol].close
@@ -56,6 +59,19 @@ class SimulationPlatform(TradingPlatform):
 
         return None
 
+    def deposit(self, amount):
+        self.available_cash += amount
+        log.debug(f"Deposit {amount}$ -> New cash balance = {self.available_cash}")
+
+    def withdraw(self, amount):
+        if self.available_cash >= amount:
+            self.available_cash -= amount
+            log.debug(f"Withdraw {amount}$ -> New cash balance = {self.available_cash}")
+        else:
+            raise Exception(
+                f"Can't withdraw {amount} as balance is {self.available_cash}"
+            )
+
     def tick(self, symbol: str, candle: Candle):
         # log.debug(" Platform Tick - {} {:.2f} (H:{:.2f},L:{:.2f}) ".format(
         #     candle.date_time,
@@ -68,24 +84,24 @@ class SimulationPlatform(TradingPlatform):
 
     def _check_limit_order(self, lo: Order):
         low = self.current_candle[lo.symbol].low
-        if lo.side == 'buy' and lo.limit_price >= low:
+        if lo.side == "buy" and lo.limit_price >= low:
             log.debug(
-                "Triggering limit buy order low price {:.2f} <= current price {:.2f}"
-                .format(
+                "Triggering limit buy order low price {:.2f} <= current price {:.2f}".format(
                     low,
                     lo.limit_price,
-                ))
+                )
+            )
             self._execute_order(lo.id)
             return True
 
         high = self.current_candle[lo.symbol].high
-        if lo.side == 'sell' and lo.limit_price <= high:
+        if lo.side == "sell" and lo.limit_price <= high:
             log.debug(
-                "Triggering limit sell order high price {:.2f} >= sell limit {:.2f}"
-                .format(
+                "Triggering limit sell order high price {:.2f} >= sell limit {:.2f}".format(
                     high,
                     lo.limit_price,
-                ))
+                )
+            )
             self._execute_order(lo.id)
             return True
 
@@ -93,20 +109,22 @@ class SimulationPlatform(TradingPlatform):
 
     def _check_stop_order(self, lo: Order):
         high = self.current_candle[lo.symbol].high
-        if lo.side == 'buy' and lo.stop_price <= self.current_candle[
-                lo.symbol].high:
+        if lo.side == "buy" and lo.stop_price <= self.current_candle[lo.symbol].high:
             log.debug(
-                "Triggering stop buy order high price {:.2f} >= current price {:.2f}"
-                .format(high, lo.stop_price))
+                "Triggering stop buy order high price {:.2f} >= current price {:.2f}".format(
+                    high, lo.stop_price
+                )
+            )
             self._execute_order(lo.id)
             return True
 
         low = self.current_candle[lo.symbol].low
-        if lo.side == 'sell' and lo.stop_price >= self.current_candle[
-                lo.symbol].low:
+        if lo.side == "sell" and lo.stop_price >= self.current_candle[lo.symbol].low:
             log.debug(
-                "Triggering stop sell order low price {:.2f} <= current price {:.2f}"
-                .format(low, lo.stop_price))
+                "Triggering stop sell order low price {:.2f} <= current price {:.2f}".format(
+                    low, lo.stop_price
+                )
+            )
             self._execute_order(lo.id)
             return True
 
@@ -119,54 +137,86 @@ class SimulationPlatform(TradingPlatform):
             if order_id in self.active_orders:
                 o: Order = self.active_orders[order_id]
                 if o.symbol == symbol:
-                    if o.flavor == 'limit':
+                    if o.flavor == "limit":
                         if self._check_limit_order(o):
                             orders_executed += 1
-                    elif o.flavor == 'stop':
+                    elif o.flavor == "stop":
                         if self._check_stop_order(o):
                             orders_executed += 1
         return True if orders_executed > 0 else False
 
-    def submit_order(self,
-                     symbol: str,
-                     quantity: int,
-                     side: str,
-                     date: datetime,
-                     flavor: str = "market",
-                     limit_price: float = None,
-                     stop_price: float = None,
-                     take_profit_price: float = None,
-                     stop_loss_price: float = None):
-        order = Order(symbol, quantity, side, date, flavor, limit_price,
-                      stop_price, take_profit_price, stop_loss_price)
+    def submit_order(
+        self,
+        symbol: str,
+        quantity: int,
+        side: str,
+        date: datetime,
+        flavor: str = "market",
+        limit_price: float = None,
+        stop_price: float = None,
+        take_profit_price: float = None,
+        stop_loss_price: float = None,
+    ):
+        order = Order(
+            symbol,
+            quantity,
+            side,
+            date,
+            flavor,
+            limit_price,
+            stop_price,
+            take_profit_price,
+            stop_loss_price,
+        )
 
         close_price = self.current_candle[symbol].close
-        if order.side == 'buy':
+        if order.side == "buy":
             # TODO we need proper limits here
             if take_profit_price is not None and take_profit_price <= close_price:
                 raise ValueError(
-                    "{} {} {} order's take profit price {:.2f} below current close price {:.2f}"
-                    .format(order.symbol, order.flavor, 'buy',
-                            take_profit_price, close_price))
+                    "{} {} {} order's take profit price {:.2f} below current close price {:.2f}".format(
+                        order.symbol,
+                        order.flavor,
+                        "buy",
+                        take_profit_price,
+                        close_price,
+                    )
+                )
             # TODO we need proper limits here
             if stop_loss_price is not None and stop_loss_price >= close_price:
                 raise ValueError(
-                    "{} {} {} order's stop_loss price {:.2f} above current close price {:.2f}"
-                    .format(order.symbol, order.flavor, 'sell',
-                            stop_loss_price, close_price))
-        if order.side == 'sell':
+                    "{} {} {} order's stop_loss price {:.2f} above current close price {:.2f}".format(
+                        order.symbol, order.flavor, "sell", stop_loss_price, close_price
+                    )
+                )
+
+            if order.flavor == "market":
+                order_amount = order.quantity * self.get_current_price_for(order.symbol)
+                if order_amount > self.available_cash:
+                    raise ValueError(
+                        f"Rejecting market buy order for {order.symbol} as order amount "
+                        "{order_amount}$ is less than available cash {self.available_cash}"
+                    )
+
+        if order.side == "sell":
             # TODO we need proper limits here
             if take_profit_price is not None and take_profit_price >= close_price:
                 raise ValueError(
-                    "{} {} {} order's take profit price {:.2f} above current close price {:.2f}"
-                    .format(order.symbol, order.flavor, 'sell',
-                            take_profit_price, close_price))
+                    "{} {} {} order's take profit price {:.2f} above current close price {:.2f}".format(
+                        order.symbol,
+                        order.flavor,
+                        "sell",
+                        take_profit_price,
+                        close_price,
+                    )
+                )
             # TODO we need proper limits here
             if stop_loss_price is not None and stop_loss_price <= close_price:
                 raise ValueError(
-                    "{} {} {} order's stop_loss price {:.2f} below current close price {:.2f}"
-                    .format(order.symbol, order.flavor, 'buy', stop_loss_price,
-                            close_price))
+                    "{} {} {} order's stop_loss price {:.2f} below current close price {:.2f}".format(
+                        order.symbol, order.flavor, "buy", stop_loss_price, close_price
+                    )
+                )
 
         log.debug("Activating {} order\n{}".format(order.flavor, order))
         self.active_orders[order.id] = order
@@ -182,11 +232,15 @@ class SimulationPlatform(TradingPlatform):
             self.active_orders[stop_loss_order.id] = stop_loss_order
             # TODO self.trading_session.get_orders(symbols)
 
-        if order.flavor == 'market':
+        if order.flavor == "market":
             log.debug(
-                "Executing market {} {} ({}) order right away filled at {:.2f}"
-                .format(order.side, order.symbol, order.id[:6],
-                        self.current_candle[symbol].close))
+                "Executing market {} {} ({}) order right away filled at {:.2f}".format(
+                    order.side,
+                    order.symbol,
+                    order.id[:6],
+                    self.current_candle[symbol].close,
+                )
+            )
             self._execute_order(order.id)
 
         return order.id
@@ -208,32 +262,36 @@ class SimulationPlatform(TradingPlatform):
     def _execute_order(self, order_id):
         if order_id not in self.active_orders:
             raise ValueError(
-                "Cannot execute order not in active order list {}".format(
-                    order_id))
+                "Cannot execute order not in active order list {}".format(order_id)
+            )
         order: Order = self.active_orders[order_id]
-        log.debug("Executing {} {} {} order".format(order.symbol, order.flavor,
-                                                    order.side))
+        log.debug(
+            "Executing {} {} {} order".format(order.symbol, order.flavor, order.side)
+        )
 
         # leg orders don't generate a trade when executed, they are only converted
-        trade: Trade = order.execute(self.get_current_price_for(order.symbol),
-                                     self.get_current_time_for(order.symbol))
-        leg_order_type = ['take_profit', 'stop_loss']
+        trade: Trade = order.execute(
+            self.get_current_price_for(order.symbol),
+            self.get_current_time_for(order.symbol),
+        )
+        leg_order_type = ["take_profit", "stop_loss"]
         if order.flavor not in leg_order_type:
             if trade is None:
                 raise ValueError(
-                    "Execution of {} {} {} order should have generated a trade"
-                    .format(order.symbol, order.flavor, order.side))
+                    "Execution of {} {} {} order should have generated a trade".format(
+                        order.symbol, order.flavor, order.side
+                    )
+                )
             del self.active_orders[order.id]
             self.executed_orders[order.id] = order
             self.trading_session.add_trade(trade)
-            position: Position = self.trading_session.get_current_position(
-                trade.symbol)
+            position: Position = self.trading_session.get_current_position(trade.symbol)
             if position is not None:
-                if 'take_profit' in order._legs_by_type:
-                    tp = order._legs_by_type['take_profit']
+                if "take_profit" in order._legs_by_type:
+                    tp = order._legs_by_type["take_profit"]
                     position.set_take_profit(tp)
-                if 'stop_loss' in order._legs_by_type:
-                    sl = order._legs_by_type['stop_loss']
+                if "stop_loss" in order._legs_by_type:
+                    sl = order._legs_by_type["stop_loss"]
                     position.set_stop_loss(sl)
 
             # We need to cancel all the linked orders, i.e. both legs of a bracket order must be
@@ -248,7 +306,9 @@ class SimulationPlatform(TradingPlatform):
         if order_id not in self.active_orders:
             raise ValueError(
                 "Expected {} {} {} order to be active ({})".format(
-                    order.symbol, order.flavor, order.side, order.side))
+                    order.symbol, order.flavor, order.side, order.side
+                )
+            )
 
         log.debug("Cancelling {} order\n{}".format(order.flavor, order))
         del self.active_orders[order_id]
