@@ -41,5 +41,7 @@ if __name__ == "__main__":
     #     params,
     #     parallel_process
     # )
-    backtest.run_simulation(["AAPL", "TSLA", "INTC", "SPY", "QQQ", "MSFT",
-                            "AMD", "V", "NVDA", "GM", "AXP"], params, parallel_process)
+    # backtest.run_simulation(["AAPL", "TSLA", "INTC", "SPY", "QQQ", "MSFT",
+    #                        "AMD", "V", "NVDA", "GM", "AXP"], params, parallel_process)
+
+    backtest.run_simulation(["AAPL"], params, parallel_process)
