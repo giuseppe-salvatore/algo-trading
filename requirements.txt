@@ -22,3 +22,4 @@ pytest
 pytest-bdd
 pytest-html
 flake8
+pre-commit
