@@ -12,9 +12,9 @@ install: prepare
 	python -m pip install -r requirements.txt
 	if [[ $${EUID} > 0 ]]; \
 	then \
-		xargs sudo DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt; \
+		xargs sudo DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt > /dev/null;\
 	else \
-		xargs DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt; \
+		xargs DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt > /dev/null;\
 	fi
 
 verify: install
