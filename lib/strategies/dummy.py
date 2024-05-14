@@ -5,6 +5,7 @@ from lib.strategies.base import StockMarketStrategy
 from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 
+from lib.trading.platform import SimulationPlatform
 from lib.util.logger import log
 
 class DummyStrategy(StockMarketStrategy):
@@ -18,7 +19,7 @@ class DummyStrategy(StockMarketStrategy):
         self.market_data = dict()
         # self.trade_session = self.platform.trading_session
         self.trade_session = None
-        self.platform = None
+        self.platform: SimulationPlatform = None
 
     @staticmethod
     def get_name():
@@ -34,6 +35,11 @@ class DummyStrategy(StockMarketStrategy):
             store_fetched_data=False)
 
     def simulate(self, symbol, start_date, end_date, provider):
+
+        initial_deposit = 100000
+
+        self.platform.deposit(initial_deposit)
+        log.debug(f"Initial deposit of {initial_deposit} as available cash")
 
         log.debug("Start feeding data on " + symbol)
 

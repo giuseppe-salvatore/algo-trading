@@ -1,11 +1,12 @@
 from datetime import datetime
 from lib.trading.platform import Order, TradingPlatform, SimulationPlatform, Candle
-from pytest_bdd import scenario, given, when, then
+from pytest_bdd import scenario, given, when, then, parsers
 
 trading_platform: SimulationPlatform = TradingPlatform.get_trading_platform(
     "simulation")
 submitted_limit_order_id = None
 submitted_market_order_id = None
+got_value_error = False
 
 
 @scenario('../features/orders.feature', 'Placing a bracket limit order')
@@ -17,11 +18,16 @@ def test_bracket_limit_order():
 def test_bracket_market_order():
     pass
 
+@scenario('../features/orders.feature', 'Placing a market order above the available cash balance')
+def test_buy_order_above_balance():
+    pass
+
 
 @given("I submit a bracket market order to buy 10 AAPL stocks")
-def place_braket_market_order():
+def place_bracket_market_order():
     global submitted_market_order_id
     trading_platform.clear()
+    trading_platform.deposit(10000)
     candle = Candle(datetime.now(), {
         "high": 10,
         "low": 10,
@@ -80,9 +86,10 @@ def the_stop_order_is_cancelled():
 
 
 @given("I submit a bracket limit order to buy 10 AAPL stocks")
-def place_braket_limit_order():
+def place_bracket_limit_order():
     global submitted_limit_order_id
     trading_platform.clear()
+    trading_platform.deposit(10000)
     candle = Candle(datetime.now(), {
         "high": 10,
         "low": 10,
@@ -120,7 +127,7 @@ def check_position():
     assert positions[0].symbol == 'AAPL'
 
 
-@then("the take profit leg is coverted in a limit order")
+@then("the take profit leg is converted in a limit order")
 def check_take_profit_order():
     submitted_limit_order: Order = trading_platform.get_order(
         submitted_limit_order_id)
@@ -136,3 +143,43 @@ def check_stop_loss_order():
     stop_loss_order: Order = submitted_limit_order.get_stop_loss_order()
     assert stop_loss_order is not None
     assert stop_loss_order.flavor == "stop"
+
+
+@given(parsers.parse("I have {amount}$ available in my cash balance"))
+def set_initial_balance(amount):
+    trading_platform.clear()
+    trading_platform.deposit(int(amount))
+
+@given(parsers.parse("the {symbol} stock price is {unit_price}$ per unit"))
+def set_stock_price(symbol, unit_price):
+    unit_price = int(unit_price)
+    candle = Candle(datetime.now(), {
+        "high": unit_price,
+        "low": unit_price,
+        "open": unit_price,
+        "close": unit_price,
+        "volume": 5000,
+    })
+    trading_platform.tick(symbol, candle)
+
+@when(parsers.parse("I submit a market buy order for {quantity} {symbol} stocks"))
+def place_market_buy_order(quantity, symbol):
+    global got_value_error
+    try:
+        trading_platform.submit_order(
+            symbol=symbol,
+            quantity=int(quantity),
+            side='buy',
+            flavor='market',
+            date=datetime.now())
+    except Exception:
+        got_value_error = True
+
+@then("the order should be rejected")
+def get_order_status():
+    global got_value_error
+    assert got_value_error is True
+
+@then(parsers.parse("my cash balance should be {amount}$"))
+def check_cash_balance(amount):
+    assert trading_platform.available_cash == int(amount)

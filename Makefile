@@ -38,7 +38,7 @@ unit-test: install
 acceptance-test: install
 	source .venv/bin/activate && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
-	python -m pytest -v bdd/ --junitxml=${REPORT_FILE}
+	python -m pytest -v bdd/scenarios/* --junitxml=${REPORT_FILE}
 
 test: 
 	source .venv/bin/activate && \

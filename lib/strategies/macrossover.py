@@ -47,6 +47,11 @@ class MACrossoverStrategy(StockMarketStrategy):
         return ma.calculate(data)
 
     def simulate(self, symbol, start_date, end_date, market_data_provider):
+
+        initial_deposit = 100000
+        self.platform.deposit(initial_deposit)
+        log.debug(f"Initial deposit of {initial_deposit} as available cash")
+
         log.debug("Running simulation on " + symbol)
 
         data_provider = MarketDataProviderUtils.get_provider(

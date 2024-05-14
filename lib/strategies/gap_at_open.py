@@ -6,6 +6,7 @@ from lib.trading.generic import Trade, Position
 from lib.strategies.base import StockMarketStrategy
 
 from lib.util.logger import log
+
 # import lib.util.logger as logger
 # logger.setup_logging("BaseStrategy")
 # log = logger.logging.getLogger("BaseStrategy")
@@ -16,7 +17,7 @@ class GapAtOpenStrategy(StockMarketStrategy):
     def __init__(self):
         super().__init__()
         self.params = None
-        self.name = 'gaps'
+        self.name = "gaps"
         self.long_name = "Gaps At Open Strategy"
 
         self.result_folder = "strategies/" + self.name + "/backtesting/"
@@ -32,14 +33,16 @@ class GapAtOpenStrategy(StockMarketStrategy):
         return
 
     def simulate(self, symbol):
+
+        initial_deposit = 100000
+        self.platform.deposit(initial_deposit)
+        log.debug(f"Initial deposit of {initial_deposit} as available cash")
+
         log.debug("Running simulation on " + symbol)
 
-        t1 = Trade(symbol, 10, 10.0, "buy",
-                   datetime.datetime(2020, 10, 10, 10, 10, 0))
-        t2 = Trade(symbol, 15, 5.0, "buy",
-                   datetime.datetime(2020, 10, 10, 10, 20, 0))
-        t3 = Trade(symbol, 25, 10.0, "sell",
-                   datetime.datetime(2020, 10, 10, 10, 30, 0))
+        t1 = Trade(symbol, 10, 10.0, "buy", datetime.datetime(2020, 10, 10, 10, 10, 0))
+        t2 = Trade(symbol, 15, 5.0, "buy", datetime.datetime(2020, 10, 10, 10, 20, 0))
+        t3 = Trade(symbol, 25, 10.0, "sell", datetime.datetime(2020, 10, 10, 10, 30, 0))
 
         p = Position(symbol, t1)
         p.update_position(t2)
