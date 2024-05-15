@@ -7,21 +7,28 @@ trading_platform: SimulationPlatform = TradingPlatform.get_trading_platform(
 submitted_limit_order_id = None
 submitted_market_order_id = None
 got_value_error = False
+order_id = None
 
 
 @scenario('../features/orders.feature', 'Placing a bracket limit order')
 def test_bracket_limit_order():
     pass
 
-
 @scenario('../features/orders.feature', 'Placing a bracket market order')
 def test_bracket_market_order():
     pass
 
-@scenario('../features/orders.feature', 'Placing a market order above the available cash balance')
+@scenario('../features/orders.feature', 'Placing a buy market order above the available cash balance')
 def test_buy_order_above_balance():
     pass
 
+@scenario('../features/orders.feature', 'Placing a buy market order below the available cash balance')
+def test_buy_order_below_balance():
+    pass
+
+@scenario('../features/orders.feature', 'Placing a sell market order below the available cash balance')
+def test_sell_order_below_balance():
+    pass
 
 @given("I submit a bracket market order to buy 10 AAPL stocks")
 def place_bracket_market_order():
@@ -144,6 +151,10 @@ def check_stop_loss_order():
     assert stop_loss_order is not None
     assert stop_loss_order.flavor == "stop"
 
+@given(parsers.parse("no open positions with {symbol}"))
+def check_no_open_positions_for_symbol(symbol):
+    position = trading_platform.trading_session.get_current_position(symbol)
+    assert position is None
 
 @given(parsers.parse("I have {amount}$ available in my cash balance"))
 def set_initial_balance(amount):
@@ -165,8 +176,9 @@ def set_stock_price(symbol, unit_price):
 @when(parsers.parse("I submit a market buy order for {quantity} {symbol} stocks"))
 def place_market_buy_order(quantity, symbol):
     global got_value_error
+    global order_id
     try:
-        trading_platform.submit_order(
+        order_id = trading_platform.submit_order(
             symbol=symbol,
             quantity=int(quantity),
             side='buy',
@@ -175,10 +187,32 @@ def place_market_buy_order(quantity, symbol):
     except Exception:
         got_value_error = True
 
+@when(parsers.parse("I submit a market sell order for {quantity} {symbol} stocks"))
+def place_market_sell_order(quantity, symbol):
+    global got_value_error
+    global order_id
+    try:
+        order_id = trading_platform.submit_order(
+            symbol=symbol,
+            quantity=int(quantity),
+            side='sell',
+            flavor='market',
+            date=datetime.now())
+    except Exception:
+        got_value_error = True
+
 @then("the order should be rejected")
-def get_order_status():
+def order_is_rejected():
     global got_value_error
     assert got_value_error is True
+    assert order_id is None
+
+@then("the order should be executed")
+def order_is_executed():
+    global got_value_error
+    assert got_value_error is True
+    assert order_id is not None
+    assert type(order_id) is str
 
 @then(parsers.parse("my cash balance should be {amount}$"))
 def check_cash_balance(amount):

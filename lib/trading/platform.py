@@ -190,14 +190,6 @@ class SimulationPlatform(TradingPlatform):
                     )
                 )
 
-            if order.flavor == "market":
-                order_amount = order.quantity * self.get_current_price_for(order.symbol)
-                if order_amount > self.available_cash:
-                    raise ValueError(
-                        f"Rejecting market buy order for {order.symbol} as order amount "
-                        "{order_amount}$ is less than available cash {self.available_cash}"
-                    )
-
         if order.side == "sell":
             # TODO we need proper limits here
             if take_profit_price is not None and take_profit_price >= close_price:
@@ -264,16 +256,29 @@ class SimulationPlatform(TradingPlatform):
             raise ValueError(
                 "Cannot execute order not in active order list {}".format(order_id)
             )
+
         order: Order = self.active_orders[order_id]
+        if order.flavor == "market":
+            order_amount = order.quantity * self.get_current_price_for(order.symbol)
+            if order_amount > self.available_cash:
+                current_time = self.get_current_time_for(order.symbol)
+                self.cancel_order(order_id, current_time)
+                raise ValueError(
+                    f"Rejecting market buy order for {order.symbol} as order amount "
+                    "{order_amount}$ is less than available cash {self.available_cash}"
+                )
+
         log.debug(
             "Executing {} {} {} order".format(order.symbol, order.flavor, order.side)
         )
 
-        # leg orders don't generate a trade when executed, they are only converted
+        # We execute a trade
         trade: Trade = order.execute(
             self.get_current_price_for(order.symbol),
             self.get_current_time_for(order.symbol),
         )
+
+        # Leg orders don't generate a trade when executed, they are only converted
         leg_order_type = ["take_profit", "stop_loss"]
         if order.flavor not in leg_order_type:
             if trade is None:
@@ -282,6 +287,40 @@ class SimulationPlatform(TradingPlatform):
                         order.symbol, order.flavor, order.side
                     )
                 )
+
+            position: Position = self.trading_session.get_current_position(trade.symbol)
+            if position is not None:
+                # Now we need to evaluate whether we take out cash or we get back cash
+                # depending if we are selling/buying and direction of the position
+                # If everything went well so far then we can now take out our cash balance
+                if position.side == "long" and order.side == "buy":
+                    previous_cash = self.available_cash
+                    self.available_cash -= order.quantity * self.get_current_price_for(order.symbol)
+                    log.info(
+                        f"Long/Buy transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                elif position.side == "short" and order.side == "sell":
+                    previous_cash = self.available_cash
+                    self.available_cash -= order.quantity * self.get_current_price_for(order.symbol)
+                    log.info(
+                        f"Short/Sell transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                elif position.side == "long" and order.side == "sell":
+                    previous_cash = self.available_cash
+                    self.available_cash += order.quantity * self.get_current_price_for(order.symbol)
+                    log.info(
+                        f"Long/Sell transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                elif position.side == "short" and order.side == "buy":
+                    previous_cash = self.available_cash
+                    self.available_cash += order.quantity * self.get_current_price_for(order.symbol)
+                    log.info(
+                        f"Short/Buy transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                else:
+                    raise Exception("None of the conditions above shouldn't be possible!")
+            else:  # In this case position is not present so we are opening it either as long or short
+                previous_cash = self.available_cash
+                self.available_cash -= order.quantity * self.get_current_price_for(order.symbol)
+                log.info(
+                    f"Open position transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+
             del self.active_orders[order.id]
             self.executed_orders[order.id] = order
             self.trading_session.add_trade(trade)

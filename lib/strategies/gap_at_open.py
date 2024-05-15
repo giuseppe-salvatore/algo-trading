@@ -34,7 +34,7 @@ class GapAtOpenStrategy(StockMarketStrategy):
 
     def simulate(self, symbol):
 
-        initial_deposit = 100000
+        initial_deposit = 500000
         self.platform.deposit(initial_deposit)
         log.debug(f"Initial deposit of {initial_deposit} as available cash")
 
