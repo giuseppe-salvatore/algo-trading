@@ -30,6 +30,18 @@ def test_buy_order_below_balance():
 def test_sell_order_below_balance():
     pass
 
+@scenario('../features/orders.feature', 'Placing multiple buy market order below the available cash balance')
+def test_multiple_buy_order_below_balance():
+    pass
+
+@scenario('../features/orders.feature', 'Closing a position gives profit back to cash balance')
+def test_profit_realisation():
+    pass
+
+@scenario('../features/orders.feature', 'Closing a position gives loss back to cash balance')
+def test_loss_realisation():
+    pass
+
 @given("I submit a bracket market order to buy 10 AAPL stocks")
 def place_bracket_market_order():
     global submitted_market_order_id
