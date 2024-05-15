@@ -27,3 +27,10 @@ Feature: Cash balance
         When I deposit 1000$
         And I reset the trading platform
         Then my cash balance should be 0$
+
+    Scenario: Multiple deposits
+        Given I start trading AAPL stocks
+        When I deposit 1000$
+        Then my cash balance should be 1000$
+        When I deposit 1500$
+        Then my cash balance should be 2500$

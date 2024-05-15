@@ -32,10 +32,18 @@ def test_withdraw_less_than_cash_balance():
 def test_withdraw_more_than_cash_balance():
     pass
 
+
 @scenario(
     "../features/cash-balance.feature", "Reset trading platform"
 )
 def test_reset_trading_platform():
+    pass
+
+
+@scenario(
+    "../features/cash-balance.feature", "Multiple deposits"
+)
+def test_multiple_deposits():
     pass
 
 
@@ -73,25 +81,3 @@ def check_error_message_received():
     global received_error_message
     assert received_error_message is True
     received_error_message = False
-
-
-# @given("I submit a bracket market order to buy 10 AAPL stocks")
-# def place_bracket_market_order():
-#     global submitted_market_order_id
-#     trading_platform.clear()
-#     candle = Candle(datetime.now(), {
-#         "high": 10,
-#         "low": 10,
-#         "open": 10,
-#         "close": 10,
-#         "volume": 5000,
-#     })
-#     trading_platform.tick("AAPL", candle)
-#     submitted_market_order_id = trading_platform.submit_order(
-#         symbol='AAPL',
-#         quantity=10,
-#         side='buy',
-#         flavor='market',
-#         date=datetime.now(),
-#         take_profit_price=15,
-#         stop_loss_price=8)
