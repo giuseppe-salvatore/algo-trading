@@ -351,7 +351,7 @@ class TradeSession:
                 positions.append(position)
         return positions
 
-    def get_current_position(self, symbol: str):
+    def get_current_position(self, symbol: str) -> Position | None:
         if symbol in self.positions and len(self.positions[symbol]):
             if self.positions[symbol][-1].is_open():
                 return self.positions[symbol][-1]

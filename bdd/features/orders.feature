@@ -46,3 +46,36 @@ Feature: Order managment
         Then the order should be rejected
         And my cash balance should be 1000$
 
+    Scenario: Placing multiple buy market order below the available cash balance
+        Given I have 1000$ available in my cash balance
+        And the AAPL stock price is 20$ per unit
+        When I submit a market buy order for 10 AAPL stocks
+        Then the order should be executed
+        And my cash balance should be 800$
+        When I submit a market buy order for 5 AAPL stocks
+        Then the order should be executed
+        And my cash balance should be 700$
+
+    Scenario: Closing a position gives profit back to cash balance
+        Given I have 1000$ available in my cash balance
+        And the AAPL stock price is 20$ per unit
+        When I submit a market buy order for 10 AAPL stocks
+        Then the order should be executed
+        And my cash balance should be 800$
+        Given the AAPL stock price is 25$ per unit
+        When I submit a market sell order for 10 AAPL stocks
+        Then the order should be executed
+        And my cash balance should be 1050$
+
+    Scenario: Closing a position gives loss back to cash balance
+        Given I have 1000$ available in my cash balance
+        And the AAPL stock price is 20$ per unit
+        When I submit a market buy order for 10 AAPL stocks
+        Then the order should be executed
+        And my cash balance should be 800$
+        Given the AAPL stock price is 15$ per unit
+        When I submit a market sell order for 10 AAPL stocks
+        Then the order should be executed
+        And my cash balance should be 950$
+
+
