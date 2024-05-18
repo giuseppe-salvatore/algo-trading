@@ -16,6 +16,7 @@ install: prepare
 	else \
 		xargs DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt > /dev/null;\
 	fi
+	source .venv/bin/activate && pre-commit install
 
 verify: install
 	source .venv/bin/activate && \
