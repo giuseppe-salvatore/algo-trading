@@ -1,4 +1,5 @@
 import unittest
+import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta, MO, FR
 
@@ -9,7 +10,24 @@ from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.market_data_provider.provider_utils import MarketDataProviderUtils
 
 
-# class MarketDataDatabaseTest(unittest.TestCase):
+class MarketDataDatabaseTest(unittest.TestCase):
+
+    def test_get_equity(self):
+        db = DBManager()
+        equity = db.equity_to_dataframe()
+        log.info(equity)
+        data = [{
+            "datetime": datetime(2023, 8, 9),
+            "open": 100,
+            "high": 120,
+            "low": 90,
+            "close": 100
+        }]
+
+        df = pd.DataFrame(data, columns=["datetime", "open", "high", "low", "close"])
+        df.set_index("datetime", inplace=True)
+        log.info(df)
+
 
 # TODO convert it with Alpaca and Alphavantage
 # TODO convert it with Alpaca and Alphavantage

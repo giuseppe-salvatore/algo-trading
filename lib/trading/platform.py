@@ -23,7 +23,7 @@ class SimulationPlatform(TradingPlatform):
         self.trading_session = TradeSession()
         self.current_candle = dict()
         self.available_cash = 0
-        self.equity_df = None
+        self.equity = {}
 
     def clear(self):
         self.active_orders = dict()
@@ -33,7 +33,85 @@ class SimulationPlatform(TradingPlatform):
         self.trading_session = TradeSession()
         self.current_candle = dict()
         self.available_cash = 0
-        self.equity_df = None
+        self.equity = {}
+
+    def get_equity(self):
+        return self.equity
+
+    def get_equity_at(self, datetime):
+        return self.equity[datetime] if datetime in self.equity else None
+
+    def get_latest_equity(self):
+        latest_time = None
+        for el in self.equity.keys():
+            if latest_time is None:
+                latest_time = el
+            else:
+                if el > latest_time:
+                    latest_time = el
+
+        if latest_time is None:
+            return 0
+        return self.equity[latest_time]["value"]
+
+    def update_equity(self, datetime, amount, symbol):
+        pos = self.trading_session.get_current_position(symbol)
+        if pos is not None:
+            quantity = pos.get_total_shares()
+            if datetime in self.equity:
+                curr_equity = self.equity[datetime]
+                increase = amount * quantity + curr_equity["value"]
+                self.equity[datetime] = {
+                    "datetime": datetime,
+                    "value": increase
+                }
+                log.debug(f"equity update: {increase}")
+            else:
+                increase = amount * quantity
+                self.equity[datetime] = {
+                    "datetime": datetime,
+                    "value": increase
+                }
+                log.debug(f"equity update: {increase}")
+
+    def increase_equity(self, datetime, amount, symbol):
+        pos = self.trading_session.get_current_position(symbol)
+        if pos is not None:
+            quantity = pos.get_total_shares()
+            if datetime in self.equity:
+                curr_equity = self.equity[datetime]
+                increase = amount * quantity + curr_equity["value"]
+                self.equity[datetime] = {
+                    "datetime": datetime,
+                    "value": increase
+                }
+                log.debug(f"equity increase: {increase}")
+            else:
+                increase = amount * quantity
+                self.equity[datetime] = {
+                    "datetime": datetime,
+                    "value": amount * quantity
+                }
+                log.debug(f"equity increase: {increase}")
+
+    def decrease_equity(self, datetime, amount, symbol):
+        pos = self.trading_session.get_current_position(symbol)
+        if pos is not None:
+            if datetime in self.equity:
+                curr_equity = self.equity[datetime]
+                decrease = curr_equity["value"] - amount
+                self.equity[datetime] = {
+                    "datetime": datetime,
+                    "value": decrease
+                }
+                log.debug(f"equity decrease A: {decrease}")
+            else:
+                latest_equity = self.get_latest_equity()
+                self.equity[datetime] = {
+                    "datetime": datetime,
+                    "value": latest_equity - amount
+                }
+                log.debug(f"equity decrease B: {latest_equity - amount}")
 
     def get_current_price_for(self, symbol):
         current_price = self.current_candle[symbol].close
@@ -80,6 +158,7 @@ class SimulationPlatform(TradingPlatform):
         #     candle.low
         # ))
         self.current_candle[symbol] = candle
+        self.update_equity(candle.date_time, candle.close, symbol=symbol)
         return self._check_active_orders(symbol)
 
     def _check_limit_order(self, lo: Order):
@@ -289,37 +368,58 @@ class SimulationPlatform(TradingPlatform):
                 )
 
             position: Position = self.trading_session.get_current_position(trade.symbol)
+            total_order_amount = order.quantity * self.get_current_price_for(order.symbol)
             if position is not None:
                 # Now we need to evaluate whether we take out cash or we get back cash
                 # depending if we are selling/buying and direction of the position
                 # If everything went well so far then we can now take out our cash balance
                 if position.side == "long" and order.side == "buy":
                     previous_cash = self.available_cash
-                    self.available_cash -= order.quantity * self.get_current_price_for(order.symbol)
-                    log.info(
+                    self.available_cash -= total_order_amount
+                    log.debug(
                         f"Long/Buy transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                    previous_eq = self.get_latest_equity()
+                    self.increase_equity(order.date, total_order_amount, order.symbol)
+                    latest_eq = self.get_latest_equity()
+                    log.debug(f"Equity after that transitioned from {previous_eq}$ to {latest_eq}$")
                 elif position.side == "short" and order.side == "sell":
                     previous_cash = self.available_cash
-                    self.available_cash -= order.quantity * self.get_current_price_for(order.symbol)
-                    log.info(
+                    self.available_cash -= total_order_amount
+                    log.debug(
                         f"Short/Sell transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                    previous_eq = self.get_latest_equity()
+                    self.increase_equity(order.date, total_order_amount, order.symbol)
+                    latest_eq = self.get_latest_equity()
+                    log.debug(f"Equity after that transitioned from {previous_eq}$ to {latest_eq}$")
                 elif position.side == "long" and order.side == "sell":
                     previous_cash = self.available_cash
-                    self.available_cash += order.quantity * self.get_current_price_for(order.symbol)
-                    log.info(
+                    self.available_cash += total_order_amount
+                    log.debug(
                         f"Long/Sell transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                    previous_eq = self.get_latest_equity()
+                    self.decrease_equity(order.date, total_order_amount, order.symbol)
+                    latest_eq = self.get_latest_equity()
+                    log.debug(f"Equity after that transitioned from {previous_eq}$ to {latest_eq}$")
                 elif position.side == "short" and order.side == "buy":
                     previous_cash = self.available_cash
-                    self.available_cash += order.quantity * self.get_current_price_for(order.symbol)
-                    log.info(
+                    self.available_cash += total_order_amount
+                    log.debug(
                         f"Short/Buy transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                    previous_eq = self.get_latest_equity()
+                    self.decrease_equity(order.date, total_order_amount, order.symbol)
+                    latest_eq = self.get_latest_equity()
+                    log.debug(f"Equity after that transitioned from {previous_eq}$ to {latest_eq}$")
                 else:
                     raise Exception("None of the conditions above shouldn't be possible!")
             else:  # In this case position is not present so we are opening it either as long or short
                 previous_cash = self.available_cash
-                self.available_cash -= order.quantity * self.get_current_price_for(order.symbol)
-                log.info(
+                self.available_cash -= total_order_amount
+                log.debug(
                     f"Open position transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
+                previous_eq = self.get_latest_equity()
+                self.increase_equity(order.date, total_order_amount, order.symbol)
+                latest_eq = self.get_latest_equity()
+                log.debug(f"Equity after that transitioned from {previous_eq}$ to {latest_eq}$")
 
             del self.active_orders[order.id]
             self.executed_orders[order.id] = order
