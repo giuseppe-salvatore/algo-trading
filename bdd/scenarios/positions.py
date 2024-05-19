@@ -1,11 +1,12 @@
 from datetime import datetime
 from lib.trading.platform import TradingPlatform, SimulationPlatform, Candle
-from pytest_bdd import scenario, given, when, then, parsers
+from pytest_bdd import scenarios, given, when, then, parsers
 from lib.trading.generic import Position
 from lib.util.logger import log
 
 start_time = datetime(2000, 1, 1, 12, 0)
 curr_time = 0
+
 
 def get_curr_time():
     global curr_time
@@ -22,70 +23,8 @@ def get_next_time():
 
 trading_platform: SimulationPlatform = TradingPlatform.get_trading_platform("simulation")
 
+scenarios("../features/positions.feature")
 
-@scenario(
-    "../features/positions.feature", "No positions are open when the simulation starts"
-)
-def test_no_position_open():
-    pass
-
-
-@scenario(
-    "../features/positions.feature", "A market buy order opens a long position"
-)
-def test_long_position_open():
-    pass
-
-
-@scenario(
-    "../features/positions.feature", "A market sell order opens a short position"
-)
-def test_short_position_open():
-    pass
-
-
-@scenario(
-    "../features/positions.feature", "A market sell order on a long position for same quantity, closes the position"
-)
-def test_long_position_closes():
-    pass
-
-
-@scenario(
-    "../features/positions.feature", "A market buy order on a short position for same quantity, closes the position"
-)
-def test_short_position_closes():
-    pass
-
-
-@scenario(
-    "../features/positions.feature", "Equity doesn't change when no positions are open"
-)
-def test_equity_does_not_change():
-    pass
-
-
-@scenario("../features/positions.feature", "Equity gets updated when a position is open")
-def test_equity_changes():
-    pass
-
-
-@scenario("../features/positions.feature", "Equity is not updated when a position is already closed")
-def test_equity_does_not_get_updated_when_a_position_is_closed():
-    pass
-
-
-@scenario("../features/positions.feature", "Equity goes back to balance when a position decreased")
-def test_equity_goes_back_to_balance_when_a_position_is_decreased():
-    pass
-
-@scenario("../features/positions.feature", "Equity moves with market value")
-def test_equity_moves_with_market_value():
-    pass
-
-@scenario("../features/positions.feature", "Equity goes back to balance when a position is liquidated")
-def test_goes_back_to_balance_when_a_position_is_liquidated():
-    pass
 
 @given("I start a new trading session")
 def start_trading_session():
@@ -99,9 +38,9 @@ def deposit(amount):
     trading_platform.deposit(int(amount))
 
 
-@given(parsers.parse("I have a {side} position of {quantity} {sym} stocks bought at {price}$"))
+@given(parsers.parse("I entered a {side} position of {quantity:d} {sym} stocks at {price:d}$ per share"))
+@when(parsers.parse("I enter a {side} position of {quantity:d} {sym} stocks at {price:d}$ per share"))
 def open_a_position(sym, side, quantity, price):
-    price = float(price)
     stock_price_set(sym, price)
     if side == "long":
         direction = "buy"
@@ -113,7 +52,7 @@ def open_a_position(sym, side, quantity, price):
         side=direction,
         flavor='market',
         date=get_curr_time())
-    position_is_open("long", sym)
+    position_is_open(side, sym)
 
 
 @then("no positions should be open")
@@ -145,6 +84,7 @@ def submit_market_order(direction, quantity, symbol):
     assert submitted_market_order_id is not None
     assert type(submitted_market_order_id) is str
     assert submitted_market_order_id != ""
+
 
 @when(parsers.parse("the {sym} price moves to {price}$"))
 def stock_price_set(sym, price):
@@ -182,16 +122,41 @@ def platform_moves():
 @when("I close the position")
 def close_position():
     pos = trading_platform.trading_session.get_current_position("AAPL")
-    pos.liquidate(21, get_curr_time())
+    if pos.side == "long":
+        trading_platform.submit_order(
+            symbol="AAPL",
+            quantity=pos.get_total_shares(),
+            side="sell",
+            flavor='market',
+            date=get_curr_time())
+    else:
+        trading_platform.submit_order(
+            symbol="AAPL",
+            quantity=pos.get_total_shares(),
+            side="buy",
+            flavor='market',
+            date=get_curr_time())
 
-@when(parsers.parse("I sell {quantity} {sym} stocks"))
-def i_sell_stocks(sym, quantity):
+
+@when(parsers.parse("I sell {quantity:d} {sym} stocks"))
+def i_sell_stocks(quantity, sym):
     trading_platform.submit_order(
         symbol=sym,
-        quantity=int(quantity),
+        quantity=quantity,
         side="sell",
         flavor='market',
         date=get_curr_time())
+
+
+@when(parsers.parse("I buy {quantity:d} {sym} stocks"))
+def i_buy_stocks(quantity, sym):
+    trading_platform.submit_order(
+        symbol=sym,
+        quantity=quantity,
+        side="buy",
+        flavor='market',
+        date=get_curr_time())
+
 
 @then(parsers.parse("my cash balance should be {amount}$"))
 def my_cash_balance_should_be(amount):
