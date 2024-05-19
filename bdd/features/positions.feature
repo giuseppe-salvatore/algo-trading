@@ -73,15 +73,19 @@ Feature: Positions
             | long      | 12          | 20             | 400               | sell | 200               | 960          |
             | short     | 12          | 4              | 400               | buy  | 200               | 960          |
 
-    Scenario: Equity goes back to balance when a long position is liquidated
+    Scenario Outline: Equity goes back to balance when a long position is liquidated
         Given I start a new trading session
         And I deposit 1000$
-        And I entered a long position of 20 AAPL stocks at 10$ per share
-        When the AAPL price moves to 15$
-        Then my equity should update to 300$
-        When I sell 20 AAPL stocks
+        And I entered a <DIRECTION> position of 20 AAPL stocks at <ENTER_PRICE>$ per share
+        When the AAPL price moves to <TARGET_PRICE_1>$
+        Then my equity should update to <EXPECTED_EQUITY_1>$
+        When I <SIDE> 20 AAPL stocks
         Then my equity should update to 0$
-        And my cash balance should be 1100$
+        And my cash balance should be <CASH_BALANCE>$
+        Examples:
+            | DIRECTION | ENTER_PRICE | TARGET_PRICE_1 | EXPECTED_EQUITY_1 | SIDE | CASH_BALANCE |
+            | long      | 10          | 15             | 300               | sell | 1100         |
+            | short     | 10          | 5              | 300               | buy  | 1100         |
 
     Scenario Outline: Equity is not updated when a <DIRECTION> position is already closed
         Given I start a new trading session
