@@ -16,26 +16,27 @@ install: prepare
 	else \
 		xargs DEBIAN_FRONTEND=noninteractive apt-get install -y < requirements-deb.txt > /dev/null;\
 	fi
+	source .venv/bin/activate && pre-commit install
 
-verify: install
+verify:
 	source .venv/bin/activate && \
 	flake8 . --extend-exclude=dist,build --show-source --statistics
 
-coverage: install
+coverage:
 	source .venv/bin/activate && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 	coverage run -m pytest -s -v tests/*_test.py --html=report.html --self-contained-html
 
-format: install
+format:
 	source .venv/bin/activate && \
 	for target in `find  -name *.py -not -path "./.venv/*"`; do autopep8 -i $$target; done
 
-unit-test: install
+unit-test:
 	source .venv/bin/activate && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 	python -m pytest -v tests/*_test.py  --junitxml=test-reports/report.xml
 
-acceptance-test: install
+acceptance-test:
 	source .venv/bin/activate && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
 	python -m pytest -v bdd/scenarios/* --junitxml=${REPORT_FILE}

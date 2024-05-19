@@ -1,14 +1,14 @@
 repos:
 -   repo: local
     hooks:
-    -   id: verify
-        name: 'Static Analysis'
-        entry: 'make verify'
-        language: system
-        pass_filenames: false
     -   id: format
         name: 'Formatting Code'
         entry: 'make format'
+        language: system
+        pass_filenames: false
+    -   id: verify
+        name: 'Static Analysis'
+        entry: 'make verify'
         language: system
         pass_filenames: false
     -   id: unit-tests

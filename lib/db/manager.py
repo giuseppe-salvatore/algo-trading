@@ -72,6 +72,15 @@ class DBManager:
         except Error as e:
             log.error(e)
 
+    def equity_to_dataframe(self):
+        query = "SELECT time AS datetime, open, close, low, high "
+        query += "FROM equity "
+
+        log.debug(query)
+        df = pd.read_sql(query, self.conn, index_col="datetime")
+        df.index = pd.to_datetime(df.index, format="%Y-%m-%d %H:%M", exact=False)
+        return df
+
     def minute_candles_to_dataframe(
         self, symbol: str, start_date: datetime, end_date: datetime
     ):
