@@ -10,20 +10,13 @@ class TradingPlatform:
         if platform_name == "simulation":
             return SimulationPlatform()
         else:
-            raise ValueError("Unknown trading platform: {}".format(platform_name))
+            raise ValueError(f"Unknown trading platform: {platform_name}")
 
 
 class SimulationPlatform(TradingPlatform):
 
     def __init__(self):
-        self.active_orders = dict()
-        self.executed_orders = dict()
-        self.cancelled_orders = dict()
-        self.rejected_orders = dict()
-        self.trading_session = TradeSession()
-        self.current_candle = dict()
-        self.available_cash = 0
-        self.equity = {}
+        self.clear()
 
     def clear(self):
         self.active_orders = dict()
@@ -33,107 +26,26 @@ class SimulationPlatform(TradingPlatform):
         self.trading_session = TradeSession()
         self.current_candle = dict()
         self.available_cash = 0
-        self.equity = {}
-
-    def get_equity(self):
-        return self.equity
 
     def get_equity_at(self, datetime):
         return self.equity[datetime] if datetime in self.equity else None
 
-    def get_latest_equity(self):
-        latest_time = None
-        for el in self.equity.keys():
-            if latest_time is None:
-                latest_time = el
-            else:
-                if el > latest_time:
-                    latest_time = el
+    def get_current_equity(self) -> float:
+        total_equity = 0.0
+        open_positions = self.trading_session.get_all_open_positions()
+        for pos in open_positions:
+            value = self.get_current_price_for(pos.symbol)
+            quant = pos.get_total_shares()
 
-        if latest_time is None:
-            return 0
-        return self.equity[latest_time]["value"]
-
-    def update_equity(self, datetime, amount, symbol):
-        pos = self.trading_session.get_current_position(symbol)
-        if pos is not None:
-            price = self.get_current_price_for(symbol)
-            quantity = pos.get_total_shares()
-            log.debug(f"In position found {quantity} {symbol} shares at {price}$")
-            if datetime in self.equity:
-                value = price * quantity
-                if pos.side == "short":
-                    value = -value
-                self.equity[datetime]["value"] += value
-                log.debug(f"Equity updated to: {self.equity[datetime]['value']}$")
+            if pos.side == "short":
+                entry_price = pos.get_average_entry_price()
+                current_equity = (entry_price + (entry_price - value)) * -quant
             else:
-                value = price * quantity
-                if pos.side == "short":
-                    value = -value
-                    entry_price = pos.get_average_entry_price()
-                    self.equity[datetime] = {
-                        "datetime": datetime,
-                        "value": (entry_price + entry_price - price) * -quantity
-                    }
-                    log.debug(f"Equity created: {self.equity[datetime]['value']}$")
-                    log.debug(f"entry {entry_price}$")
-                    log.debug(f"price {price}$")
-                else:
-                    self.equity[datetime] = {
-                        "datetime": datetime,
-                        "value": value
-                    }
-
-    def tranfer_to_equity(self, datetime, price, quantity, symbol):
-        pos = self.trading_session.get_current_position(symbol)
-        if pos is not None:
-            quantity = pos.get_total_shares()
-            if datetime in self.equity:
-                self.equity[datetime]["value"] += price * quantity
-                log.debug(f"Transfer to equity: {price * quantity }")
-            else:
-                self.equity[datetime] = {
-                    "datetime": datetime,
-                    "value": price * quantity
-                }
-                log.debug(f"Transfer to equity: {price * quantity}")
-        else:
-            if datetime in self.equity:
-                self.equity[datetime]["value"] += price * quantity
-                log.debug(f"Transfer to equity: {price * quantity}")
-            else:
-                self.equity[datetime] = {
-                    "datetime": datetime,
-                    "value": price * quantity
-                }
-                log.debug(f"Transfer to equity: {price * quantity}")
-
-    def transfer_from_equity(self, datetime, price, quantity, symbol):
-        pos = self.trading_session.get_current_position(symbol)
-        log.debug(f"Quantity from external {quantity}")
-        log.debug(f"Quantity in pos {pos.get_total_shares()}")
-        quant_pos = pos.get_total_shares()
-        if pos is not None:
-            if datetime in self.equity:
-                self.equity[datetime]["value"] -= price * quantity
-                log.debug(f"Transfer from equity: {self.equity[datetime]['value']}")
-            else:
-                if pos.side == "short":
-                    quant_pos = -quant_pos
-                    entry_price = pos.get_average_entry_price()
-                    self.equity[datetime] = {
-                        "datetime": datetime,
-                        "value": (quant_pos - quantity) * (entry_price + entry_price - price)
-                    }
-                else:
-                    self.equity[datetime] = {
-                        "datetime": datetime,
-                        "value": (quant_pos - quantity) * price
-                    }
-
-                log.debug(f"Transfer from equity 2: {self.equity[datetime]['value']}")
-        else:
-            log.info("Are we falling in here??????????????????????")
+                current_equity = value * quant
+            log.debug(f"{pos.symbol} current equity = {current_equity}$")
+            total_equity += current_equity
+        log.debug(f"Total current equity = {total_equity}$")
+        return total_equity
 
     def get_current_price_for(self, symbol):
         current_price = self.current_candle[symbol].close
@@ -144,19 +56,10 @@ class SimulationPlatform(TradingPlatform):
         current_time = self.current_candle[symbol].date_time
         return current_time
 
-    def get_order(self, id):
-        if id in self.active_orders:
-            return self.active_orders[id]
-
-        if id in self.executed_orders:
-            return self.executed_orders[id]
-
-        if id in self.cancelled_orders:
-            return self.cancelled_orders[id]
-
-        if id in self.rejected_orders:
-            return self.rejected_orders[id]
-
+    def get_order(self, order_id: str):
+        for order_dict in [self.active_orders, self.executed_orders, self.cancelled_orders, self.rejected_orders]:
+            if order_id in order_dict:
+                return order_dict[order_id]
         return None
 
     def deposit(self, amount):
@@ -180,32 +83,15 @@ class SimulationPlatform(TradingPlatform):
             candle.low
         ))
         self.current_candle[symbol] = candle
-        self.update_equity(candle.date_time, candle.close, symbol=symbol)
         return self._check_active_orders(symbol)
 
     def _check_limit_order(self, lo: Order):
         low = self.current_candle[lo.symbol].low
-        if lo.side == "buy" and lo.limit_price >= low:
-            log.debug(
-                "Triggering limit buy order low price {:.2f} <= current price {:.2f}".format(
-                    low,
-                    lo.limit_price,
-                )
-            )
-            self._execute_order(lo.id)
-            return True
-
         high = self.current_candle[lo.symbol].high
-        if lo.side == "sell" and lo.limit_price <= high:
-            log.debug(
-                "Triggering limit sell order high price {:.2f} >= sell limit {:.2f}".format(
-                    high,
-                    lo.limit_price,
-                )
-            )
+        if (lo.side == "buy" and lo.limit_price >= low) or (lo.side == "sell" and lo.limit_price <= high):
+            log.debug(f"Triggering limit {lo.side} order {lo.limit_price:.2f}")
             self._execute_order(lo.id)
             return True
-
         return False
 
     def _check_stop_order(self, lo: Order):
@@ -373,6 +259,8 @@ class SimulationPlatform(TradingPlatform):
             "Executing {} {} {} order".format(order.symbol, order.flavor, order.side)
         )
 
+        previous_eq = self.get_current_equity()
+
         # We execute a trade
         trade: Trade = order.execute(
             self.get_current_price_for(order.symbol),
@@ -404,10 +292,6 @@ class SimulationPlatform(TradingPlatform):
                     self.available_cash -= price * quantity
                     log.debug(
                         f"Long/Buy transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
-                    previous_eq = self.get_latest_equity()
-                    self.tranfer_to_equity(order.date, price, quantity, order.symbol)
-                    latest_eq = self.get_latest_equity()
-                    log.debug(f"Long/Buy transaction on equity from {previous_eq}$ to {latest_eq}$")
 
                 # Case 2) Increasing a short position selling more shares
                 elif position.side == "short" and order.side == "sell":
@@ -415,10 +299,6 @@ class SimulationPlatform(TradingPlatform):
                     self.available_cash -= price * quantity
                     log.debug(
                         f"Short/Sell transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
-                    previous_eq = self.get_latest_equity()
-                    self.tranfer_to_equity(order.date, price, quantity, order.symbol)
-                    latest_eq = self.get_latest_equity()
-                    log.debug(f"Short/Sell transaction on equity from {previous_eq}$ to {latest_eq}$")
 
                 # Case 3) Decreasing a long position selling shares
                 elif position.side == "long" and order.side == "sell":
@@ -426,10 +306,6 @@ class SimulationPlatform(TradingPlatform):
                     self.available_cash += price * quantity
                     log.debug(
                         f"Long/Sell transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
-                    previous_eq = self.get_latest_equity()
-                    self.transfer_from_equity(order.date, price, quantity, order.symbol)
-                    latest_eq = self.get_latest_equity()
-                    log.debug(f"Long/Sell transaction on equity from {previous_eq}$ to {latest_eq}$")
 
                 # Case 4) Decreasing a short position buying shares
                 elif position.side == "short" and order.side == "buy":
@@ -438,10 +314,7 @@ class SimulationPlatform(TradingPlatform):
                     self.available_cash += (entry_price + entry_price - price) * quantity
                     log.debug(
                         f"Short/Buy transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
-                    previous_eq = self.get_latest_equity()
-                    self.transfer_from_equity(order.date, price, quantity, order.symbol)
-                    latest_eq = self.get_latest_equity()
-                    log.debug(f"Short/Buy transaction on equity from {previous_eq}$ to {latest_eq}$")
+
                 else:
                     raise Exception("None of the conditions above is a case that shouldn't be possible!")
             else:  # In this case position is not present so we are opening it either as long or short
@@ -449,10 +322,6 @@ class SimulationPlatform(TradingPlatform):
                 self.available_cash -= price * quantity
                 log.debug(
                     f"Open position transaction on cash balance from {previous_cash:.2f} -> {self.available_cash:.2f}")
-                previous_eq = self.get_latest_equity()
-                self.tranfer_to_equity(order.date, price, quantity, order.symbol)
-                latest_eq = self.get_latest_equity()
-                log.debug(f"Open position transaction on equity from {previous_eq}$ to {latest_eq}$")
 
             del self.active_orders[order.id]
             self.executed_orders[order.id] = order
@@ -466,6 +335,8 @@ class SimulationPlatform(TradingPlatform):
                     sl = order._legs_by_type["stop_loss"]
                     position.set_stop_loss(sl)
 
+            latest_eq = self.get_current_equity()
+            log.debug(f"Equity from {previous_eq}$ to {latest_eq}$")
             # We need to cancel all the linked orders, i.e. both legs of a bracket order must be
             # finalised
             for linked in order._linked_with:
