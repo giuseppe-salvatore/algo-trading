@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 
+all: install format verify unit-test acceptance-test  
+
 prepare: 
 	@echo "Prepare"
 	python3 -m pip install virtualenv

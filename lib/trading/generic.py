@@ -136,10 +136,12 @@ class Position:
 
     def get_profit(self):
         pl = 0.0
+        # For each trade profit is buy
         for t in self.trades:
             pl += (
                 -(t.price * t.quantity) if t.side == "buy" else +(t.price * t.quantity)
             )
+        log.debug(f"Reproting profit of {pl} for {self.symbol}")
         return pl
 
     def get_current_profit(self, curr_price):
@@ -260,6 +262,8 @@ class Position:
         str_rep += "}\n"
         return str_rep
 
+    # TODO this has to be refactored with some unit testing
+    # as some of the internal states don't get updated
     def liquidate(self, price: float, date: datetime):
         if self.is_open():
             side = "sell" if self.side == "long" else "buy"
@@ -340,8 +344,17 @@ class TradeSession:
         # if (symbol in pos and len(pos[symbol]) > 0 and pos[symbol][-1].is_open()):
         #     pos[symbol][-1].liquidate(price, date)
 
-    def get_positions(self, symbol: str):
+    def get_positions(self, symbol: str) -> list[Position]:
         return self.positions[symbol]
+
+    def get_all_open_positions(self) -> list[Position]:
+        open_positions: list[Position] = []
+        for sym in self.positions.keys():
+            for position in self.positions[sym]:
+                if position.is_open():
+                    open_positions.append(position)
+
+        return open_positions
 
     def get_positions_between_dates(self, symbol: str, start_date, end_date):
         positions = []

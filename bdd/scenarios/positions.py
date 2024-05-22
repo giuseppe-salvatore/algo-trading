@@ -56,7 +56,6 @@ def open_a_position(sym, side, quantity, price):
 
 
 @then("no positions should be open")
-@given("no open positions with AAPL")
 @given("there are no open positions")
 def no_positions_open():
     positions = trading_platform.trading_session.get_symbols()
@@ -99,40 +98,20 @@ def stock_price_set(sym, price):
     trading_platform.tick(sym, candle)
 
 
-@when("the plaform moves to the next candle")
-def platform_moves():
-    candle = Candle(get_curr_time(), {
-        "high": 20,
-        "low": 20,
-        "open": 20,
-        "close": 20,
-        "volume": 5000,
-    })
-    trading_platform.tick("AAPL", candle)
-    candle = Candle(get_curr_time(), {
-        "high": 21,
-        "low": 21,
-        "open": 21,
-        "close": 21,
-        "volume": 5000,
-    })
-    trading_platform.tick("AAPL", candle)
-
-
-@when("I close the position")
-def close_position():
-    pos = trading_platform.trading_session.get_current_position("AAPL")
+@when(parsers.parse("I close the {sym} position"))
+def close_position(sym):
+    pos = trading_platform.trading_session.get_current_position(sym)
     if pos.side == "long":
         trading_platform.submit_order(
-            symbol="AAPL",
+            symbol=sym,
             quantity=pos.get_total_shares(),
             side="sell",
             flavor='market',
             date=get_curr_time())
     else:
         trading_platform.submit_order(
-            symbol="AAPL",
-            quantity=pos.get_total_shares(),
+            symbol=sym,
+            quantity=-pos.get_total_shares(),
             side="buy",
             flavor='market',
             date=get_curr_time())
@@ -185,27 +164,25 @@ def position_is_closed(symbol):
     assert latest_pos.is_open() is False
 
 
-@then(parsers.parse("my equity should be {amount}$"))
+@then(parsers.parse("my equity should be {amount:d}$"))
 def my_equity_should_be(amount):
-    equity = trading_platform.get_equity()
-    if len(equity.keys()) == 0:
-        assert True
-    assert int(amount) == 0
+    equity = trading_platform.get_current_equity()
+    assert equity == amount
 
 
 @then(parsers.parse("my equity should update to {value}$"))
 def my_equity_should_be_updated(value):
-    eq = trading_platform.get_equity()
-    log.debug(eq)
+    assert trading_platform.get_current_equity() == float(value)
 
-    if len(eq) == 0:
-        raise Exception("Can't validate equity value as there are none present")
-    latest_time = None
-    for el in eq.keys():
-        if latest_time is None:
-            latest_time = el
-        else:
-            if el > latest_time:
-                latest_time = el
 
-    assert trading_platform.get_equity()[latest_time]["value"] == float(value)
+@then(parsers.parse("the {symbol} position should report a profit of {profit:d}$"))
+def the_position_should_report_a_profit(symbol, profit):
+    position = trading_platform.trading_session.get_current_position(symbol)
+    current_price = trading_platform.get_current_price_for(symbol)
+    log.debug(f"average entry price: {position.get_average_entry_price()}")
+    log.debug(f"average price      : {position.get_average_price()}")
+    log.debug(f"open price         : {position.get_open_price()}")
+    log.debug(f"total shares       : {position.get_total_shares()}")
+    log.debug(f"profit             : {position.get_profit()}")
+    log.debug(f"current profit     : {position.get_current_profit(current_price)}")
+    assert position.get_current_profit(current_price) == profit
