@@ -1,0 +1,18 @@
+package: lib.strategies
+module: dummy
+strategy_class: DummyStrategy
+params:
+  Parameter Size: default
+  Indicator List: 
+    - rsi
+  Start Date: "2020-01-15"
+  End Date: "2021-12-30"
+  Trading Style: multiday
+  Market Data Provider: "Alpaca"
+  Draw Charts: False
+symbols:
+  - "AAPL"
+  - "TSLA"
+  - "CSCO"
+  - "MSFT"
+  - "INTC"

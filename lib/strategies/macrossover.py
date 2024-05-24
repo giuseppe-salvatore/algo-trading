@@ -37,7 +37,31 @@ class MACrossoverStrategy(StockMarketStrategy):
         return ma.calculate(data)
 
     def simulate(self, symbol: str, start_date: str, end_date: str, market_data_provider: str):
-        initial_deposit = 500000000
+        """
+        This Python function simulates trading strategies using market data for a specified symbol
+        within a given date range.
+
+        :param symbol: The `symbol` parameter in the `simulate` method is used to specify the trading
+        symbol (e.g., stock ticker symbol) on which the simulation will be run. It represents the
+        financial instrument for which the trading strategy will be simulated
+        :type symbol: str
+        :param start_date: The `start_date` parameter in the `simulate` method is used to specify the
+        starting date for the simulation. It is a string that represents the date from which the
+        simulation should begin. This date is used to fetch market data for the specified symbol from
+        the `start_date` to the `end
+        :type start_date: str
+        :param end_date: The `end_date` parameter in the `simulate` method is used to specify the date
+        at which the simulation should end. This parameter determines the end point of the data that
+        will be used for the simulation. It is a string that represents the date in a specific format,
+        such as "YYYY-MM
+        :type end_date: str
+        :param market_data_provider: Market data provider is a string parameter that specifies the
+        source of market data to be used for simulation. This could be a specific data provider such as
+        Alpha Vantage, Yahoo Finance, or any other service that provides historical market data for the
+        specified symbol. The `simulate` method uses this parameter to fetch
+        :type market_data_provider: str
+        """
+        initial_deposit = self.start_capital
         self.platform.deposit(initial_deposit)
         log.debug(f"Initial deposit of {initial_deposit} as available cash")
 
@@ -82,12 +106,15 @@ class MACrossoverStrategy(StockMarketStrategy):
         scaled, manage_trade, entry_filter = False, True, False
 
         dates, equity = [], []
+        previous_balance = 0
+        current_balance = 0
 
         for idx, row in filtered_data.iterrows():
             dates.append(idx)
             close_price = row["close"]
             curr_speed = row["speed"]
             curr_crossover = row['crossover']
+            previous_balance = self.get_balance(current_balance, previous_balance)
             if self.platform.tick(symbol, Candle(idx, row)):
                 prev_crossover = curr_crossover
                 continue

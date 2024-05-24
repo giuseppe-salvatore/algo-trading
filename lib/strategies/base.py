@@ -1,7 +1,7 @@
 from lib.market_data_provider.market_data_provider import MarketDataUtils
 from lib.backtest.model import BacktestParams, BacktestSimulation
 from lib.util.charting.drawer import TradeChart, EquityChart
-import lib.util.logger as logger
+from lib.util.logger import log
 
 import matplotlib.pyplot as plt
 import operator
@@ -12,8 +12,8 @@ import os
 import time
 
 
-logger.setup_logging("BaseStrategy")
-log = logger.logging.getLogger("BaseStrategy")
+# logger.setup_logging("BaseStrategy")
+# log = logger.logging.getLogger("BaseStrategy")
 
 # The following workaround is needed because of CI execution
 if os.getenv("CI") is None:
@@ -433,6 +433,15 @@ class StockMarketStrategy:
 
         log.debug("Buying {} shares".format(shares))
         return shares
+
+    def get_balance(self, current_balance, previous_balance):
+        current_balance = self.platform.get_current_equity() + self.platform.available_cash
+        if current_balance != previous_balance:
+            # The above code is using Python's logging module to log a message at the INFO level. The
+            # message includes the current balance value formatted to two decimal places.
+            log.debug(f"Balance = {current_balance:.2f}")
+        previous_balance = current_balance
+        return previous_balance
 
     def get_splits(self):
         return self.splits
