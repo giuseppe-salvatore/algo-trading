@@ -2,14 +2,12 @@
 source = lib
 omit = 
 	*__init__.py
-	lib/strategies/gap_at_open.py
-	lib/strategies/macd.py
-	lib/strategies/macrossover.py
-	lib/strategies/mapeaks.py
+	lib/strategies/*
 	lib/market_data_provider/alphavantage.py
-    lib/market_data_provider/marketstack.py
+	lib/market_data_provider/marketstack.py
 	lib/market_data_provider/tiingo.py
 	lib/market_data_provider/financial_modeling.py
 	lib/market_data_provider/polygon.py
 	lib/trading/alpaca.py
+	
 

@@ -27,7 +27,8 @@ verify:
 coverage:
 	source .venv/bin/activate && \
 	export SQLITE_DB_FILE="$$(pwd)/tests/data/test_data.db" && \
-	coverage run -m pytest -s -v tests/*_test.py --html=report.html --self-contained-html
+	coverage run -m pytest -s -v tests/*_test.py -v bdd/scenarios/* --html=report.html --self-contained-html && \
+	coverage report
 
 format:
 	source .venv/bin/activate && \
@@ -51,12 +52,12 @@ test:
 run-dummy:
 	source .venv/bin/activate && \
 	source .env.prod && \
-	python -m lib.backtest.runner lib.strategies dummy DummyStrategy
+	python -m lib.backtest.runner --config-file samples/config-dummy.yaml --log-level INFO
 
 run-macrossover:
 	source .venv/bin/activate && \
 	source .env.prod && \
-	python -m lib.backtest.runner lib.strategies macrossover MACrossoverStrategy
+	python -m lib.backtest.runner --config-file samples/config-macrossover.yaml --log-level INFO
 
 pull-alpaca: install
 	source .venv/bin/activate && \

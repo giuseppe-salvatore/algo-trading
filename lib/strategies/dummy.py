@@ -73,6 +73,8 @@ class DummyStrategy(StockMarketStrategy):
         stop_increase_threshold = 5
 
         counter = 0
+        previous_balance = 0
+        current_balance = 0
         for idx, row in filtered_data.iterrows():
 
             if counter > 50000:
@@ -87,6 +89,7 @@ class DummyStrategy(StockMarketStrategy):
                 break
 
             close_price = row["close"]
+            current_balance = self.get_balance(current_balance, previous_balance)
             self.platform.tick(symbol, Candle(idx, row))
             curr_macd = macd.loc[idx, :]["histogram"]
             if prev_macd is None:
