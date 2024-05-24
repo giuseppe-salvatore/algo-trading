@@ -124,7 +124,7 @@ Feature: Positions
             | long      | 10          | 20             | 400               | 5              | 100               |
             | short     | 10          | 0              | 400               | 15             | 100               |
 
-    Scenario Outline: Open multiple positions tracking equity and cash balance
+    Scenario Outline: Open multiple positions tracking equity and cash balance 
         Given I start a new trading session
         And I deposit 1000$
         And I entered a <DIRECTION> position of 20 AAPL stocks at <ENTER_PRICE>$ per share

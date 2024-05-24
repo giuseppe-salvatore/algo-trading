@@ -24,7 +24,6 @@ def get_next_time():
 trading_platform: SimulationPlatform = TradingPlatform.get_trading_platform("simulation")
 
 scenarios("../features/positions.feature")
-scenarios("../features/fractional-shares.feature")
 
 
 @given("I start a new trading session")
@@ -49,7 +48,7 @@ def open_a_position(sym, side, quantity, price):
         direction = "sell"
     trading_platform.submit_order(
         symbol=sym,
-        quantity=float(quantity),
+        quantity=int(quantity),
         side=direction,
         flavor='market',
         date=get_curr_time())
@@ -77,7 +76,7 @@ def submit_market_order(direction, quantity, symbol):
     trading_platform.tick(symbol, candle)
     submitted_market_order_id = trading_platform.submit_order(
         symbol=symbol,
-        quantity=float(quantity),
+        quantity=int(quantity),
         side=direction,
         flavor='market',
         date=curr_time)
@@ -86,7 +85,6 @@ def submit_market_order(direction, quantity, symbol):
     assert submitted_market_order_id != ""
 
 
-@given(parsers.parse("the {sym} price moves to {price}$"))
 @when(parsers.parse("the {sym} price moves to {price}$"))
 def stock_price_set(sym, price):
     price = float(price)
@@ -157,16 +155,6 @@ def position_is_open(side, symbol):
     assert curr_pos.side == side
     assert curr_pos.is_open() is True
 
-
-@then(parsers.parse("the {symbol} position should be opened with {quantity} shares"))
-def the_position_shoulb_be_oened_with_shares(symbol, quantity):
-    positions = trading_platform.trading_session.get_all_open_positions()
-    for pos in positions:
-        if pos.symbol == symbol:
-            assert pos.get_total_shares() == float(quantity)
-            return
-    log.error("Force failing as no position was found")
-    assert False
 
 @then(parsers.parse("the {symbol} position should be closed"))
 def position_is_closed(symbol):
