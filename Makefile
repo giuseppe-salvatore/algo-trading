@@ -115,7 +115,7 @@ db-info-alphavantage: install
 # Note, this should only be running on silver-boxy
 make-monthly-update:
 	bash script/pull-previous-month-data.sh && \
-	bash sync-data-with-dark-matter.sh; \
+	bash script/sync-data-with-dark-matter.sh; \
 
 .PHONY: clean hard-clean
 clean :
